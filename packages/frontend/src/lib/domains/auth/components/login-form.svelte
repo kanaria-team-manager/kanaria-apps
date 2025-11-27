@@ -124,25 +124,5 @@
         <span class="px-2 bg-card text-muted-foreground">または</span>
       </div>
     </div>
-  
-    <!-- Demo Logins -->
-    <div class="space-y-2">
-      <button
-        type="button"
-        disabled={isLoading}
-        onclick={() => setDemoCredentials('coach')}
-        class="w-full px-4 py-2 border border-border rounded-md text-sm font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        コーチでデモログイン
-      </button>
-      <button
-        type="button"
-        disabled={isLoading}
-        onclick={() => setDemoCredentials('parent')}
-        class="w-full px-4 py-2 border border-border rounded-md text-sm font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        保護者でデモログイン
-      </button>
-    </div>
   </form>
   
