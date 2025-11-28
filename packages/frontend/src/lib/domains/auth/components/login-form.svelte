@@ -1,56 +1,56 @@
 <script lang="ts">
-    import type { LoginCredentials } from '$lib/domains/auth/types';
-    import { validateEmail, validatePassword } from '$lib/domains/auth/validators';
-  
-    let email = $state('');
-    let password = $state('');
-    let isLoading = $state(false);
-    let error = $state('');
-  
-    async function handleLogin(e: Event) {
-      e.preventDefault();
-      error = '';
-  
-      // Validate inputs
-      const emailError = validateEmail(email);
-      if (emailError) {
-        error = emailError;
-        return;
-      }
-  
-      const passwordError = validatePassword(password);
-      if (passwordError) {
-        error = passwordError;
-        return;
-      }
-  
-      isLoading = true;
-  
-      try {
-        const credentials: LoginCredentials = { email, password };
-        console.log('[v0] Login attempt:', credentials.email);
-        
-        // TODO: Replace with actual API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        alert('ログイン成功（実装予定）');
-      } catch (err) {
-        error = err instanceof Error ? err.message : 'ログインに失敗しました';
-      } finally {
-        isLoading = false;
-      }
-    }
-  
-    function setDemoCredentials(type: 'coach' | 'parent') {
-      if (type === 'coach') {
-        email = 'coach@example.com';
-        password = 'demo123456';
-      } else {
-        email = 'parent@example.com';
-        password = 'demo123456';
-      }
-    }
-  </script>
+import type { LoginCredentials } from "$lib/domains/auth/types";
+import { validateEmail, validatePassword } from "$lib/domains/auth/validators";
+
+let email = $state("");
+let password = $state("");
+let isLoading = $state(false);
+let error = $state("");
+
+async function handleLogin(e: Event) {
+  e.preventDefault();
+  error = "";
+
+  // Validate inputs
+  const emailError = validateEmail(email);
+  if (emailError) {
+    error = emailError;
+    return;
+  }
+
+  const passwordError = validatePassword(password);
+  if (passwordError) {
+    error = passwordError;
+    return;
+  }
+
+  isLoading = true;
+
+  try {
+    const credentials: LoginCredentials = { email, password };
+    console.log("[v0] Login attempt:", credentials.email);
+
+    // TODO: Replace with actual API call
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    alert("ログイン成功（実装予定）");
+  } catch (err) {
+    error = err instanceof Error ? err.message : "ログインに失敗しました";
+  } finally {
+    isLoading = false;
+  }
+}
+
+function setDemoCredentials(type: "coach" | "parent") {
+  if (type === "coach") {
+    email = "coach@example.com";
+    password = "demo123456";
+  } else {
+    email = "parent@example.com";
+    password = "demo123456";
+  }
+}
+</script>
   
   <form onsubmit={handleLogin} class="space-y-5">
     {#if error}

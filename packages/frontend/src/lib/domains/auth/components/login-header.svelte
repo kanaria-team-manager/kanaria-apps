@@ -1,5 +1,5 @@
 <script>
-    import kanaria from "$lib/assets/kanaria_logo.png";
+import kanaria from "$lib/assets/kanaria_logo.png";
 </script>
 
 <div class="text-center mb-8">

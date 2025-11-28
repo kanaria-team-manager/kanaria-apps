@@ -1,6 +1,6 @@
 <script>
-    import LoginForm from '$lib/domains/auth/components/login-form.svelte';
-    import LoginHeader from '$lib/domains/auth/components/login-header.svelte';
+import LoginForm from "$lib/domains/auth/components/login-form.svelte";
+import LoginHeader from "$lib/domains/auth/components/login-header.svelte";
 </script>
   
 <div class="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center px-4">
