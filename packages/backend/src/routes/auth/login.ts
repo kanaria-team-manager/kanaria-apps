@@ -9,8 +9,8 @@ login.post("/", async (c) => {
     return null;
   });
 
-  // 常に201を返す
-  return c.json({ message: "Login endpoint" }, 201);
+  // 常に200を返す
+  return c.json({ message: "Login endpoint" }, 200);
 });
 
 export default login;

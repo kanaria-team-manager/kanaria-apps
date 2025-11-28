@@ -1,4 +1,6 @@
 <script lang="ts">
+import { goto } from "$app/navigation";
+import { login } from "$lib/domains/auth/login.js";
 import type { LoginCredentials } from "$lib/domains/auth/types";
 import { validateEmail, validatePassword } from "$lib/domains/auth/validators";
 
@@ -28,12 +30,14 @@ async function handleLogin(e: Event) {
 
   try {
     const credentials: LoginCredentials = { email, password };
-    console.log("[v0] Login attempt:", credentials.email);
+    await login(credentials);
 
-    // TODO: Replace with actual API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // ログイン情報をsessionStorageに保存
+    sessionStorage.setItem("loginEmail", email);
+    sessionStorage.setItem("loginPassword", password);
 
-    alert("ログイン成功（実装予定）");
+    // ダッシュボードへ遷移
+    goto("/dashboard");
   } catch (err) {
     error = err instanceof Error ? err.message : "ログインに失敗しました";
   } finally {
