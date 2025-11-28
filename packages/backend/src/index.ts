@@ -1,9 +1,12 @@
-import { Hono } from 'hono'
+import { Hono } from 'hono';
+import login from './routes/auth/login.js';
 
-const app = new Hono()
+const app = new Hono();
 
 app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
+	return c.text('Hello Hono!');
+});
 
-export default app
+app.route('/auth/login', login);
+
+export default app;
