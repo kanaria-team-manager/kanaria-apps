@@ -3,6 +3,13 @@ export interface LoginCredentials {
   password: string;
 }
 
+export interface SignupCredentials {
+  name: string;
+  email: string;
+  password: string;
+  passwordConfirm: string;
+}
+
 export interface User {
   id: string;
   email: string;
