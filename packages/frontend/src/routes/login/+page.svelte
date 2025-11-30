@@ -9,13 +9,7 @@ import LoginHeader from "$lib/domains/auth/components/login-header.svelte";
 
         <!-- Login Form Card -->
         <div class="bg-card rounded-lg shadow-lg border border-border p-8">
-        <LoginForm />
-
-        <!-- Sign Up Link -->
-        <div class="mt-6 text-center text-sm">
-            <span class="text-muted-foreground">アカウントをお持ちではありませんか？ </span>
-            <a href="/signup" class="text-primary font-semibold hover:underline">新規登録</a>
-        </div>
+            <LoginForm />
         </div>
 
         <!-- Footer -->

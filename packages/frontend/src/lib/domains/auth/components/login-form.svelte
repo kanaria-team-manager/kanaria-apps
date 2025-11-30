@@ -45,14 +45,12 @@ async function handleLogin(e: Event) {
   }
 }
 
-function setDemoCredentials(type: "coach" | "parent") {
-  if (type === "coach") {
-    email = "coach@example.com";
-    password = "demo123456";
-  } else {
-    email = "parent@example.com";
-    password = "demo123456";
-  }
+async function gotoCreateTeam() {
+  goto("/create-team");
+}
+
+async function gotoSignup() {
+  goto("/signup");
 }
 </script>
   
@@ -128,5 +126,25 @@ function setDemoCredentials(type: "coach" | "parent") {
         <span class="px-2 bg-card text-muted-foreground">または</span>
       </div>
     </div>
+
+    <!-- Sign Up Link -->
+    <div class="space-y-2">
+      <button
+        type="button"
+        disabled={isLoading}
+        onclick={() => gotoCreateTeam()}
+        class="w-full px-4 py-2 border border-border rounded-md text-sm font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+      新しくチームを作る
+      </button>
+      <button
+        type="button"
+        disabled={isLoading}
+        onclick={() => gotoSignup()}
+        class="w-full px-4 py-2 border border-border rounded-md text-sm font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+      チームに参加する
+      </button>
+  </div>
   </form>
   
