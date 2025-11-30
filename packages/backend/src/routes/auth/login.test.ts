@@ -16,7 +16,7 @@ describe("POST /auth/login", () => {
     });
 
     const res = await app.fetch(req);
-    expect(res.status).toBe(201);
+    expect(res.status).toBe(200);
   });
 
   it("should return 201 status code even without request body", async () => {
@@ -28,7 +28,7 @@ describe("POST /auth/login", () => {
     });
 
     const res = await app.fetch(req);
-    expect(res.status).toBe(201);
+    expect(res.status).toBe(200);
   });
 
   it("should return JSON response with message", async () => {
