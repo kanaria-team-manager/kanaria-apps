@@ -1,43 +1,45 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-  
-  const dispatch = createEventDispatcher();
-  
-  let teamName = $state('');
-  let teamCode = $state('');
-  let error = $state('');
-  let isLoading = $state(false);
-  
-  async function handleSubmit(e: Event) {
-    e.preventDefault();
-    if (!teamName || !teamCode) {
-      error = 'チーム名とチームコードを入力してください';
-      return;
-    }
-  
-    isLoading = true;
-    error = '';
-  
-    try {
-      // Check if team code is available (should return 404)
-      const response = await fetch(`http://localhost:8787/teams/verify/${teamCode}`);
-      
-      if (response.status === 404) {
-        // Code is available!
-        dispatch('verified', { teamName, teamCode });
-      } else if (response.ok) {
-        // Code is taken (200 OK means it exists)
-        error = 'このチームコードは既に使用されています';
-      } else {
-        error = 'エラーが発生しました。もう一度お試しください。';
-      }
-    } catch (e) {
-      error = '通信エラーが発生しました';
-      console.error(e);
-    } finally {
-      isLoading = false;
-    }
+import { createEventDispatcher } from "svelte";
+
+const dispatch = createEventDispatcher();
+
+let teamName = $state("");
+let teamCode = $state("");
+let error = $state("");
+let isLoading = $state(false);
+
+async function handleSubmit(e: Event) {
+  e.preventDefault();
+  if (!teamName || !teamCode) {
+    error = "チーム名とチームコードを入力してください";
+    return;
   }
+
+  isLoading = true;
+  error = "";
+
+  try {
+    // Check if team code is available (should return 404)
+    const response = await fetch(
+      `http://localhost:8787/teams/verify/${teamCode}`,
+    );
+
+    if (response.status === 404) {
+      // Code is available!
+      dispatch("verified", { teamName, teamCode });
+    } else if (response.ok) {
+      // Code is taken (200 OK means it exists)
+      error = "このチームコードは既に使用されています";
+    } else {
+      error = "エラーが発生しました。もう一度お試しください。";
+    }
+  } catch (e) {
+    error = "通信エラーが発生しました";
+    console.error(e);
+  } finally {
+    isLoading = false;
+  }
+}
 </script>
   
 <form onsubmit={handleSubmit} class="space-y-6">

@@ -2,10 +2,7 @@
 import { goto } from "$app/navigation";
 import { login } from "$lib/domains/auth/login.js";
 import type { LoginCredentials } from "$lib/domains/auth/types";
-import {
-  validateEmail,
-  validatePassword,
-} from "$lib/domains/auth/validators";
+import { validateEmail, validatePassword } from "$lib/domains/auth/validators";
 
 let email = $state("");
 let password = $state("");

@@ -1,7 +1,5 @@
+import { supabase } from "$lib/supabase";
 import type { LoginCredentials } from "./types.js";
-
-const BACKEND_URL =
-  import.meta.env.PUBLIC_BACKEND_URL || "http://localhost:8787";
 
 export interface LoginResponse {
   message: string;
@@ -10,18 +8,14 @@ export interface LoginResponse {
 export async function login(
   credentials: LoginCredentials,
 ): Promise<LoginResponse> {
-  const response = await fetch(`${BACKEND_URL}/auth/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(credentials),
+  const { error } = await supabase.auth.signInWithPassword({
+    email: credentials.email,
+    password: credentials.password,
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`ログインに失敗しました: ${response.status} ${errorText}`);
+  if (error) {
+    throw new Error(error.message);
   }
 
-  return response.json();
+  return { message: "Login successful" };
 }

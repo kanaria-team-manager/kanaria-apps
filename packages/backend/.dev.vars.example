@@ -1,3 +1,0 @@
-# Cloudflare Workers 開発環境用の環境変数
-# このファイルを .dev.vars にコピーして使用してください
-# .dev.vars は .gitignore に含まれているため、Gitにコミットされません

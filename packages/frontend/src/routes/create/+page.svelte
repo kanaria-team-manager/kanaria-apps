@@ -5,7 +5,9 @@ import TeamCreationForm from "$lib/domains/auth/components/team-creation-form.sv
 let isTeamInfoVerified = $state(false);
 let verifiedInfo = $state<{ teamName: string; teamCode: string } | null>(null);
 
-function handleTeamVerified(event: CustomEvent<{ teamName: string; teamCode: string }>) {
+function handleTeamVerified(
+  event: CustomEvent<{ teamName: string; teamCode: string }>,
+) {
   verifiedInfo = event.detail;
   isTeamInfoVerified = true;
 }
@@ -38,7 +40,7 @@ function handleTeamVerified(event: CustomEvent<{ teamName: string; teamCode: str
                 <h2 class="text-lg font-semibold">管理者アカウント作成</h2>
                 <p class="text-xs text-muted-foreground">チーム管理者のアカウントを作成します</p>
             </div>
-			<SignupForm />
+			<SignupForm teamName={verifiedInfo?.teamName} teamCode={verifiedInfo?.teamCode} />
 		  {/if}
   
 		  <!-- Login Link -->

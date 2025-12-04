@@ -7,18 +7,18 @@
 title: domain model
 ---
 erDiagram
-    チーム ||--|{ 管理者 : ""
-    チーム ||--|{ 保護者 : ""
+    チーム ||--|{ ユーザ（管理者） : ""
+    チーム ||--|{ ユーザ（保護者） : ""
     チーム ||--|{ 予定 : ""
-    保護者 ||--|{ 選手 : ""
+    ユーザ（保護者） ||--|{ 選手 : ""
     チーム {
         string account_id
         string team_name
     }
-    管理者 {
+    ユーザ（管理者） {
         string name
     }
-    保護者 {
+    ユーザ（保護者） {
         string name
         string tag(保護者、コーチなど)
     }

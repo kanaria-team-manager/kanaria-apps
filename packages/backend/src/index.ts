@@ -1,9 +1,11 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import login from "./routes/auth/login.js";
+import createTeam from "./routes/teams/create.js";
 import verifyTeam from "./routes/teams/verify.js";
+import type { Bindings, Variables } from "./types.js";
 
-const app = new Hono();
+const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
 // CORSミドルウェアを適用
 app.use(
@@ -24,5 +26,6 @@ app.get("/", (c) => {
 
 app.route("/auth/login", login);
 app.route("/teams", verifyTeam);
+app.route("/teams", createTeam);
 
 export default app;

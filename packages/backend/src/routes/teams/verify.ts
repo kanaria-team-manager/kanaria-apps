@@ -1,19 +1,38 @@
+import { eq } from "drizzle-orm";
 import { Hono } from "hono";
+import { createDb } from "../../db/index.js";
+import { teams } from "../../db/schema.js";
 
-const app = new Hono();
+type Bindings = {
+  DATABASE_URL: string;
+};
 
-app.get("/verify/:code", (c) => {
+const app = new Hono<{ Bindings: Bindings }>();
+
+app.get("/verify/:code", async (c) => {
   const code = c.req.param("code");
+  const db = createDb(c.env.DATABASE_URL);
 
-  if (code === "nothing") {
-    return c.json({ error: "Team not found" }, 404);
+  try {
+    const result = await db
+      .select()
+      .from(teams)
+      .where(eq(teams.code, code))
+      .limit(1);
+
+    if (result.length === 0) {
+      return c.json({ error: "Team not found" }, 404);
+    }
+
+    return c.json({
+      id: result[0].id,
+      name: result[0].name,
+      code: result[0].code,
+    });
+  } catch (e) {
+    console.error(e);
+    return c.json({ error: "Internal Server Error" }, 500);
   }
-
-  return c.json({
-    id: "team_123",
-    name: "Kanaria FC",
-    code: code,
-  });
 });
 
 export default app;

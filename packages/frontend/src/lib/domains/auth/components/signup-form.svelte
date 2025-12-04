@@ -7,6 +7,9 @@ import {
   validatePassword,
   validatePasswordConfirm,
 } from "$lib/domains/auth/validators";
+import { supabase } from "$lib/supabase";
+
+let { teamName, teamCode } = $props<{ teamName?: string; teamCode?: string }>();
 
 let name = $state("");
 let email = $state("");
@@ -14,6 +17,9 @@ let password = $state("");
 let passwordConfirm = $state("");
 let isLoading = $state(false);
 let error = $state("");
+
+const BACKEND_URL =
+  import.meta.env.PUBLIC_BACKEND_URL || "http://localhost:8787";
 
 async function handleRegister(e: Event) {
   e.preventDefault();
@@ -43,23 +49,52 @@ async function handleRegister(e: Event) {
     return;
   }
 
+  if (!teamName || !teamCode) {
+    error = "チーム情報が不足しています。最初からやり直してください。";
+    return;
+  }
+
   isLoading = true;
 
   try {
-    const credentials: SignupCredentials = {
-      name,
+    // 1. Supabase Auth SignUp
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
-      passwordConfirm,
-    };
-    console.log("[v0] Register attempt:", credentials.email);
+      options: {
+        data: {
+          name: name,
+        },
+      },
+    });
 
-    // TODO: Replace with actual API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (authError) throw authError;
+    if (!authData.session) throw new Error("セッションの取得に失敗しました");
 
-    sessionStorage.setItem("signupName", name);
-    sessionStorage.setItem("signupEmail", email);
+    // 2. Backend Team Creation
+    const response = await fetch(`${BACKEND_URL}/teams`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authData.session.access_token}`,
+      },
+      body: JSON.stringify({
+        teamName,
+        teamCode,
+      }),
+    });
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      // Orphan User Handling: User is created in Supabase but Team creation failed.
+      // Ideally we should rollback Supabase user or show a specific error to contact support / retry.
+      console.error("Team creation failed:", errorText);
+      throw new Error(
+        "チームの作成に失敗しました。時間をおいて再試行してください。",
+      );
+    }
+
+    // Success
     goto("/dashboard");
   } catch (err) {
     error = err instanceof Error ? err.message : "登録に失敗しました";
