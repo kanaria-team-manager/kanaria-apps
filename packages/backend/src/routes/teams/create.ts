@@ -40,12 +40,13 @@ app.post("/", async (c) => {
     });
 
     return c.json({ message: "Team created successfully", teamId });
-  } catch (e: any) {
+  } catch (err) {
+    const e = err as { code?: string };
     if (e.code === "23505") {
       // Postgres unique violation code
       return c.json({ error: "Team code already taken" }, 409);
     }
-    console.error(e);
+    console.error(err);
     return c.json({ error: "Failed to create team" }, 500);
   }
 });
