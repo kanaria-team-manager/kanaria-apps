@@ -22,6 +22,13 @@
       "when": 1764856008652,
       "tag": "0002_initial_role_items",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1764950647526,
+      "tag": "0003_open_gladiator",
+      "breakpoints": true
     }
   ]
 }
