@@ -5,6 +5,7 @@ import {
   smallserial,
   text,
   timestamp,
+	uuid,
   varchar,
 } from "drizzle-orm/pg-core";
 
@@ -12,6 +13,10 @@ export const TEAM_CODE_MAX_LENGTH = 32;
 export const TEAM_STATUS = {
 	CREATED: 0,
 	ACTIVE: 1
+};
+export const USER_STATUS = {
+	TEMPORARY: 0,
+	CONFIRMED: 1
 };
 
 export const ulid = customType<{ data: string }>({
@@ -33,13 +38,14 @@ export const teams = pgTable("teams", {
 
 export const users = pgTable("users", {
   id: ulid("id").primaryKey(), // varchar(26)
-  userId: ulid("user_id").notNull(), // Supabase Auth User ID
+  supabaseUserId: uuid("supabase_user_id").notNull(), // Supabase Auth User ID
   teamId: ulid("team_id")
     .notNull()
     .references(() => teams.id),
-  roleId: smallserial("role_id")
+  roleId: smallint("role_id")
     .notNull()
     .references(() => roles.id),
+	status: smallint("status").default(USER_STATUS.TEMPORARY).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

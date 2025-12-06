@@ -1,20 +1,21 @@
 <script lang="ts">
+import { goto } from "$app/navigation";
+import { supabase } from "$lib/supabase";
 import { onMount } from "svelte";
 
 let email = $state("");
-let password = $state("");
+let userId = $state("");
 
-onMount(() => {
-  // sessionStorageからログイン情報を取得
-  const storedEmail = sessionStorage.getItem("loginEmail");
-  const storedPassword = sessionStorage.getItem("loginPassword");
+onMount(async () => {
+  const { data: { user }, error } = await supabase.auth.getUser();
 
-  if (storedEmail) {
-    email = storedEmail;
+  if (error || !user) {
+    goto("/login");
+    return;
   }
-  if (storedPassword) {
-    password = storedPassword;
-  }
+
+  email = user.email || "";
+  userId = user.id;
 });
 </script>
 
@@ -37,9 +38,9 @@ onMount(() => {
 
 				<div>
 					<label class="block text-sm font-medium text-muted-foreground mb-1">
-						パスワード
+						ユーザーID
 					</label>
-					<p class="text-foreground">{password || "（未設定）"}</p>
+					<p class="text-foreground">{userId || "（未設定）"}</p>
 				</div>
 			</div>
 		</div>

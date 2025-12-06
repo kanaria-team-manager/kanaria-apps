@@ -1,17 +1,18 @@
 import { Hono } from "hono";
 import { ulid } from "ulid";
 import { createDb } from "../../db/index.js";
-import { teams, users } from "../../db/schema.js";
-import { authMiddleware } from "../../middleware/auth.js";
+import { teams, USER_STATUS, users } from "../../db/schema.js";
+// import { authMiddleware } from "../../middleware/auth.js";
 import type { Bindings, Variables } from "../../types.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
-app.use("*", authMiddleware);
+// Note: This endpoint is public to allow team creation during signup (before email verification)
+// app.use("*", authMiddleware); 
 
 app.post("/", async (c) => {
-  const user = c.get("user");
-  const { teamName, teamCode } = await c.req.json();
+  // const user = c.get("user");
+  const { supabaseUserId, teamName, teamCode } = await c.req.json();
 
   if (!teamName || !teamCode) {
     return c.json({ error: "Missing required fields" }, 400);
@@ -21,7 +22,7 @@ app.post("/", async (c) => {
 
   try {
     const teamId = ulid();
-    const userId = ulid();
+    const userRecordId = ulid();
 
     // Use transaction to ensure both team and user (owner) are created
     await db.transaction(async (tx) => {
@@ -31,11 +32,13 @@ app.post("/", async (c) => {
         code: teamCode,
       });
 
+			// owner user も同時に作成する
       await tx.insert(users).values({
-        id: userId,
-        userId: user.id, // Supabase User ID (UUID)
+        id: userRecordId,
+        supabaseUserId: supabaseUserId,
         teamId: teamId,
-        roleId: 0, // 0: owner
+        roleId: 0, // 0: owner defaultvalue
+				status: USER_STATUS.TEMPORARY,
       });
     });
 

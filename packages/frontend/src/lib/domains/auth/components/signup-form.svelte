@@ -69,16 +69,16 @@ async function handleRegister(e: Event) {
     });
 
     if (authError) throw authError;
-    if (!authData.session) throw new Error("セッションの取得に失敗しました");
+    if (!authData.user) throw new Error("ユーザー作成に失敗しました");
 
     // 2. Backend Team Creation
     const response = await fetch(`${BACKEND_URL}/teams`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${authData.session.access_token}`,
       },
       body: JSON.stringify({
+        supabaseUserId: authData.user.id,
         teamName,
         teamCode,
       }),
@@ -95,7 +95,7 @@ async function handleRegister(e: Event) {
     }
 
     // Success
-    goto("/dashboard");
+    goto("/auth/verify-email");
   } catch (err) {
     error = err instanceof Error ? err.message : "登録に失敗しました";
   } finally {

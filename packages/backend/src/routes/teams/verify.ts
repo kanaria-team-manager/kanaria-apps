@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
+import { eq, ne, and } from "drizzle-orm";
 import { Hono } from "hono";
 import { createDb } from "../../db/index.js";
-import { teams } from "../../db/schema.js";
+import { teams, TEAM_STATUS } from "../../db/schema.js";
 
 type Bindings = {
   DATABASE_URL: string;
@@ -17,7 +17,12 @@ app.get("/verify/:code", async (c) => {
     const result = await db
       .select()
       .from(teams)
-      .where(eq(teams.code, code))
+      .where(
+        and(
+          eq(teams.code, code),
+          ne(teams.status, TEAM_STATUS.CREATED)
+        )
+      )
       .limit(1);
 
     if (result.length === 0) {

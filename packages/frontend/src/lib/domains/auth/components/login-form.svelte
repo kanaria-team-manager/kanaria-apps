@@ -32,10 +32,6 @@ async function handleLogin(e: Event) {
     const credentials: LoginCredentials = { email, password };
     await login(credentials);
 
-    // ログイン情報をsessionStorageに保存
-    sessionStorage.setItem("loginEmail", email);
-    sessionStorage.setItem("loginPassword", password);
-
     // ダッシュボードへ遷移
     goto("/dashboard");
   } catch (err) {
