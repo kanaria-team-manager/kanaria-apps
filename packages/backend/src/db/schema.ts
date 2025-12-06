@@ -5,18 +5,18 @@ import {
   smallserial,
   text,
   timestamp,
-	uuid,
+  uuid,
   varchar,
 } from "drizzle-orm/pg-core";
 
 export const TEAM_CODE_MAX_LENGTH = 32;
 export const TEAM_STATUS = {
-	CREATED: 0,
-	ACTIVE: 1
+  CREATED: 0,
+  ACTIVE: 1,
 };
 export const USER_STATUS = {
-	TEMPORARY: 0,
-	CONFIRMED: 1
+  TEMPORARY: 0,
+  CONFIRMED: 1,
 };
 
 export const ulid = customType<{ data: string }>({
@@ -28,7 +28,7 @@ export const teams = pgTable("teams", {
   name: text("name").notNull(),
   code: varchar("code", { length: TEAM_CODE_MAX_LENGTH }).notNull().unique(),
   description: text("description"),
-	status: smallint("status").default(TEAM_STATUS.CREATED).notNull(),
+  status: smallint("status").default(TEAM_STATUS.CREATED).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -45,9 +45,9 @@ export const users = pgTable("users", {
   roleId: smallint("role_id")
     .notNull()
     .references(() => roles.id),
-	status: smallint("status").default(USER_STATUS.TEMPORARY).notNull(),
-	name: text("name").notNull(),
-	email: text("email").notNull(),
+  status: smallint("status").default(USER_STATUS.TEMPORARY).notNull(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

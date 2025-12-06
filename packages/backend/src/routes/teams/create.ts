@@ -1,24 +1,29 @@
 import { Hono } from "hono";
 import { ulid } from "ulid";
 import { createDb } from "../../db/index.js";
-import { teams, USER_STATUS, users } from "../../db/schema.js";
+import { TeamRepository } from "../../db/repositories/TeamRepository.js";
+import { UserRepository } from "../../db/repositories/UserRepository.js";
+import { USER_STATUS } from "../../db/schema.js";
 // import { authMiddleware } from "../../middleware/auth.js";
 import type { Bindings, Variables } from "../../types.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
 // Note: This endpoint is public to allow team creation during signup (before email verification)
-// app.use("*", authMiddleware); 
+// app.use("*", authMiddleware);
 
 app.post("/", async (c) => {
   // const user = c.get("user");
-  const { supabaseUserId, teamName, teamCode, name, email } = await c.req.json();
+  const { supabaseUserId, teamName, teamCode, name, email } =
+    await c.req.json();
 
   if (!teamName || !teamCode || !name || !email) {
     return c.json({ error: "Missing required fields" }, 400);
   }
 
   const db = createDb(c.env.DATABASE_URL);
+  const teamRepo = new TeamRepository(db);
+  const userRepo = new UserRepository(db);
 
   try {
     const teamId = ulid();
@@ -26,22 +31,28 @@ app.post("/", async (c) => {
 
     // Use transaction to ensure both team and user (owner) are created
     await db.transaction(async (tx) => {
-      await tx.insert(teams).values({
-        id: teamId,
-        name: teamName,
-        code: teamCode,
-      });
+      await teamRepo.create(
+        {
+          id: teamId,
+          name: teamName,
+          code: teamCode,
+        },
+        tx,
+      );
 
-			// owner user も同時に作成する
-      await tx.insert(users).values({
-        id: userRecordId,
-        supabaseUserId: supabaseUserId,
-        teamId: teamId,
-        roleId: 0, // 0: owner defaultvalue
-				status: USER_STATUS.TEMPORARY,
-        name,
-        email,
-      });
+      // owner user も同時に作成する
+      await userRepo.create(
+        {
+          id: userRecordId,
+          supabaseUserId: supabaseUserId,
+          teamId: teamId,
+          roleId: 0, // 0: owner defaultvalue
+          status: USER_STATUS.TEMPORARY,
+          name,
+          email,
+        },
+        tx,
+      );
     });
 
     return c.json({ message: "Team created successfully", teamId });

@@ -1,7 +1,7 @@
-import { eq, ne, and } from "drizzle-orm";
 import { Hono } from "hono";
 import { createDb } from "../../db/index.js";
-import { teams, TEAM_STATUS } from "../../db/schema.js";
+import { TeamRepository } from "../../db/repositories/TeamRepository.js";
+import { TEAM_STATUS } from "../../db/schema.js";
 
 type Bindings = {
   DATABASE_URL: string;
@@ -12,27 +12,19 @@ const app = new Hono<{ Bindings: Bindings }>();
 app.get("/verify/:code", async (c) => {
   const code = c.req.param("code");
   const db = createDb(c.env.DATABASE_URL);
+  const teamRepo = new TeamRepository(db);
 
   try {
-    const result = await db
-      .select()
-      .from(teams)
-      .where(
-        and(
-          eq(teams.code, code),
-          ne(teams.status, TEAM_STATUS.CREATED)
-        )
-      )
-      .limit(1);
+    const team = await teamRepo.findByCode(code);
 
-    if (result.length === 0) {
+    if (!team || team.status === TEAM_STATUS.CREATED) {
       return c.json({ error: "Team not found" }, 404);
     }
 
     return c.json({
-      id: result[0].id,
-      name: result[0].name,
-      code: result[0].code,
+      id: team.id,
+      name: team.name,
+      code: team.code,
     });
   } catch (e) {
     console.error(e);
