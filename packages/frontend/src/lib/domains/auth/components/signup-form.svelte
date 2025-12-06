@@ -65,6 +65,7 @@ async function handleRegister(e: Event) {
         data: {
           name: name,
         },
+        emailRedirectTo: `${window.location.origin}/auth/activate`,
       },
     });
 
@@ -81,6 +82,8 @@ async function handleRegister(e: Event) {
         supabaseUserId: authData.user.id,
         teamName,
         teamCode,
+        name,
+        email,
       }),
     });
 

@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import login from "./routes/auth/login.js";
+import activateTeam from "./routes/teams/activate.js";
 import createTeam from "./routes/teams/create.js";
 import verifyTeam from "./routes/teams/verify.js";
 import type { Bindings, Variables } from "./types.js";
@@ -27,5 +28,6 @@ app.get("/", (c) => {
 app.route("/auth/login", login);
 app.route("/teams", verifyTeam);
 app.route("/teams", createTeam);
+app.route("/teams", activateTeam);
 
 export default app;

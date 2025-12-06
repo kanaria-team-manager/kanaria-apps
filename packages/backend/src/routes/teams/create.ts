@@ -12,9 +12,9 @@ const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
 app.post("/", async (c) => {
   // const user = c.get("user");
-  const { supabaseUserId, teamName, teamCode } = await c.req.json();
+  const { supabaseUserId, teamName, teamCode, name, email } = await c.req.json();
 
-  if (!teamName || !teamCode) {
+  if (!teamName || !teamCode || !name || !email) {
     return c.json({ error: "Missing required fields" }, 400);
   }
 
@@ -39,6 +39,8 @@ app.post("/", async (c) => {
         teamId: teamId,
         roleId: 0, // 0: owner defaultvalue
 				status: USER_STATUS.TEMPORARY,
+        name,
+        email,
       });
     });
 
