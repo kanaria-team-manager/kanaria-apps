@@ -46,6 +46,8 @@ export const users = pgTable("users", {
     .notNull()
     .references(() => roles.id),
 	status: smallint("status").default(USER_STATUS.TEMPORARY).notNull(),
+	name: text("name").notNull(),
+	email: text("email").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

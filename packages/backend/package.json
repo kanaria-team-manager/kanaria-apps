@@ -9,7 +9,10 @@
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "biome check --error-on-warnings"
+    "lint": "biome check --error-on-warnings",
+    "drizzle:generate": "drizzle-kit generate",
+    "drizzle:generate:dml": "drizzle-kit generate --custom",
+    "drizzle:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.86.0",
