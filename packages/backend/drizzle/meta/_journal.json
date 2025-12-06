@@ -5,36 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1764849895498,
-      "tag": "0000_useful_nico_minoru",
+      "when": 1765008141208,
+      "tag": "0000_kind_molly_hayes",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1764855724605,
-      "tag": "0001_rapid_lady_ursula",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1764856008652,
-      "tag": "0002_initial_role_items",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1764950647526,
-      "tag": "0003_open_gladiator",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1765007277629,
-      "tag": "0004_workable_ulik",
+      "when": 1765008296581,
+      "tag": "0001_init_roles",
       "breakpoints": true
     }
   ]

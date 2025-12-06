@@ -1,3 +1,0 @@
-ALTER TABLE "roles" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "teams" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "users" ENABLE ROW LEVEL SECURITY;

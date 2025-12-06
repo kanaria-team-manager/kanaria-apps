@@ -1,1 +1,0 @@
-ALTER TABLE "teams" ADD COLUMN "status" smallint DEFAULT 0 NOT NULL;
