@@ -1,13 +1,17 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-svelte";
 import Page from "./+page.svelte";
 
+vi.mock("$app/navigation", () => ({
+  goto: vi.fn(),
+}));
+
 describe("/+page.svelte", () => {
-  it("should render h1", async () => {
+  it("should render redirect message", async () => {
     render(Page);
 
-    const heading = page.getByRole("heading", { level: 1 });
-    await expect.element(heading).toBeInTheDocument();
+    const message = page.getByText("リダイレクト中...");
+    await expect.element(message).toBeInTheDocument();
   });
 });
