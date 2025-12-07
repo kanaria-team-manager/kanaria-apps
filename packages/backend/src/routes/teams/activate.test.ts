@@ -28,12 +28,11 @@ describe("GET /teams/activate", () => {
   it("should return 404 if user not found", async () => {
     // Mock UserRepository behavior
     vi.mocked(UserRepository).mockImplementation(
-      () =>
-        ({
-          findBySupabaseId: vi.fn().mockResolvedValue(null),
-          updateStatus: vi.fn(),
-          // biome-ignore lint/suspicious/noExplicitAny: Mock Implementation
-        }) as any,
+      class {
+        findBySupabaseId = vi.fn().mockResolvedValue(null);
+        updateStatus = vi.fn();
+        // biome-ignore lint/suspicious/noExplicitAny: Mock Implementation
+      } as any,
     );
 
     const app = new Hono();
@@ -50,26 +49,24 @@ describe("GET /teams/activate", () => {
     const mockUpdateStatusTeam = vi.fn();
 
     vi.mocked(UserRepository).mockImplementation(
-      () =>
-        ({
-          findBySupabaseId: vi.fn().mockResolvedValue({
-            id: "user_rec_1",
-            teamId: "team_1",
-            status: 0, // TEMPORARY
-          }),
-          updateStatus: mockUpdateStatusUser,
-          // biome-ignore lint/suspicious/noExplicitAny: Mock Implementation
-        }) as any,
+      class {
+        findBySupabaseId = vi.fn().mockResolvedValue({
+          id: "user_rec_1",
+          teamId: "team_1",
+          status: 0, // TEMPORARY
+        });
+        updateStatus = mockUpdateStatusUser;
+        // biome-ignore lint/suspicious/noExplicitAny: Mock Implementation
+      } as any,
     );
 
     vi.mocked(TeamRepository).mockImplementation(
-      () =>
-        ({
-          updateStatus: mockUpdateStatusTeam,
-          create: vi.fn(),
-          findByCode: vi.fn(),
-          // biome-ignore lint/suspicious/noExplicitAny: Mock Implementation
-        }) as any,
+      class {
+        updateStatus = mockUpdateStatusTeam;
+        create = vi.fn();
+        findByCode = vi.fn();
+        // biome-ignore lint/suspicious/noExplicitAny: Mock Implementation
+      } as any,
     );
 
     // Need to mock db.transaction as well because activate.ts calls db.transaction
