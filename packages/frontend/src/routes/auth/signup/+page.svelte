@@ -45,7 +45,7 @@ function handleTeamVerified(event: CustomEvent<{ team: { name: string } }>) {
           <span class="text-muted-foreground"
             >すでにアカウントをお持ちですか？
           </span>
-          <a href="/login" class="text-primary font-semibold hover:underline"
+          <a href="/auth/login" class="text-primary font-semibold hover:underline"
             >ログイン</a
           >
         </div>

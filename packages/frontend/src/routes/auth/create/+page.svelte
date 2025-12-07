@@ -46,7 +46,7 @@ function handleTeamVerified(
 		  <!-- Login Link -->
 		  <div class="mt-6 text-center text-sm">
 			<span class="text-muted-foreground">すでにチームをお持ちですか？ </span>
-			<a href="/login" class="text-primary font-semibold hover:underline">ログイン</a>
+			<a href="/auth/login" class="text-primary font-semibold hover:underline">ログイン</a>
 		  </div>
 		</div>
 	  </div>

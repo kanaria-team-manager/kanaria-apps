@@ -19,7 +19,7 @@
           });
           
           if (response.ok) {
-            goto('/login?activated=true');
+            goto('/auth/login?activated=true');
           } else {
             const data = await response.json();
             error = data.error || "Activation failed";
@@ -60,7 +60,7 @@
         <h2 class="mt-6 text-3xl font-extrabold text-red-600">有効化に失敗しました</h2>
         <p class="mt-2 text-sm text-gray-600">{error}</p>
         <div class="mt-5">
-          <a href="/login" class="font-medium text-indigo-600 hover:text-indigo-500">
+          <a href="/auth/login" class="font-medium text-indigo-600 hover:text-indigo-500">
             ログインページへ戻る
           </a>
         </div>

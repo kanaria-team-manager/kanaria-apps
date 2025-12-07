@@ -7,6 +7,8 @@
   /* Color tokens for Tailwind */
   --color-primary: oklch(0.55 0.13 250);
   --color-primary-foreground: oklch(0.98 0 0);
+  --color-secondary: #f1f5f9;
+  --color-secondary-foreground: #0f172a;
   --color-accent: oklch(0.62 0.28 50);
   --color-accent-foreground: oklch(0.98 0 0);
   --color-background: oklch(0.98 0 0);
@@ -17,6 +19,15 @@
   --color-input: oklch(0.96 0 0);
   --color-muted: oklch(0.92 0 0);
   --color-muted-foreground: oklch(0.45 0 0);
+
+  --color-hover: #f1f5f9;
+
+  --color-match: #f97316;
+  --color-match-light: #fff7ed;
+  --color-practice: #3b82f6;
+  --color-practice-light: #eff6ff;
+  --color-event: #8b5cf6;
+  --color-event-light: #f5f3ff;
 }
 
 :root {

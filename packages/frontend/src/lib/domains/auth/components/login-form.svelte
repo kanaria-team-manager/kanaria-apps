@@ -42,11 +42,11 @@ async function handleLogin(e: Event) {
 }
 
 async function gotoCreate() {
-  goto("/create");
+  goto("/auth/create");
 }
 
 async function gotoSignup() {
-  goto("/signup");
+  goto("/auth/signup");
 }
 </script>
 
