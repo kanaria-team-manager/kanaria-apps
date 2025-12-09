@@ -1,4 +1,10 @@
-import { pgTable, smallint, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  smallint,
+  text,
+  timestamp,
+  varchar,
+} from "drizzle-orm/pg-core";
 import { TEAM_CODE_MAX_LENGTH, TEAM_STATUS, ulid } from "./utils";
 
 export const teams = pgTable("teams", {
