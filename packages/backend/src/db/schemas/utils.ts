@@ -9,6 +9,10 @@ export const USER_STATUS = {
   TEMPORARY: 0,
   CONFIRMED: 1,
 };
+export const LABEL_SYSTEM_FLAG = {
+  SYSTEM: 0,
+  CUSTOM: 1,
+};
 
 export const ulid = customType<{ data: string }>({
   dataType: () => "varchar(26)",
