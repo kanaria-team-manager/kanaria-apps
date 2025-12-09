@@ -1,17 +1,13 @@
 import { Hono } from "hono";
-import { createDb } from "../../db/index.js";
 import { TeamRepository } from "../../db/repositories/TeamRepository.js";
 import { TEAM_STATUS } from "../../db/schema.js";
+import type { Bindings, Variables } from "../../types.js";
 
-type Bindings = {
-  DATABASE_URL: string;
-};
-
-const app = new Hono<{ Bindings: Bindings }>();
+const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
 app.get("/verify/:code", async (c) => {
   const code = c.req.param("code");
-  const db = createDb(c.env.DATABASE_URL);
+  const db = c.get("db");
   const teamRepo = new TeamRepository(db);
 
   try {

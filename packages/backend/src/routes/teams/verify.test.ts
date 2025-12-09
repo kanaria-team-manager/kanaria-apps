@@ -24,6 +24,14 @@ describe("GET /teams/verify/:code", () => {
     dbModule.createDb.mockReturnValue(mockDb);
 
     const app = new Hono();
+
+    // Inject mock DB
+    app.use("*", async (c, next) => {
+        // @ts-expect-error Mocking context
+        c.set("db", mockDb);
+        await next();
+    });
+
     app.route("/teams", verifyTeam);
 
     const req = new Request("http://localhost/teams/verify/nothing");
@@ -54,6 +62,14 @@ describe("GET /teams/verify/:code", () => {
     dbModule.createDb.mockReturnValue(mockDb);
 
     const app = new Hono();
+
+    // Inject mock DB
+    app.use("*", async (c, next) => {
+        // @ts-expect-error Mocking context
+        c.set("db", mockDb);
+        await next();
+    });
+
     app.route("/teams", verifyTeam);
 
     const req = new Request("http://localhost/teams/verify/test");

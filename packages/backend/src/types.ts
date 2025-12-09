@@ -1,4 +1,6 @@
 import type { User } from "@supabase/supabase-js";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type * as schema from "./db/schema.js";
 
 export type Bindings = {
   DATABASE_URL: string;
@@ -9,4 +11,5 @@ export type Bindings = {
 
 export type Variables = {
   user: User;
+  db: PostgresJsDatabase<typeof schema>;
 };

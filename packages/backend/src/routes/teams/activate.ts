@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { createDb } from "../../db/index.js";
 import { TeamRepository } from "../../db/repositories/TeamRepository.js";
 import { UserRepository } from "../../db/repositories/UserRepository.js";
 import { TEAM_STATUS, USER_STATUS } from "../../db/schema.js";
@@ -12,7 +11,7 @@ app.use("*", authMiddleware);
 
 app.get("/activate", async (c) => {
   const user = c.get("user");
-  const db = createDb(c.env.DATABASE_URL);
+  const db = c.get("db");
   const userRepo = new UserRepository(db);
   const teamRepo = new TeamRepository(db);
 

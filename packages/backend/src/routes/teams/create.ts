@@ -1,6 +1,5 @@
 import { Hono } from "hono";
 import { ulid } from "ulid";
-import { createDb } from "../../db/index.js";
 import { TeamRepository } from "../../db/repositories/TeamRepository.js";
 import { UserRepository } from "../../db/repositories/UserRepository.js";
 import { USER_STATUS } from "../../db/schema.js";
@@ -21,7 +20,7 @@ app.post("/", async (c) => {
     return c.json({ error: "Missing required fields" }, 400);
   }
 
-  const db = createDb(c.env.DATABASE_URL);
+  const db = c.get("db");
   const teamRepo = new TeamRepository(db);
   const userRepo = new UserRepository(db);
 

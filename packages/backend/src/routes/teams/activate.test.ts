@@ -36,6 +36,14 @@ describe("GET /teams/activate", () => {
     );
 
     const app = new Hono();
+
+    // Inject mock DB
+    app.use("*", async (c, next) => {
+        // @ts-expect-error Mocking context
+        c.set("db", {} as any);
+        await next();
+    });
+
     app.route("/teams", activateTeam);
 
     const req = new Request("http://localhost/teams/activate");
@@ -82,6 +90,14 @@ describe("GET /teams/activate", () => {
     vi.mocked(createDb).mockReturnValue(mockDb as any);
 
     const app = new Hono();
+
+    // Inject mock DB
+    app.use("*", async (c, next) => {
+        // @ts-expect-error Mocking context
+        c.set("db", mockDb);
+        await next();
+    });
+
     app.route("/teams", activateTeam);
 
     const req = new Request("http://localhost/teams/activate");

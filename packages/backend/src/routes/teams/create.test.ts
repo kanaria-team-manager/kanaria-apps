@@ -13,6 +13,14 @@ describe("POST /teams", () => {
 
   it("should return 400 if fields are missing", async () => {
     const app = new Hono();
+
+    // Inject mock DB
+    app.use("*", async (c, next) => {
+        // @ts-expect-error Mocking context
+        c.set("db", {} as any);
+        await next();
+    });
+
     app.route("/teams", createTeam);
 
     const req = new Request("http://localhost/teams", {
@@ -40,6 +48,14 @@ describe("POST /teams", () => {
     dbModule.createDb.mockReturnValue(mockDb);
 
     const app = new Hono();
+    
+    // Inject mock DB
+    app.use("*", async (c, next) => {
+        // @ts-expect-error Mocking context
+        c.set("db", mockDb);
+        await next();
+    });
+
     app.route("/teams", createTeam);
 
     const req = new Request("http://localhost/teams", {

@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { dbMiddleware } from "./middleware/db.js";
 import login from "./routes/auth/login.js";
 import activateTeam from "./routes/teams/activate.js";
 import createTeam from "./routes/teams/create.js";
@@ -8,7 +9,7 @@ import type { Bindings, Variables } from "./types.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
-// CORSミドルウェアを適用
+// middleware
 app.use(
   "/*",
   cors({
@@ -20,6 +21,8 @@ app.use(
     credentials: true,
   }),
 );
+
+app.use("*", dbMiddleware);
 
 app.get("/", (c) => {
   return c.text("Hello Hono!");
