@@ -1,0 +1,1 @@
+ALTER TABLE "tags" ADD COLUMN "system_flag" smallint DEFAULT 1 NOT NULL;
