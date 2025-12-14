@@ -1,14 +1,14 @@
 <script>
-  let { 
-    open = $bindable(), 
-    grades, 
-    eventTypes, 
-    selectedGrades, 
-    selectedTypes, 
-    toggleGrade, 
-    toggleType,
-    clearFilters 
-  } = $props();
+let {
+  open = $bindable(),
+  grades,
+  eventTypes,
+  selectedGrades,
+  selectedTypes,
+  toggleGrade,
+  toggleType,
+  clearFilters,
+} = $props();
 </script>
 
 <!-- Overlay for mobile -->

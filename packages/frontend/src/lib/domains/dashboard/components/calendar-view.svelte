@@ -1,63 +1,69 @@
 <script lang="ts">
-  let { events, currentMonth, handleDateSelect, selectedDate } = $props();
+let {
+  events,
+  currentMonth,
+  handleDateSelect,
+  selectedDate,
+  eventTypes = [],
+} = $props();
 
-  const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+const weekDays = ["日", "月", "火", "水", "木", "金", "土"];
 
-  function getDaysInMonth(date: Date) {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDay = firstDay.getDay();
-    
-    const days = [];
-    
-    // Previous month days
-    const prevMonth = new Date(year, month, 0);
-    const prevMonthDays = prevMonth.getDate();
-    for (let i = startingDay - 1; i >= 0; i--) {
-      days.push({
-        date: new Date(year, month - 1, prevMonthDays - i),
-        isCurrentMonth: false
-      });
-    }
-    
-    // Current month days
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push({
-        date: new Date(year, month, i),
-        isCurrentMonth: true
-      });
-    }
-    
-    // Next month days
-    const remainingDays = 42 - days.length;
-    for (let i = 1; i <= remainingDays; i++) {
-      days.push({
-        date: new Date(year, month + 1, i),
-        isCurrentMonth: false
-      });
-    }
-    
-    return days;
+function getDaysInMonth(date: Date) {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const daysInMonth = lastDay.getDate();
+  const startingDay = firstDay.getDay();
+
+  const days = [];
+
+  // Previous month days
+  const prevMonth = new Date(year, month, 0);
+  const prevMonthDays = prevMonth.getDate();
+  for (let i = startingDay - 1; i >= 0; i--) {
+    days.push({
+      date: new Date(year, month - 1, prevMonthDays - i),
+      isCurrentMonth: false,
+    });
   }
 
-  function getEventsForDate(date: Date) {
-    return events.filter(event => 
-      event.date.toDateString() === date.toDateString()
-    );
+  // Current month days
+  for (let i = 1; i <= daysInMonth; i++) {
+    days.push({
+      date: new Date(year, month, i),
+      isCurrentMonth: true,
+    });
   }
 
-  function isToday(date: Date) {
-    return date.toDateString() === new Date().toDateString();
+  // Next month days
+  const remainingDays = 42 - days.length;
+  for (let i = 1; i <= remainingDays; i++) {
+    days.push({
+      date: new Date(year, month + 1, i),
+      isCurrentMonth: false,
+    });
   }
 
-  function isSelected(date: Date) {
-    return selectedDate && date.toDateString() === selectedDate.toDateString();
-  }
+  return days;
+}
 
-  const days = $derived(getDaysInMonth(currentMonth));
+function getEventsForDate(date: Date) {
+  return events.filter(
+    (event) => event.date.toDateString() === date.toDateString(),
+  );
+}
+
+function isToday(date: Date) {
+  return date.toDateString() === new Date().toDateString();
+}
+
+function isSelected(date: Date) {
+  return selectedDate && date.toDateString() === selectedDate.toDateString();
+}
+
+const days = $derived(getDaysInMonth(currentMonth));
 </script>
 
 <div class="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
@@ -101,14 +107,13 @@
           
           <div class="flex-1 space-y-1 overflow-hidden">
             {#each dayEvents.slice(0, 3) as event}
+              {@const typeInfo = eventTypes.find(t => t.id === event.type)}
               <div class="
                 text-xs px-1.5 py-0.5 rounded truncate font-medium
-                {event.type === 'match' ? 'bg-match-light text-match' : 
-                 event.type === 'practice' ? 'bg-practice-light text-practice' : 
-                 'bg-event-light text-event'}
+                {typeInfo ? typeInfo.color + '/10 ' + typeInfo.color.replace('bg-', 'text-') : 'bg-gray-100 text-gray-800'}
               ">
                 <span class="hidden sm:inline">{event.title}</span>
-                <span class="sm:hidden">{event.type === 'match' ? '試' : event.type === 'practice' ? '練' : 'イ'}</span>
+                <span class="sm:hidden">{typeInfo ? typeInfo.label.charAt(0) : 'E'}</span>
               </div>
             {/each}
             {#if dayEvents.length > 3}
@@ -125,16 +130,10 @@
 
 <!-- Event Legend -->
 <div class="mt-4 flex flex-wrap items-center gap-4 text-sm">
-  <div class="flex items-center gap-2">
-    <span class="w-3 h-3 rounded-full bg-match"></span>
-    <span class="text-muted-foreground">試合</span>
-  </div>
-  <div class="flex items-center gap-2">
-    <span class="w-3 h-3 rounded-full bg-practice"></span>
-    <span class="text-muted-foreground">練習</span>
-  </div>
-  <div class="flex items-center gap-2">
-    <span class="w-3 h-3 rounded-full bg-event"></span>
-    <span class="text-muted-foreground">イベント</span>
-  </div>
+  {#each eventTypes as type}
+    <div class="flex items-center gap-2">
+      <span class="w-3 h-3 rounded-full {type.color}"></span>
+      <span class="text-muted-foreground">{type.label}</span>
+    </div>
+  {/each}
 </div>

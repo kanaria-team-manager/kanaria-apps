@@ -1,31 +1,37 @@
 <script>
-  let { events } = $props();
+let { events, eventTypes = [] } = $props();
 
-  const sortedEvents = $derived(
-    [...events].sort((a, b) => a.date.getTime() - b.date.getTime())
-  );
+const sortedEvents = $derived(
+  [...events].sort((a, b) => a.date.getTime() - b.date.getTime()),
+);
 
-  function formatDate(date) {
-    const days = ['日', '月', '火', '水', '木', '金', '土'];
-    return `${date.getMonth() + 1}/${date.getDate()}(${days[date.getDay()]})`;
+function formatDate(date) {
+  const days = ["日", "月", "火", "水", "木", "金", "土"];
+  return `${date.getMonth() + 1}/${date.getDate()}(${days[date.getDay()]})`;
+}
+
+function formatTime(date) {
+  return `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+}
+
+function isUpcoming(date) {
+  return date.getTime() >= new Date().setHours(0, 0, 0, 0);
+}
+
+function getTypeIcon(typeId) {
+  const typeInfo = eventTypes.find((t) => t.id === typeId);
+  if (!typeInfo) return "";
+
+  // Fallback logic for icons based on label name (since fetched data doesn't have icon info yet)
+  // Or we could check color if consistent.
+  if (typeInfo.label === "試合") {
+    return `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />`;
+  } else if (typeInfo.label === "練習") {
+    return `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />`;
   }
-
-  function formatTime(date) {
-    return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-  }
-
-  function isUpcoming(date) {
-    return date.getTime() >= new Date().setHours(0, 0, 0, 0);
-  }
-
-  function getTypeIcon(type) {
-    if (type === 'match') {
-      return `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />`;
-    } else if (type === 'practice') {
-      return `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />`;
-    }
-    return `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />`;
-  }
+  // Default event icon
+  return `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />`;
+}
 </script>
 
 <div class="space-y-3">
@@ -39,6 +45,7 @@
     </div>
   {:else}
     {#each sortedEvents as event}
+      {@const typeInfo = eventTypes.find(t => t.id === event.type)}
       <div class="
         bg-card border border-border rounded-xl p-4 hover:shadow-md transition-shadow
         {!isUpcoming(event.date) ? 'opacity-60' : ''}
@@ -47,13 +54,12 @@
           <!-- Type indicator -->
           <div class="
             flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center
-            {event.type === 'match' ? 'bg-match-light' : 
-             event.type === 'practice' ? 'bg-practice-light' : 
-             'bg-event-light'}
+            {typeInfo ? typeInfo.color.replace('bg-', 'bg-') + '-light' : 'bg-gray-100'} 
+            {typeInfo ? typeInfo.color + '/10' : 'bg-gray-100'}
           ">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              class="w-6 h-6 {event.type === 'match' ? 'text-match' : event.type === 'practice' ? 'text-practice' : 'text-event'}"
+              class="w-6 h-6 {typeInfo ? typeInfo.color.replace('bg-', 'text-') : 'text-gray-500'}"
               fill="none" 
               viewBox="0 0 24 24" 
               stroke="currentColor"
@@ -68,11 +74,9 @@
               <h3 class="font-semibold text-foreground truncate">{event.title}</h3>
               <span class="
                 flex-shrink-0 px-2 py-0.5 text-xs font-medium rounded-full
-                {event.type === 'match' ? 'bg-match/10 text-match' : 
-                 event.type === 'practice' ? 'bg-practice/10 text-practice' : 
-                 'bg-event/10 text-event'}
+                {typeInfo ? typeInfo.color + '/10 ' + typeInfo.color.replace('bg-', 'text-') : 'bg-gray-100 text-gray-800'}
               ">
-                {event.type === 'match' ? '試合' : event.type === 'practice' ? '練習' : 'イベント'}
+                {typeInfo ? typeInfo.label : 'Event'}
               </span>
             </div>
 

@@ -1,16 +1,18 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
-  import { supabase } from '$lib/supabase';
-  import { onMount } from 'svelte';
+import { onMount } from "svelte";
+import { goto } from "$app/navigation";
+import { supabase } from "$lib/supabase";
 
-  let email = $state("");
+let email = $state("");
 
-  onMount(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user?.email) {
-      email = user.email;
-    }
-  });
+onMount(async () => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user?.email) {
+    email = user.email;
+  }
+});
 </script>
 
 <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

@@ -1,28 +1,60 @@
 <script>
-  let { 
-    currentView = $bindable(), 
-    currentMonth = $bindable(),
-    selectedGrades,
-    selectedTypes,
-    selectedDate,
-    clearFilters
-  } = $props();
+let {
+  currentView = $bindable(),
+  currentMonth = $bindable(),
+  selectedGrades,
+  selectedTypes,
+  selectedDate,
+  clearFilters,
+  eventTypes = [],
+} = $props();
 
-  const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+// ... (existing code)
 
-  function prevMonth() {
-    currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
-  }
+// SKIP to rendering part
+// I need to replace the props destructuring AND the template.
+// But diff tool limitations. I'll do props first, then template.
+// Wait, REPLACE_FILE_CONTENT is best for contiguous blocks.
+// I will target the props definition first.
 
-  function nextMonth() {
-    currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
-  }
+const months = [
+  "1月",
+  "2月",
+  "3月",
+  "4月",
+  "5月",
+  "6月",
+  "7月",
+  "8月",
+  "9月",
+  "10月",
+  "11月",
+  "12月",
+];
 
-  function goToToday() {
-    currentMonth = new Date();
-  }
+function prevMonth() {
+  currentMonth = new Date(
+    currentMonth.getFullYear(),
+    currentMonth.getMonth() - 1,
+    1,
+  );
+}
 
-  const hasActiveFilters = $derived(selectedGrades.length > 0 || selectedTypes.length > 0 || selectedDate);
+function nextMonth() {
+  currentMonth = new Date(
+    currentMonth.getFullYear(),
+    currentMonth.getMonth() + 1,
+    1,
+  );
+}
+
+function goToToday() {
+  currentMonth = new Date();
+}
+
+const hasActiveFilters = $derived(
+  selectedGrades.length > 0 || selectedTypes.length > 0 || selectedDate,
+);
 </script>
 
 <div class="mb-6">
@@ -97,13 +129,16 @@
           {grade}
         </span>
       {/each}
-      {#each selectedTypes as type}
-        <span class="
-          inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full
-          {type === 'match' ? 'bg-match/10 text-match' : type === 'practice' ? 'bg-practice/10 text-practice' : 'bg-event/10 text-event'}
-        ">
-          {type === 'match' ? '試合' : type === 'practice' ? '練習' : 'イベント'}
-        </span>
+      {#each selectedTypes as typeId}
+        {@const typeInfo = eventTypes.find(t => t.id === typeId)}
+        {#if typeInfo}
+          <span class="
+            inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full
+            {typeInfo.color}/10 {typeInfo.color.replace('bg-', 'text-')}
+          ">
+            {typeInfo.label}
+          </span>
+        {/if}
       {/each}
       {#if selectedDate}
         <span class="inline-flex items-center gap-1 px-2 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-full">

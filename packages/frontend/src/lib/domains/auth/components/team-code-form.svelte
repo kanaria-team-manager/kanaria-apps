@@ -1,42 +1,42 @@
 <script lang="ts">
-  let { onVerified } = $props<{ onVerified: (team: any) => void }>();
+let { onVerified } = $props<{ onVerified: (team: any) => void }>();
 
-  let teamCode = $state("");
-  let error = $state("");
-  let isLoading = $state(false);
+let teamCode = $state("");
+let error = $state("");
+let isLoading = $state(false);
 
-  async function handleSubmit(e: Event) {
-    e.preventDefault();
-    if (!teamCode) {
-      error = "チームコードを入力してください";
-      return;
-    }
-
-    isLoading = true;
-    error = "";
-
-    try {
-      // Use absolute URL for now or configure proxy. Assuming backend is on port 8787.
-      // In a real app, this should be configured via env vars.
-      const response = await fetch(
-        `http://localhost:8787/teams/verify/${teamCode}`,
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        onVerified(data);
-      } else if (response.status === 404) {
-        error = "チームが見つかりませんでした";
-      } else {
-        error = "エラーが発生しました。もう一度お試しください。";
-      }
-    } catch (e) {
-      error = "通信エラーが発生しました";
-      console.error(e);
-    } finally {
-      isLoading = false;
-    }
+async function handleSubmit(e: Event) {
+  e.preventDefault();
+  if (!teamCode) {
+    error = "チームコードを入力してください";
+    return;
   }
+
+  isLoading = true;
+  error = "";
+
+  try {
+    // Use absolute URL for now or configure proxy. Assuming backend is on port 8787.
+    // In a real app, this should be configured via env vars.
+    const response = await fetch(
+      `http://localhost:8787/teams/verify/${teamCode}`,
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      onVerified(data);
+    } else if (response.status === 404) {
+      error = "チームが見つかりませんでした";
+    } else {
+      error = "エラーが発生しました。もう一度お試しください。";
+    }
+  } catch (e) {
+    error = "通信エラーが発生しました";
+    console.error(e);
+  } finally {
+    isLoading = false;
+  }
+}
 </script>
   
 <form onsubmit={handleSubmit} class="space-y-6">

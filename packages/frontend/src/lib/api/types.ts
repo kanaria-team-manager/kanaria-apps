@@ -1,2 +1,1 @@
-export type { Tag, Label } from "@kanaria/shared";
-
+export type { Label, Tag } from "@kanaria/shared";

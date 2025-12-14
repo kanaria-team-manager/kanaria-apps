@@ -1,46 +1,49 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
-  import { onMount } from 'svelte';
-  import { supabase } from '$lib/supabase';
+import { onMount } from "svelte";
+import { goto } from "$app/navigation";
+import { supabase } from "$lib/supabase";
 
-  let error = $state("");
-  let isActivating = $state(true);
+let error = $state("");
+let isActivating = $state(true);
 
-  const BACKEND_URL = import.meta.env.PUBLIC_BACKEND_URL || "http://localhost:8787";
+const BACKEND_URL =
+  import.meta.env.PUBLIC_BACKEND_URL || "http://localhost:8787";
 
-  onMount(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        try {
-          const response = await fetch(`${BACKEND_URL}/teams/activate`, {
-            headers: {
-              Authorization: `Bearer ${session.access_token}`,
-            },
-          });
-          
-          if (response.ok) {
-            goto('/auth/login?activated=true');
-          } else {
-            const data = await response.json();
-            error = data.error || "Activation failed";
-          }
-        } catch (e) {
-          console.error(e);
-          error = "Communication error occurred";
-        } finally {
-          isActivating = false;
+onMount(() => {
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === "SIGNED_IN" && session) {
+      try {
+        const response = await fetch(`${BACKEND_URL}/teams/activate`, {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (response.ok) {
+          goto("/auth/login?activated=true");
+        } else {
+          const data = await response.json();
+          error = data.error || "Activation failed";
         }
-      } else if (event === 'SIGNED_OUT') {
-         // Handle case where user might not be signed in automatically (e.g. different browser)
-         // Ideally we might want to ask them to login, but for email link flow, it should auto-login.
-         // If it doesn't, we might be stuck.
+      } catch (e) {
+        console.error(e);
+        error = "Communication error occurred";
+      } finally {
+        isActivating = false;
       }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    } else if (event === "SIGNED_OUT") {
+      // Handle case where user might not be signed in automatically (e.g. different browser)
+      // Ideally we might want to ask them to login, but for email link flow, it should auto-login.
+      // If it doesn't, we might be stuck.
+    }
   });
+
+  return () => {
+    subscription.unsubscribe();
+  };
+});
 </script>
 
 <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
