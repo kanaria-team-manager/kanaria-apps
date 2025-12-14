@@ -1,14 +1,12 @@
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { ulid } from "./utils";
-import { teams } from "./index";
+import { teams, users } from "./index";
 
-export const events = pgTable("events", {
+export const players = pgTable("players", {
   id: ulid("id").primaryKey(), // varchar(26)
   teamId: ulid("team_id").notNull().references(() => teams.id),
-  title: text("title").notNull(),
-  details: text("details"),
-  startDateTime: timestamp("start_date_time").notNull(),
-  endDateTime: timestamp("end_date_time").notNull(),
+  parentUserId: ulid("parent_user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
