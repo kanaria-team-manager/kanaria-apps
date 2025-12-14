@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import { dbMiddleware } from "./middleware/db.js";
 import login from "./routes/auth/login.js";
 import { labelsRoute } from "./routes/labels/index.js";
+import { playersRoute } from "./routes/players/index.js";
 import { tagsRoute } from "./routes/tags/index.js";
 import activateTeam from "./routes/teams/activate.js";
 import createTeam from "./routes/teams/create.js";
@@ -36,5 +37,6 @@ app.route("/teams", createTeam);
 app.route("/teams", activateTeam);
 app.route("/tags", tagsRoute);
 app.route("/labels", labelsRoute);
+app.route("/players", playersRoute);
 
 export default app;

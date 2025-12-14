@@ -53,6 +53,8 @@ app.post("/", async (c) => {
         tx,
       );
     });
+    
+    // Metadata update moved to login logic per user request.
 
     return c.json({ message: "Team created successfully", teamId });
   } catch (err) {
