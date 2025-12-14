@@ -14,6 +14,9 @@ importers:
 
   packages/backend:
     dependencies:
+      '@kanaria/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@supabase/supabase-js':
         specifier: ^2.86.0
         version: 2.86.0
@@ -54,6 +57,9 @@ importers:
 
   packages/frontend:
     dependencies:
+      '@kanaria/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@supabase/ssr':
         specifier: ^0.8.0
         version: 0.8.0(@supabase/supabase-js@2.86.0)
@@ -115,6 +121,12 @@ importers:
       vitest-browser-svelte:
         specifier: ^2.0.1
         version: 2.0.1(svelte@5.45.2)(vitest@4.0.14)
+
+  packages/shared:
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
 
 packages:
 

@@ -35,6 +35,7 @@
     "vitest-browser-svelte": "^2.0.1"
   },
   "dependencies": {
+    "@kanaria/shared": "workspace:*",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.86.0",
     "dotenv": "^17.2.3"
