@@ -37,6 +37,15 @@ export const handle: Handle = async ({ event, resolve }) => {
     const {
       data: { session },
     } = await event.locals.supabase.auth.getSession();
+    
+    // Warn: session.user comes from cookie and might be insecure.
+    // We already have a validated user from getUser().
+    // Remove user from session to avoid Supabase warning "Using the user object...".
+    if (session) {
+      // @ts-expect-error Deleting readonly property
+      delete session.user; 
+    }
+    
     return { session, user };
   };
 
