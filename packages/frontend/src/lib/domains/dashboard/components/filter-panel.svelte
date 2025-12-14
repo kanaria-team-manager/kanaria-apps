@@ -6,6 +6,7 @@ let {
   selectedTypes,
   selectedDate,
   clearFilters,
+  toggleSidebar,
   eventTypes = [],
 } = $props();
 
@@ -84,6 +85,18 @@ const hasActiveFilters = $derived(
     </div>
 
     <div class="flex items-center gap-2">
+      <!-- Mobile Filter Toggle -->
+      <button
+        onclick={toggleSidebar}
+        class="lg:hidden flex items-center gap-2 px-3 py-1.5 bg-secondary text-secondary-foreground rounded-lg hover:bg-hover transition-colors"
+        aria-label="Toggle Filters"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+        </svg>
+        <span class="text-sm font-medium">フィルター</span>
+      </button>
+
       <!-- View Toggle -->
       <div class="flex bg-secondary rounded-lg p-1">
         <button

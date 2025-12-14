@@ -195,6 +195,7 @@ function handleDateSelect(date: Date) {
           {selectedDate}
           {clearFilters}
           {eventTypes}
+          toggleSidebar={() => (sidebarOpen = !sidebarOpen)}
         />
         
         <!-- Access filteredEvents as value, not function -->
