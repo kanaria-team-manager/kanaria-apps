@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { describe, expect, it, vi } from "vitest";
 import type { Bindings, Variables } from "../../types";
-import { tagsRoute } from "./index";
+import { tagsRoute } from "./tags.js";
 
 const mockFindAll = vi.fn();
 

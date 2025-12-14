@@ -1,10 +1,10 @@
 import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import * as dbModule from "../db/index.js";
-import { playersRoute } from "./players/index.js";
+import * as dbModule from "../../db/index.js";
+import { playersRoute } from "./players.js";
 
 // Mock the db module
-vi.mock("../db/index.js");
+vi.mock("../../db/index.js");
 
 describe("POST /players", () => {
   beforeEach(() => {

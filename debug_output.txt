@@ -1,0 +1,7 @@
+
+> kanaria@0.0.1 test /home/jakelizzi/work/kanaria
+> echo "Error: no test specified" && exit 1 packages/backend/src/routes/players/players.test.ts
+
+Error: no test specified
+sh: line 1: exit: too many arguments
+ ELIFECYCLE  Test failed. See above for more details.
