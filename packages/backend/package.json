@@ -16,6 +16,7 @@
   },
   "packageManager": "pnpm@10.20.0",
   "dependencies": {
+    "@kanaria/shared": "workspace:*",
     "@supabase/supabase-js": "^2.86.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.7",

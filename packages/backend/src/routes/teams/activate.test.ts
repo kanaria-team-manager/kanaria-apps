@@ -39,9 +39,9 @@ describe("GET /teams/activate", () => {
 
     // Inject mock DB
     app.use("*", async (c, next) => {
-        // @ts-expect-error Mocking context
-        c.set("db", {} as any);
-        await next();
+      // @ts-expect-error Mocking context
+      c.set("db", {} as typeof dbModule);
+      await next();
     });
 
     app.route("/teams", activateTeam);
@@ -93,9 +93,9 @@ describe("GET /teams/activate", () => {
 
     // Inject mock DB
     app.use("*", async (c, next) => {
-        // @ts-expect-error Mocking context
-        c.set("db", mockDb);
-        await next();
+      // @ts-expect-error Mocking context
+      c.set("db", mockDb);
+      await next();
     });
 
     app.route("/teams", activateTeam);

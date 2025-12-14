@@ -16,9 +16,9 @@ describe("POST /teams", () => {
 
     // Inject mock DB
     app.use("*", async (c, next) => {
-        // @ts-expect-error Mocking context
-        c.set("db", {} as any);
-        await next();
+      // @ts-expect-error Mocking context
+      c.set("db", {} as typeof dbModule);
+      await next();
     });
 
     app.route("/teams", createTeam);
@@ -48,12 +48,12 @@ describe("POST /teams", () => {
     dbModule.createDb.mockReturnValue(mockDb);
 
     const app = new Hono();
-    
+
     // Inject mock DB
     app.use("*", async (c, next) => {
-        // @ts-expect-error Mocking context
-        c.set("db", mockDb);
-        await next();
+      // @ts-expect-error Mocking context
+      c.set("db", mockDb);
+      await next();
     });
 
     app.route("/teams", createTeam);

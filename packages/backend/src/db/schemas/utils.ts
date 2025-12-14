@@ -18,7 +18,7 @@ export const ATTENDANCE_STATUS = {
   ATTENDANCE: 1,
   ABSENCE: 2,
   IS_LATE: 3,
-}
+};
 
 export const ulid = customType<{ data: string }>({
   dataType: () => "varchar(26)",

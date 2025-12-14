@@ -27,9 +27,9 @@ describe("GET /teams/verify/:code", () => {
 
     // Inject mock DB
     app.use("*", async (c, next) => {
-        // @ts-expect-error Mocking context
-        c.set("db", mockDb);
-        await next();
+      // @ts-expect-error Mocking context
+      c.set("db", mockDb);
+      await next();
     });
 
     app.route("/teams", verifyTeam);
@@ -65,9 +65,9 @@ describe("GET /teams/verify/:code", () => {
 
     // Inject mock DB
     app.use("*", async (c, next) => {
-        // @ts-expect-error Mocking context
-        c.set("db", mockDb);
-        await next();
+      // @ts-expect-error Mocking context
+      c.set("db", mockDb);
+      await next();
     });
 
     app.route("/teams", verifyTeam);

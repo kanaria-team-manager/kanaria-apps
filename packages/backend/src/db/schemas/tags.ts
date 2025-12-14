@@ -1,5 +1,5 @@
-import { pgTable, boolean, text, timestamp } from "drizzle-orm/pg-core";
-import { teams } from "./index"
+import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { teams } from "./index";
 import { SYSTEM_FLAG, ulid } from "./utils";
 
 export const tags = pgTable("tags", {
@@ -7,9 +7,7 @@ export const tags = pgTable("tags", {
   teamId: ulid("team_id").references(() => teams.id), // システムフラグが立っている場合はnull
   name: text("name").notNull(),
   color: text("color").notNull(),
-  systemFlag: boolean("system_flag")
-    .default(SYSTEM_FLAG.CUSTOM)
-    .notNull(),
+  systemFlag: boolean("system_flag").default(SYSTEM_FLAG.CUSTOM).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

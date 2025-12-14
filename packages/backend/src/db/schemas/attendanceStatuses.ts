@@ -1,16 +1,13 @@
-import { boolean, pgTable, timestamp, text } from "drizzle-orm/pg-core";
-import { ulid } from "./utils";
+import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { teams } from "./index";
-import { SYSTEM_FLAG } from "./utils";
+import { SYSTEM_FLAG, ulid } from "./utils";
 
 export const attendanceStatuses = pgTable("attendance_statuses", {
   id: ulid("id").primaryKey(), // varchar(26)
   teamId: ulid("team_id").references(() => teams.id), // systemフラグが立っている場合はnull
   name: text("name").notNull(),
   color: text("color").notNull(),
-  systemFlag: boolean("system_flag")
-    .default(SYSTEM_FLAG.CUSTOM)
-    .notNull(),
+  systemFlag: boolean("system_flag").default(SYSTEM_FLAG.CUSTOM).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

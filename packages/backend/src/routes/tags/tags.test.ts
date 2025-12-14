@@ -28,12 +28,12 @@ describe("GET /tags", () => {
     mockFindAll.mockResolvedValue(mockTags);
 
     const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
-    
+
     // Inject mock DB
     app.use("*", async (c, next) => {
-        // biome-ignore lint/suspicious/noExplicitAny: Mocking DB
-        c.set("db", {} as any);
-        await next();
+      // biome-ignore lint/suspicious/noExplicitAny: Mocking DB
+      c.set("db", {} as any);
+      await next();
     });
 
     app.route("/", tagsRoute);
