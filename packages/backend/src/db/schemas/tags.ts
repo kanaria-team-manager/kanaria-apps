@@ -8,6 +8,7 @@ export const tags = pgTable("tags", {
   labelId: ulid("label_id")
     .notNull()
     .references(() => labels.id),
+  teamId: ulid("team_id"),
   systemFlag: smallint("system_flag")
     .default(LABEL_SYSTEM_FLAG.CUSTOM)
     .notNull(),
