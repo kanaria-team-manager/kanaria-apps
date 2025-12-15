@@ -1,4 +1,10 @@
-<div class="p-8">
-  <h1 class="text-2xl font-bold mb-4">プレイヤー一覧</h1>
-  <p class="text-muted-foreground">このページは準備中です。</p>
+<script lang="ts">
+  import PlayerList from "$lib/domains/players/components/PlayerList.svelte";
+  import type { PageData } from "./$types";
+
+  export let data: PageData;
+</script>
+
+<div class="p-4 md:p-8 max-w-7xl mx-auto">
+  <PlayerList initialPlayers={data.players} />
 </div>

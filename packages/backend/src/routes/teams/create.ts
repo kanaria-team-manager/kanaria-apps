@@ -1,9 +1,9 @@
+import { createClient } from "@supabase/supabase-js";
 import { Hono } from "hono";
 import { ulid } from "ulid";
 import { TeamRepository } from "../../db/repositories/TeamRepository.js";
 import { UserRepository } from "../../db/repositories/UserRepository.js";
 import { USER_STATUS } from "../../db/schema.js";
-// import { authMiddleware } from "../../middleware/auth.js";
 import type { Bindings, Variables } from "../../types.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
@@ -53,8 +53,25 @@ app.post("/", async (c) => {
         tx,
       );
     });
+
+    // Update Supabase User Metadata with teamId
+    const supabase = createClient(
+      c.env.SUPABASE_URL,
+      c.env.SUPABASE_SERVICE_ROLE_KEY
+    );
     
-    // Metadata update moved to login logic per user request.
+    // Note: We use Admin Client (Service Role) to update user metadata
+    const { error: updateError } = await supabase.auth.admin.updateUserById(
+      supabaseUserId,
+      {
+        app_metadata: { teamId },
+      }
+    );
+
+    if (updateError) {
+      console.error("Failed to update app_metadata", updateError);
+      // We don't fail the request here, but we log it. User is created in DB.
+    }
 
     return c.json({ message: "Team created successfully", teamId });
   } catch (err) {

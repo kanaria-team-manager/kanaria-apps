@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { TeamRepository } from "../../db/repositories/TeamRepository.js";
 import { UserRepository } from "../../db/repositories/UserRepository.js";
-import { TEAM_STATUS, USER_STATUS } from "../../db/schema.js";
+import { TEAM_STATUS, USER_STATUS } from "../../db/schemas/utils.js";
 import { authMiddleware } from "../../middleware/auth.js";
 import type { Bindings, Variables } from "../../types.js";
 
@@ -16,6 +16,15 @@ app.get("/activate", async (c) => {
   const teamRepo = new TeamRepository(db);
 
   try {
+    console.log("Activation request for user:", user?.id);
+    console.log("USER_STATUS:", USER_STATUS);
+    console.log("TEAM_STATUS:", TEAM_STATUS);
+
+    if (!user || !user.id) {
+       console.error("User context missing or invalid");
+       return c.json({ error: "Invalid user context" }, 401);
+    }
+
     // Find the user record
     const userRecord = await userRepo.findBySupabaseId(user.id);
 
@@ -36,7 +45,7 @@ app.get("/activate", async (c) => {
 
     return c.json({ message: "Activation successful" });
   } catch (err) {
-    console.error("Activation failed:", err);
+    console.error("Activation failed details:", JSON.stringify(err, Object.getOwnPropertyNames(err)));
     return c.json({ error: "Activation failed" }, 500);
   }
 });

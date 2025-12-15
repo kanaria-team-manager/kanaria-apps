@@ -1,6 +1,5 @@
 <script lang="ts">
 import { goto } from "$app/navigation";
-import type { SignupCredentials } from "$lib/domains/auth/types";
 import {
   validateEmail,
   validateName,
@@ -96,7 +95,7 @@ async function handleRegister(e: Event) {
         "チームの作成に失敗しました。時間をおいて再試行してください。",
       );
     }
-
+    
     // Success
     goto("/auth/verify-email");
   } catch (err) {

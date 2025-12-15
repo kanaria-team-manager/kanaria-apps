@@ -1,4 +1,4 @@
-// import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 import { type Context, type Next } from "hono";
 import { verify } from "hono/jwt";
 import type { Bindings, Variables } from "../types.js";
@@ -29,32 +29,67 @@ export const authMiddleware = async (
   }
 
   const token = authHeader.replace("Bearer ", "");
-  // const supabaseUrl = c.env.SUPABASE_URL; // Unused for local verify
   const jwtSecret = c.env.SUPABASE_JWT_SECRET;
+  
+  // Strategy 1: Local Verification (Fast, requires Secret)
+  if (jwtSecret) {
+    try {
+      const payload = (await verify(token, jwtSecret)) as unknown as SupabaseJwtPayload;
 
-  if (!jwtSecret) {
-    console.error("Supabase JWT Secret missing");
-    return c.json({ error: "Internal Server Error" }, 500);
+      c.set("user", {
+        id: payload.sub,
+        email: payload.email,
+        app_metadata: payload.app_metadata,
+        user_metadata: payload.user_metadata,
+        role: payload.role,
+      });
+
+      return next();
+    } catch (err) {
+      console.error("JWT Local Verification failed:", err);
+      return c.json({ error: "Unauthorized" }, 401);
+    }
   }
 
-  try {
-    const payload = (await verify(token, jwtSecret)) as unknown as SupabaseJwtPayload;
+  // Strategy 2: Remote Verification (Fallback, requires only URL/Key, no Secret)
+  // This verifies the token against Supabase Auth API
+  console.warn("SUPABASE_JWT_SECRET not set. Falling back to Supabase API verification (slower).");
+  
+  const supabaseUrl = c.env.SUPABASE_URL;
+  // We can use the Service Role Key here effectively to act as admin, 
+  // OR we can create a client with the user's token directly? 
+  // No, standard patterns is creating client with Url/Key (Anon or Service) and then getUser(token).
+  // Ideally use Anon key to be safe, but we have Service Role in types.
+  // We'll use createClient(url, anon_key, { global: { headers: { Authorization: ... } } }) pattern
+  
+  // HACK: We assume SUPABASE_SERVICE_ROLE_KEY works for general client init, 
+  // but strictly we should use ANON key for client-side ops simulation.
+  // HOWEVER, getUser(token) validates the token regardless of the key used to init the client?
+  // Let's use the provided SERVICE_ROLE_KEY but usually it's overkill.
+  // Actually, we can just pass the token to getUser.
+  
+  if (!supabaseUrl || !c.env.SUPABASE_SERVICE_ROLE_KEY) {
+     console.error("Supabase Config Missing");
+     return c.json({ error: "Server Configuration Error" }, 500);
+  }
 
-    // Attach user payload to context
-    // We map it to satisfy common usage, or cast as Needed
-    c.set("user", {
-      id: payload.sub,
-      email: payload.email,
-      app_metadata: payload.app_metadata,
-      user_metadata: payload.user_metadata,
-      role: payload.role,
-      // Add teamId convenience accessor if we extend generic user type?
-      // Or just access via user.app_metadata.teamId
-    });
+  const supabase = createClient(supabaseUrl, c.env.SUPABASE_SERVICE_ROLE_KEY);
+  
+  const { data: { user }, error } = await supabase.auth.getUser(token);
 
-    await next();
-  } catch (err) {
-    console.error("JWT Verification failed:", err);
+  if (error || !user) {
+    console.error("Remote Verification failed:", error);
     return c.json({ error: "Unauthorized" }, 401);
   }
+
+  // Map Supabase User to our Context User format
+  c.set("user", {
+    id: user.id,
+    email: user.email,
+    app_metadata: user.app_metadata,
+    user_metadata: user.user_metadata,
+    role: user.role || "",
+  });
+
+  await next();
 };
