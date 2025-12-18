@@ -42,7 +42,7 @@ async function handleLogin(e: Event) {
 }
 
 async function gotoCreate() {
-  goto("/auth/create");
+  goto("/team/create");
 }
 
 async function gotoSignup() {
