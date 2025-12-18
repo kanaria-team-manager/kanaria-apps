@@ -4,10 +4,10 @@ export const load: LayoutServerLoad = async ({
   locals: { safeGetSession },
   cookies,
 }) => {
-  const { session, user } = await safeGetSession();
+  const { session, claims } = await safeGetSession();
   return {
     session,
-    user,
+    claims,
     cookies: cookies.getAll(),
   };
 };

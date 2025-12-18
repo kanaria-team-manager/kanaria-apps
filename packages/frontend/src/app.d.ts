@@ -6,7 +6,7 @@ declare global {
       supabase: import("@supabase/supabase-js").SupabaseClient;
       safeGetSession: () => Promise<{
         session: import("@supabase/supabase-js").Session | null;
-        user: import("@supabase/supabase-js").User | null;
+        claims: import("@supabase/supabase-js").Claims | null;
       }>;
     }
     interface PageData {

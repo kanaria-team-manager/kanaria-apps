@@ -7,10 +7,14 @@ let email = $state("");
 
 onMount(async () => {
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (user?.email) {
-    email = user.email;
+    data, error
+  } = await supabase.auth.getClaims();
+  if (error) {
+    console.error("Failed to get claims:", error);
+    return;
+  }
+  if (data?.claims?.email) {
+    email = data.claims.email;
   }
 });
 </script>

@@ -36,6 +36,7 @@ export const authMiddleware = async (
     try {
       const payload = (await verify(token, jwtSecret)) as unknown as SupabaseJwtPayload;
 
+      console.log(`user data(payload) : ${JSON.stringify(payload)}`);
       c.set("user", {
         id: payload.sub,
         email: payload.email,
@@ -75,21 +76,25 @@ export const authMiddleware = async (
 
   const supabase = createClient(supabaseUrl, c.env.SUPABASE_SERVICE_ROLE_KEY);
   
-  const { data: { user }, error } = await supabase.auth.getUser(token);
+  const { data, error } = await supabase.auth.getClaims(token);
 
-  if (error || !user) {
+  if (error || !data) {
     console.error("Remote Verification failed:", error);
     return c.json({ error: "Unauthorized" }, 401);
   }
 
+  const userData = {
+    id: data.claims.sub,
+    email: data.claims.email,
+    app_metadata: data.claims.app_metadata,
+    user_metadata: data.claims.user_metadata,
+    role: data.claims.role || "",
+  };
+
+  console.log(`user data : ${JSON.stringify(userData)}`);
+
   // Map Supabase User to our Context User format
-  c.set("user", {
-    id: user.id,
-    email: user.email,
-    app_metadata: user.app_metadata,
-    user_metadata: user.user_metadata,
-    role: user.role || "",
-  });
+  c.set("user", userData);
 
   await next();
 };

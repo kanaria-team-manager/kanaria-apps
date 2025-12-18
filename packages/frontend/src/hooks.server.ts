@@ -27,11 +27,11 @@ export const handle: Handle = async ({ event, resolve }) => {
    */
   event.locals.safeGetSession = async () => {
     const {
-      data: { user },
+      data,
       error,
-    } = await event.locals.supabase.auth.getUser();
-    if (error) {
-      return { session: null, user: null };
+    } = await event.locals.supabase.auth.getClaims();
+    if (error || !data) {
+      return { session: null, claims: null };
     }
 
     const {
@@ -46,7 +46,7 @@ export const handle: Handle = async ({ event, resolve }) => {
       delete session.user; 
     }
     
-    return { session, user };
+    return { session, claims: data.claims };
   };
 
   return resolve(event, {
