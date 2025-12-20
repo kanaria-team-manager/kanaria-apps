@@ -1,12 +1,12 @@
 <script lang="ts">
-  interface Player {
-    id: string;
-    name: string;
-    teamId: string;
-    tags?: string[]; // Assuming tags might be joined or separate
-  }
+interface Player {
+  id: string;
+  name: string;
+  teamId: string;
+  tags?: string[]; // Assuming tags might be joined or separate
+}
 
-  export let player: Player;
+export let player: Player;
 </script>
 
 <div class="group relative flex flex-col items-center bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-gray-200 transition-all duration-300 ease-out cursor-pointer">

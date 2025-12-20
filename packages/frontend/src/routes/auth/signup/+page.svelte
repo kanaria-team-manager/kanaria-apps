@@ -2,11 +2,15 @@
 import SignupForm from "$lib/domains/auth/components/signup-form.svelte";
 import TeamCodeForm from "$lib/domains/auth/components/team-code-form.svelte";
 
-let isTeamVerified = $state(false);
-let verifiedTeam = $state<{ name: string } | null>(null);
+interface Team {
+  name: string;
+}
 
-function handleTeamVerified(event: CustomEvent<{ team: { name: string } }>) {
-  verifiedTeam = event.detail.team;
+let isTeamVerified = $state(false);
+let verifiedTeam = $state<Team | null>(null);
+
+function handleTeamVerified(team: Team) {
+  verifiedTeam = team;
   isTeamVerified = true;
 }
 </script>
@@ -30,7 +34,7 @@ function handleTeamVerified(event: CustomEvent<{ team: { name: string } }>) {
       <!-- Register Form Card -->
       <div class="bg-card rounded-lg shadow-lg border border-border p-8">
         {#if !isTeamVerified}
-          <TeamCodeForm on:verified={handleTeamVerified} />
+          <TeamCodeForm onVerified={handleTeamVerified} />
         {:else}
           <div class="mb-6 p-4 bg-primary/10 rounded-md">
             <p class="text-sm text-primary font-medium">

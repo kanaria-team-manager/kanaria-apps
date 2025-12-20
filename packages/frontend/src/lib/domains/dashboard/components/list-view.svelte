@@ -1,24 +1,24 @@
-<script>
+<script lang="ts">
 let { events, eventTypes = [] } = $props();
 
 const sortedEvents = $derived(
   [...events].sort((a, b) => a.date.getTime() - b.date.getTime()),
 );
 
-function formatDate(date) {
+function formatDate(date: Date): string {
   const days = ["日", "月", "火", "水", "木", "金", "土"];
   return `${date.getMonth() + 1}/${date.getDate()}(${days[date.getDay()]})`;
 }
 
-function formatTime(date) {
+function formatTime(date: Date): string {
   return `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
 }
 
-function isUpcoming(date) {
+function isUpcoming(date: Date): boolean {
   return date.getTime() >= new Date().setHours(0, 0, 0, 0);
 }
 
-function getTypeIcon(typeId) {
+function getTypeIcon(typeId: number | string): string {
   const typeInfo = eventTypes.find((t) => t.id === typeId);
   if (!typeInfo) return "";
 

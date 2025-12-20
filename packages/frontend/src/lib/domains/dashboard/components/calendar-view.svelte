@@ -51,7 +51,8 @@ function getDaysInMonth(date: Date) {
 
 function getEventsForDate(date: Date) {
   return events.filter(
-    (event) => event.date.toDateString() === date.toDateString(),
+    (event: { date: Date }) =>
+      event.date.toDateString() === date.toDateString(),
   );
 }
 

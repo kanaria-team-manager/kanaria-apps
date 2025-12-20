@@ -6,9 +6,7 @@ import { supabase } from "$lib/supabase";
 let email = $state("");
 
 onMount(async () => {
-  const {
-    data, error
-  } = await supabase.auth.getClaims();
+  const { data, error } = await supabase.auth.getClaims();
   if (error) {
     console.error("Failed to get claims:", error);
     return;

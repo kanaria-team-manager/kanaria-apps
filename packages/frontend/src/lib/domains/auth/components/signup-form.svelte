@@ -95,7 +95,7 @@ async function handleRegister(e: Event) {
         "チームの作成に失敗しました。時間をおいて再試行してください。",
       );
     }
-    
+
     // Success
     goto("/auth/verify-email");
   } catch (err) {

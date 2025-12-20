@@ -1,55 +1,55 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import PlayerCard from "./PlayerCard.svelte";
+import { onMount } from "svelte";
+import PlayerCard from "./PlayerCard.svelte";
 
-  // Types
-  interface Player {
-    id: string;
-    name: string;
-    teamId: string;
-  }
+// Types
+interface Player {
+  id: string;
+  name: string;
+  teamId: string;
+}
 
-  // Props
-  export let initialPlayers: Player[] = [];
-  
-  // State
-  let players = initialPlayers;
-  let searchQuery = "";
-  let isLoading = false;
-  let activeFilter = "all";
+// Props
+export let initialPlayers: Player[] = [];
 
-  // Debounce Search
-  let searchTimeout: NodeJS.Timeout;
+// State
+let players = initialPlayers;
+let searchQuery = "";
+let isLoading = false;
+let activeFilter = "all";
 
-  async function fetchPlayers() {
-    isLoading = true;
-    try {
-      const params = new URLSearchParams();
-      if (searchQuery) params.append("q", searchQuery);
-      // if (activeFilter !== 'all') params.append('tag', activeFilter);
+// Debounce Search
+let searchTimeout: NodeJS.Timeout;
 
-      const res = await fetch(`/players?${params.toString()}`);
-      if (res.ok) {
-        players = await res.json();
-      }
-    } catch (err) {
-      console.error("Failed to fetch players", err);
-    } finally {
-      isLoading = false;
+async function fetchPlayers() {
+  isLoading = true;
+  try {
+    const params = new URLSearchParams();
+    if (searchQuery) params.append("q", searchQuery);
+    // if (activeFilter !== 'all') params.append('tag', activeFilter);
+
+    const res = await fetch(`/players?${params.toString()}`);
+    if (res.ok) {
+      players = await res.json();
     }
+  } catch (err) {
+    console.error("Failed to fetch players", err);
+  } finally {
+    isLoading = false;
   }
+}
 
-  function handleSearch(e: Event) {
-    const target = e.target as HTMLInputElement;
-    searchQuery = target.value;
-    
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(fetchPlayers, 300);
-  }
+function handleSearch(e: Event) {
+  const target = e.target as HTMLInputElement;
+  searchQuery = target.value;
 
-  function handleRefresh() {
-    fetchPlayers();
-  }
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(fetchPlayers, 300);
+}
+
+function handleRefresh() {
+  fetchPlayers();
+}
 </script>
 
 <div class="space-y-8">

@@ -1,5 +1,9 @@
 <script lang="ts">
-let { onVerified } = $props<{ onVerified: (team: any) => void }>();
+interface Team {
+  name: string;
+}
+
+let { onVerified } = $props<{ onVerified: (team: Team) => void }>();
 
 let teamCode = $state("");
 let error = $state("");
