@@ -30,6 +30,36 @@ const createEventSchema = z.object({
     .default([]),
 });
 
+eventsRoute.get("/", async (c) => {
+  const db = c.get("db");
+  const user = c.get("user");
+  const userRepo = new UserRepository(db);
+  const currentUser = await userRepo.findBySupabaseId(user.id);
+
+  if (!currentUser?.teamId) {
+    return c.json({ error: "Team ID not found" }, 403);
+  }
+
+  const startDateStr = c.req.query("startDate");
+  const endDateStr = c.req.query("endDate");
+
+  if (!startDateStr || !endDateStr) {
+    return c.json({ error: "startDate and endDate are required" }, 400);
+  }
+
+  const startDate = new Date(startDateStr);
+  const endDate = new Date(endDateStr);
+
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    return c.json({ error: "Invalid date format" }, 400);
+  }
+
+  const repo = new EventRepository(db);
+  const events = await repo.findByMonth(currentUser.teamId, startDate, endDate);
+
+  return c.json(events);
+});
+
 eventsRoute.post("/", zValidator("json", createEventSchema), async (c) => {
   const db = c.get("db");
   const user = c.get("user");

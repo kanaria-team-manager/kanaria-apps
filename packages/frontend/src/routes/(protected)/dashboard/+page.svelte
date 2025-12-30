@@ -44,96 +44,48 @@ const eventTypes = $derived(
 const getLabelId = (name: string) =>
   labels?.find((l) => l.name === name)?.id || name;
 
-// Mock Data using DB IDs/Names
-// Note: Using $derived to react to labels loading
-const events = $derived([
-  {
-    id: 1,
-    title: "練習試合 vs 青葉FC",
-    type: getLabelId("試合"),
-    date: new Date(2025, 11, 7, 9, 0),
-    grades: ["6年生"],
-    location: "市民グラウンド",
-  },
-  {
-    id: 2,
-    title: "通常練習",
-    type: getLabelId("練習"),
-    date: new Date(2025, 11, 8, 16, 0),
-    grades: ["4年生", "5年生"],
-    location: "学校グラウンド",
-  },
-  {
-    id: 3,
-    title: "市大会 予選リーグ",
-    type: getLabelId("試合"),
-    date: new Date(2025, 11, 14, 10, 0),
-    grades: ["6年生"],
-    location: "総合運動公園",
-  },
-  {
-    id: 4,
-    title: "通常練習",
-    type: getLabelId("練習"),
-    date: new Date(2025, 11, 15, 16, 0),
-    grades: ["1年生", "2年生"],
-    location: "学校グラウンド",
-  },
-  {
-    id: 5,
-    title: "保護者会",
-    type: getLabelId("イベント"),
-    date: new Date(2025, 11, 20, 19, 0),
-    grades: ["1年生", "2年生", "3年生", "4年生", "5年生", "6年生"],
-    location: "コミュニティセンター",
-  },
-  {
-    id: 6,
-    title: "カップ戦",
-    type: getLabelId("試合"),
-    date: new Date(2025, 11, 21, 8, 30),
-    grades: ["4年生"],
-    location: "隣市スタジアム",
-  },
-  {
-    id: 7,
-    title: "通常練習",
-    type: getLabelId("練習"),
-    date: new Date(2025, 11, 22, 16, 0),
-    grades: ["5年生", "6年生"],
-    location: "学校グラウンド",
-  },
-  {
-    id: 8,
-    title: "通常練習",
-    type: getLabelId("練習"),
-    date: new Date(2025, 11, 6, 16, 0),
-    grades: ["1年生", "2年生"],
-    location: "学校グラウンド",
-  },
-  {
-    id: 9,
-    title: "フレンドリーマッチ",
-    type: getLabelId("試合"),
-    date: new Date(2025, 11, 28, 14, 0),
-    grades: ["6年生"],
-    location: "県営グラウンド",
-  },
-  {
-    id: 10,
-    title: "夏合宿説明会",
-    type: getLabelId("イベント"),
-    date: new Date(2025, 11, 25, 18, 30),
-    grades: ["4年生", "5年生", "6年生"],
-    location: "オンライン",
-  },
-]);
+import { apiGet } from "$lib/api/client";
+
+// State
+let events = $state<any[]>([]);
+
+async function fetchEvents() {
+    if (!data.session?.access_token) return;
+    
+    const start = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const end = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
+    
+    const params = new URLSearchParams({
+        startDate: start.toISOString(),
+        endDate: end.toISOString()
+    });
+
+    try {
+        const res = await apiGet<any[]>(`/events?${params.toString()}`, data.session.access_token);
+        events = res.map(e => ({
+            id: e.id,
+            title: e.title,
+            type: e.label?.id,
+            date: new Date(e.startDateTime),
+            grades: e.tags?.map((t: any) => t.name) || [],
+            location: e.details || ""
+        }));
+    } catch (e) {
+        console.error("Failed to fetch events", e);
+    }
+}
+
+$effect(() => {
+  if (currentMonth && data.session) {
+      fetchEvents();
+  }
+});
 
 const filteredEvents = $derived(
   events.filter((event) => {
     const gradeMatch =
       selectedGrades.length === 0 ||
-      event.grades.some((g) => selectedGrades.includes(g));
+      event.grades.some((g: string) => selectedGrades.includes(g));
     const typeMatch =
       selectedTypes.length === 0 || selectedTypes.includes(event.type);
     const dateMatch =

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, gte, lt } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { ulid } from "ulid";
 import * as schema from "../schemas/index.js";
@@ -69,5 +69,55 @@ export class EventRepository {
       .from(schema.events)
       .where(eq(schema.events.id, id));
     return result[0];
+  }
+
+  async findByMonth(teamId: string, startDate: Date, endDate: Date) {
+    const rows = await this.db
+      .select({
+        event: schema.events,
+        label: schema.labels,
+        tag: schema.tags,
+      })
+      .from(schema.events)
+      .leftJoin(
+        schema.labelables,
+        and(
+          eq(schema.labelables.labelableId, schema.events.id),
+          eq(schema.labelables.labelableType, "event"),
+        ),
+      )
+      .leftJoin(schema.labels, eq(schema.labels.id, schema.labelables.labelId))
+      .leftJoin(
+        schema.taggables,
+        and(
+          eq(schema.taggables.taggableId, schema.events.id),
+          eq(schema.taggables.taggableType, "event"),
+        ),
+      )
+      .leftJoin(schema.tags, eq(schema.tags.id, schema.taggables.tagId))
+      .where(
+        and(
+          eq(schema.events.teamId, teamId),
+          gte(schema.events.startDateTime, startDate),
+          lt(schema.events.startDateTime, endDate),
+        ),
+      )
+      .orderBy(schema.events.startDateTime);
+
+    const map = new Map();
+    for (const row of rows) {
+      if (!map.has(row.event.id)) {
+        map.set(row.event.id, {
+          ...row.event,
+          label: row.label,
+          tags: [],
+        });
+      }
+      if (row.tag) {
+        map.get(row.event.id).tags.push(row.tag);
+      }
+    }
+
+    return Array.from(map.values());
   }
 }
