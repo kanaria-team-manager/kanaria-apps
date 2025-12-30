@@ -1,4 +1,5 @@
 import {
+  integer,
   pgTable,
   smallint,
   text,
@@ -11,6 +12,7 @@ export const teams = pgTable("teams", {
   id: ulid("id").primaryKey(), // varchar(26)
   name: text("name").notNull(),
   code: varchar("code", { length: TEAM_CODE_MAX_LENGTH }).notNull().unique(),
+  eventSequence: integer("event_sequence").default(0).notNull(),
   description: text("description"),
   status: smallint("status").default(TEAM_STATUS.CREATED).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

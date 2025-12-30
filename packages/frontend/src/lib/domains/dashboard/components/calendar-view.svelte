@@ -1,4 +1,5 @@
 <script lang="ts">
+import { goto } from "$app/navigation";
 let {
   events,
   currentMonth,
@@ -85,11 +86,14 @@ const days = $derived(getDaysInMonth(currentMonth));
     {#each days as day, i}
       {@const dayEvents = getEventsForDate(day.date)}
       {@const dayOfWeek = day.date.getDay()}
-      <button
+      <div
+        role="button"
+        tabindex="0"
         onclick={() => handleDateSelect(day.date)}
+        onkeydown={(e) => e.key === 'Enter' && handleDateSelect(day.date)}
         class="
           min-h-[100px] md:min-h-[120px] p-1 md:p-2 border-t border-r border-border
-          transition-colors relative
+          transition-colors relative cursor-pointer
           {!day.isCurrentMonth ? 'bg-muted/50' : 'bg-card hover:bg-hover/50'}
           {isSelected(day.date) ? 'ring-2 ring-primary ring-inset' : ''}
           {i % 7 === 6 ? 'border-r-0' : ''}
@@ -109,13 +113,20 @@ const days = $derived(getDaysInMonth(currentMonth));
           <div class="flex-1 space-y-1 overflow-hidden">
             {#each dayEvents.slice(0, 3) as event}
               {@const typeInfo = eventTypes.find(t => t.id === event.type)}
-              <div class="
-                text-xs px-1.5 py-0.5 rounded truncate font-medium
-                {typeInfo ? typeInfo.color + '/10 ' + typeInfo.color.replace('bg-', 'text-') : 'bg-gray-100 text-gray-800'}
-              ">
+              <button 
+                onclick={(e) => {
+                  e.stopPropagation();
+                  goto(`/event/${event.eventNo}`);
+                }}
+                class="
+                  w-full text-left text-xs px-1.5 py-0.5 rounded truncate font-medium shadow-sm
+                  {typeInfo ? typeInfo.color + ' text-white' : 'bg-gray-100 text-gray-800'}
+                  hover:scale-[1.02] transition-transform
+                "
+              >
                 <span class="hidden sm:inline">{event.title}</span>
                 <span class="sm:hidden">{typeInfo ? typeInfo.label.charAt(0) : 'E'}</span>
-              </div>
+              </button>
             {/each}
             {#if dayEvents.length > 3}
               <div class="text-xs text-muted-foreground px-1">
@@ -124,7 +135,7 @@ const days = $derived(getDaysInMonth(currentMonth));
             {/if}
           </div>
         </div>
-      </button>
+      </div>
     {/each}
   </div>
 </div>

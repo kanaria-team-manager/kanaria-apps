@@ -9,34 +9,27 @@ export class EventRepository {
   constructor(private db: PostgresJsDatabase<typeof schema>) {}
 
   async createWithRelations(
-    eventData: Omit<
-      NewEvent,
-      "id" | "createdAt" | "updatedAt" | "eventNo" | "localSequence"
-    >,
+    eventData: Omit<NewEvent, "id" | "createdAt" | "updatedAt" | "eventNo">,
     labelId: string,
     tagIds: string[],
     attendances: { playerId: string; attendanceStatusId: string }[],
   ) {
     return await this.db.transaction(async (tx) => {
-      // 0. Lock Team and Get Code
+      // 0. Update Team Counter and Get Code & Sequence
       const teamRows = await tx
-        .select({ code: schema.teams.code })
-        .from(schema.teams)
+        .update(schema.teams)
+        .set({ eventSequence: sql`${schema.teams.eventSequence} + 1` })
         .where(eq(schema.teams.id, eventData.teamId))
-        .for("update"); // Row Lock
+        .returning({
+          code: schema.teams.code,
+          eventSequence: schema.teams.eventSequence,
+        });
 
       if (teamRows.length === 0) {
         throw new Error("Team not found");
       }
-      const teamCode = teamRows[0].code;
+      const { code: teamCode, eventSequence: nextSequence } = teamRows[0];
 
-      // 0.5 Numbering
-      const maxRes = await tx
-        .select({ maxSeq: sql<number>`max(${schema.events.localSequence})` })
-        .from(schema.events)
-        .where(eq(schema.events.teamId, eventData.teamId));
-
-      const nextSequence = (maxRes[0]?.maxSeq || 0) + 1;
       const eventNo = `${teamCode}-${nextSequence}`;
 
       const eventId = ulid();
@@ -48,7 +41,6 @@ export class EventRepository {
           ...eventData,
           id: eventId,
           eventNo,
-          localSequence: nextSequence,
         })
         .returning();
 
@@ -145,5 +137,68 @@ export class EventRepository {
     }
 
     return Array.from(map.values());
+  }
+
+  async findByEventNo(teamId: string, eventNo: string) {
+    // 1. Fetch Event & Label
+    const eventRows = await this.db
+      .select({
+        event: schema.events,
+        label: schema.labels,
+      })
+      .from(schema.events)
+      .leftJoin(
+        schema.labelables,
+        and(
+          eq(schema.labelables.labelableId, schema.events.id),
+          eq(schema.labelables.labelableType, "event"),
+        ),
+      )
+      .leftJoin(schema.labels, eq(schema.labels.id, schema.labelables.labelId))
+      .where(
+        and(
+          eq(schema.events.teamId, teamId),
+          eq(schema.events.eventNo, eventNo),
+        ),
+      );
+
+    if (eventRows.length === 0) return null;
+    const { event, label } = eventRows[0];
+
+    // 2. Fetch Tags
+    const tags = await this.db
+      .select({ tag: schema.tags })
+      .from(schema.tags)
+      .innerJoin(
+        schema.taggables,
+        and(
+          eq(schema.taggables.tagId, schema.tags.id),
+          eq(schema.taggables.taggableId, event.id),
+          eq(schema.taggables.taggableType, "event"),
+        ),
+      );
+
+    // 3. Fetch Attendances with Player
+    const attendances = await this.db
+      .select({
+        attendance: schema.attendances,
+        player: schema.players,
+      })
+      .from(schema.attendances)
+      .innerJoin(
+        schema.players,
+        eq(schema.players.id, schema.attendances.playerId),
+      )
+      .where(eq(schema.attendances.eventId, event.id));
+
+    return {
+      ...event,
+      label,
+      tags: tags.map((t) => t.tag),
+      attendances: attendances.map((a) => ({
+        ...a.attendance,
+        player: a.player,
+      })),
+    };
   }
 }

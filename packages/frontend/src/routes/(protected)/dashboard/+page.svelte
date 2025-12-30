@@ -64,6 +64,7 @@ async function fetchEvents() {
         const res = await apiGet<any[]>(`/events?${params.toString()}`, data.session.access_token);
         events = res.map(e => ({
             id: e.id,
+            eventNo: e.eventNo,
             title: e.title,
             type: e.label?.id,
             date: new Date(e.startDateTime),

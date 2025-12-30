@@ -60,6 +60,28 @@ eventsRoute.get("/", async (c) => {
   return c.json(events);
 });
 
+eventsRoute.get("/:eventNo", async (c) => {
+  const db = c.get("db");
+  const user = c.get("user");
+  const eventNo = c.req.param("eventNo");
+
+  const userRepo = new UserRepository(db);
+  const currentUser = await userRepo.findBySupabaseId(user.id);
+
+  if (!currentUser?.teamId) {
+    return c.json({ error: "Team ID not found" }, 403);
+  }
+
+  const repo = new EventRepository(db);
+  const event = await repo.findByEventNo(currentUser.teamId, eventNo);
+
+  if (!event) {
+    return c.json({ error: "Event not found" }, 404);
+  }
+
+  return c.json(event);
+});
+
 eventsRoute.post("/", zValidator("json", createEventSchema), async (c) => {
   const db = c.get("db");
   const user = c.get("user");

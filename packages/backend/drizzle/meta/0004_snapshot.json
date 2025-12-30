@@ -1,6 +1,6 @@
 {
-  "id": "1662cd84-ba91-48bf-8e0c-643c009c9c8d",
-  "prevId": "80d784a1-b355-4a22-afc9-6022cd49de25",
+  "id": "5ae03508-d344-47f3-9534-19ea869843ef",
+  "prevId": "1662cd84-ba91-48bf-8e0c-643c009c9c8d",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -203,12 +203,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "local_sequence": {
-          "name": "local_sequence",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -243,10 +237,10 @@
           "nullsNotDistinct": false,
           "columns": ["event_no"]
         },
-        "events_team_id_local_sequence_unique": {
-          "name": "events_team_id_local_sequence_unique",
+        "events_team_id_event_no_unique": {
+          "name": "events_team_id_event_no_unique",
           "nullsNotDistinct": false,
-          "columns": ["team_id", "local_sequence"]
+          "columns": ["team_id", "event_no"]
         }
       },
       "policies": {},
@@ -642,6 +636,13 @@
           "type": "varchar(32)",
           "primaryKey": false,
           "notNull": true
+        },
+        "event_sequence": {
+          "name": "event_sequence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         },
         "description": {
           "name": "description",

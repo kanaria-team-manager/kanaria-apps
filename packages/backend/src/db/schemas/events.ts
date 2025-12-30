@@ -1,4 +1,4 @@
-import { integer, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
 import { teams } from "./index";
 import { ulid } from "./utils";
 
@@ -14,7 +14,6 @@ export const events = pgTable(
     startDateTime: timestamp("start_date_time").notNull(),
     endDateTime: timestamp("end_date_time").notNull(),
     eventNo: text("event_no").notNull().unique(),
-    localSequence: integer("local_sequence").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -22,6 +21,6 @@ export const events = pgTable(
       .$onUpdate(() => new Date()),
   },
   (t) => ({
-    unq: unique().on(t.teamId, t.localSequence),
+    unq: unique().on(t.teamId, t.eventNo),
   }),
 ).enableRLS();
