@@ -1,4 +1,6 @@
 <script lang="ts">
+import { apiGet } from "$lib/api/client";
+import type { Session } from "@supabase/supabase-js";
 import PlayerCard from "./PlayerCard.svelte";
 
 // Types
@@ -6,10 +8,11 @@ interface Player {
   id: string;
   name: string;
   teamId: string;
+  tags?: string[];
 }
 
 // Props
-let { initialPlayers = [] }: { initialPlayers?: Player[] } = $props();
+let { initialPlayers = [], session }: { initialPlayers?: Player[], session: Session } = $props();
 
 // State
 let players = $state(initialPlayers);
@@ -27,10 +30,7 @@ async function fetchPlayers() {
     if (searchQuery) params.append("q", searchQuery);
     // if (activeFilter !== 'all') params.append('tag', activeFilter);
 
-    const res = await fetch(`/players?${params.toString()}`);
-    if (res.ok) {
-      players = await res.json();
-    }
+    players = await apiGet<Player[]>(`/players?${params.toString()}`, session?.access_token);
   } catch (err) {
     console.error("Failed to fetch players", err);
   } finally {

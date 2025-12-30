@@ -10,6 +10,16 @@ export const tagsRoute = new Hono<{
 tagsRoute.get("/", async (c) => {
   const db = c.get("db");
   const repository = new TagRepository(db);
+  /*const tags = await repository.findAll();
+  return c.json(tags);*/
+
   const tags = await repository.findAll();
+  return c.json(tags);
+});
+
+tagsRoute.get("/grade", async (c) => {
+  const db = c.get("db");
+  const repository = new TagRepository(db);
+  const tags = await repository.findGradeTags();
   return c.json(tags);
 });

@@ -26,14 +26,18 @@ export const handle: Handle = async ({ event, resolve }) => {
    * session retrieval, this method is safe to use in server-side `load` functions.
    */
   event.locals.safeGetSession = async () => {
-    const { data, error } = await event.locals.supabase.auth.getClaims();
-    if (error || !data) {
-      return { session: null, claims: null };
-    }
-
     const {
       data: { session },
     } = await event.locals.supabase.auth.getSession();
+
+    const {
+      data: { user },
+      error,
+    } = await event.locals.supabase.auth.getUser();
+
+    if (error || !user) {
+      return { session: null, user: null };
+    }
 
     // Warn: session.user comes from cookie and might be insecure.
     // We already have a validated user from getUser().
@@ -43,7 +47,7 @@ export const handle: Handle = async ({ event, resolve }) => {
       delete session.user;
     }
 
-    return { session, claims: data.claims };
+    return { session, user };
   };
 
   const { session } = await event.locals.safeGetSession();

@@ -1,5 +1,7 @@
+import { relations } from "drizzle-orm";
 import { pgEnum, pgTable, primaryKey, timestamp } from "drizzle-orm/pg-core";
 import { tags } from "./index";
+import { players } from "./players";
 import { ulid } from "./utils";
 
 export const taggableType = pgEnum("taggable_type", [
@@ -28,3 +30,14 @@ export const taggables = pgTable(
     }),
   ],
 ).enableRLS();
+
+export const taggablesRelations = relations(taggables, ({ one }) => ({
+  player: one(players, {
+    fields: [taggables.taggableId],
+    references: [players.id],
+  }),
+  tag: one(tags, {
+    fields: [taggables.tagId],
+    references: [tags.id],
+  }),
+}));

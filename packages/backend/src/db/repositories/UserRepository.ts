@@ -29,4 +29,8 @@ export class UserRepository {
     const executor = tx || this.db;
     await executor.update(users).set({ status }).where(eq(users.id, id));
   }
+
+  async findAllByTeamId(teamId: string) {
+    return await this.db.select().from(users).where(eq(users.teamId, teamId));
+  }
 }

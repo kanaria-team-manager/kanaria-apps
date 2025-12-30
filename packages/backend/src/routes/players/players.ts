@@ -14,25 +14,50 @@ export const playersRoute = new Hono<{
 // 全てのplayersルートに認証を適用
 playersRoute.use("*", authMiddleware);
 
+import { UserRepository } from "../../db/repositories/UserRepository.js";
+
+// Role constants
+const ROLE_OWNER = 0;
+const ROLE_ADMIN = 1;
+// const ROLE_MEMBER = 2;
+
 playersRoute.post("/", zValidator("json", createPlayerSchema), async (c) => {
   const db = c.get("db");
   const user = c.get("user");
   const repo = new PlayerRepository(db);
-  const { name } = c.req.valid("json");
+  const userRepo = new UserRepository(db);
+  const { name, tagId, parentUserId } = c.req.valid("json");
 
-  // Extract teamId from JWT claims
-  const teamId = user.app_metadata?.teamId as string | undefined;
-
-  if (!teamId) {
-    return c.json({ error: "Team ID not found in user context" }, 403);
+  // Get current user details from DB to check role
+  const currentUser = await userRepo.findBySupabaseId(user.id);
+  if (!currentUser) {
+    return c.json({ error: "User not found" }, 401);
   }
 
-  const player = await repo.create({
-    id: ulid(),
-    name,
-    teamId,
-    parentUserId: user.id,
-  });
+  const teamId = currentUser.teamId;
+
+  if (!teamId) {
+    return c.json({ error: "Team ID not found" }, 403);
+  }
+
+  // Decide parentUserId
+  let targetParentId = currentUser.id;
+
+  if (currentUser.roleId === ROLE_OWNER || currentUser.roleId === ROLE_ADMIN) {
+    if (parentUserId) {
+      targetParentId = parentUserId;
+    }
+  }
+
+  const player = await repo.createWithTag(
+    {
+      id: ulid(),
+      name,
+      teamId,
+      parentUserId: targetParentId,
+    },
+    tagId,
+  );
 
   return c.json(player, 201);
 });

@@ -1,5 +1,7 @@
+import { relations } from "drizzle-orm";
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { teams, users } from "./index";
+import { taggables } from "./taggables";
 import { ulid } from "./utils";
 
 export const players = pgTable("players", {
@@ -17,3 +19,7 @@ export const players = pgTable("players", {
     .notNull()
     .$onUpdate(() => new Date()),
 }).enableRLS();
+
+export const playersRelations = relations(players, ({ many }) => ({
+  taggables: many(taggables),
+}));

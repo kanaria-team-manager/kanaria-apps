@@ -9,6 +9,8 @@ import { tagsRoute } from "./routes/tags/tags.js";
 import activateTeam from "./routes/teams/activate.js";
 import createTeam from "./routes/teams/create.js";
 import verifyTeam from "./routes/teams/verify.js";
+import usersRoute from "./routes/users/users.js";
+
 import type { Bindings, Variables } from "./types.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
@@ -40,5 +42,6 @@ app.route("/teams", activateTeam);
 app.route("/tags", tagsRoute);
 app.route("/labels", labelsRoute);
 app.route("/players", playersRoute);
+app.route("/users", usersRoute);
 
 export default app;

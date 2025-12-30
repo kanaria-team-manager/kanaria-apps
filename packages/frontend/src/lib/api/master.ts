@@ -9,6 +9,16 @@ export async function fetchTags(fetch: typeof window.fetch): Promise<Tag[]> {
   return res.json();
 }
 
+export async function fetchGradeTags(
+  fetch: typeof window.fetch,
+): Promise<Tag[]> {
+  const res = await fetch(`${PUBLIC_BACKEND_URL}/tags/grade`);
+  if (!res.ok) {
+    throw new Error("Failed to fetch grade tags");
+  }
+  return res.json();
+}
+
 export async function fetchLabels(
   fetch: typeof window.fetch,
 ): Promise<Label[]> {

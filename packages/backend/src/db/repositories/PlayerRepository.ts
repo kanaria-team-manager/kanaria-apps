@@ -15,6 +15,25 @@ export class PlayerRepository {
     return result[0];
   }
 
+  async createWithTag(player: NewPlayer, tagId: string) {
+    return await this.db.transaction(async (tx) => {
+      // 1. Create Player
+      const [newPlayer] = await tx
+        .insert(schema.players)
+        .values(player)
+        .returning();
+
+      // 2. Create Taggable
+      await tx.insert(schema.taggables).values({
+        tagId: tagId,
+        taggableType: "player",
+        taggableId: newPlayer.id,
+      });
+
+      return newPlayer;
+    });
+  }
+
   async findById(id: string) {
     const result = await this.db
       .select()
@@ -24,42 +43,41 @@ export class PlayerRepository {
   }
 
   async findAll(teamId: string, options?: { tag?: string; name?: string }) {
-    let query = this.db
+    const rows = await this.db
       .select({
-        id: schema.players.id,
-        name: schema.players.name,
-        teamId: schema.players.teamId,
-        parentUserId: schema.players.parentUserId,
-        createdAt: schema.players.createdAt,
-        updatedAt: schema.players.updatedAt,
+        player: schema.players,
+        tag: schema.tags,
       })
       .from(schema.players)
-      .where(eq(schema.players.teamId, teamId))
-      .$dynamic();
+      .leftJoin(
+        schema.taggables,
+        and(
+          eq(schema.taggables.taggableId, schema.players.id),
+          eq(schema.taggables.taggableType, "player"),
+        ),
+      )
+      .leftJoin(schema.tags, eq(schema.tags.id, schema.taggables.tagId))
+      .where(
+        and(
+          eq(schema.players.teamId, teamId),
+          options?.name
+            ? ilike(schema.players.name, `%${options.name}%`)
+            : undefined,
+          options?.tag ? eq(schema.tags.name, options.tag) : undefined,
+        ),
+      );
 
-    if (options?.tag) {
-      query = query
-        .innerJoin(
-          schema.taggables,
-          and(
-            eq(schema.taggables.taggableId, schema.players.id),
-            eq(schema.taggables.taggableType, "player"),
-          ),
-        )
-        .innerJoin(
-          schema.tags,
-          and(
-            eq(schema.tags.id, schema.taggables.tagId),
-            eq(schema.tags.name, options.tag), // Filter by tag name
-          ),
-        );
+    const map = new Map();
+    for (const row of rows) {
+      if (!map.has(row.player.id)) {
+        map.set(row.player.id, { ...row.player, tags: [] });
+      }
+      if (row.tag) {
+        map.get(row.player.id).tags.push(row.tag.name);
+      }
     }
 
-    if (options?.name) {
-      query = query.where(ilike(schema.players.name, `%${options.name}%`));
-    }
-
-    return query;
+    return Array.from(map.values());
   }
 
   async update(id: string, player: Partial<NewPlayer>) {
