@@ -1,5 +1,6 @@
 <script lang="ts">
 import { page } from "$app/stores";
+import UserMenu from "$lib/components/UserMenu.svelte";
 </script>
 
 <header class="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -24,23 +25,31 @@ import { page } from "$app/stores";
       </nav>
     </div>
 
-    <!-- Mobile Menu (Simple version for now) -->
+    <!-- Desktop User Menu -->
+    <div class="hidden md:flex flex-1 justify-end">
+      <UserMenu />
+    </div>
+
+    <!-- Mobile Menu -->
     <div class="flex flex-1 items-center justify-between md:hidden">
       <a href="/dashboard" class="font-bold">Kanaria</a>
-      <nav class="flex items-center gap-4 text-sm font-medium">
-        <a 
-          href="/dashboard"
-          class="p-2 {$page.url.pathname.startsWith('/dashboard') ? 'text-primary' : 'text-muted-foreground'}"
-        >
-          予定
-        </a>
-        <a 
-          href="/players"
-          class="p-2 {$page.url.pathname.startsWith('/players') ? 'text-primary' : 'text-muted-foreground'}"
-        >
-          プレイヤー
-        </a>
-      </nav>
+      <div class="flex items-center gap-4">
+        <nav class="flex items-center gap-2 text-sm font-medium">
+          <a 
+            href="/dashboard"
+            class="p-2 {$page.url.pathname.startsWith('/dashboard') ? 'text-primary' : 'text-muted-foreground'}"
+          >
+            予定
+          </a>
+          <a 
+            href="/players"
+            class="p-2 {$page.url.pathname.startsWith('/players') ? 'text-primary' : 'text-muted-foreground'}"
+          >
+            プレイヤー
+          </a>
+        </nav>
+        <UserMenu />
+      </div>
     </div>
   </div>
 </header>

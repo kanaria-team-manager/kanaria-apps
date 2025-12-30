@@ -40,7 +40,10 @@ app.get("/activate", async (c) => {
     // Update statuses
     await db.transaction(async (tx) => {
       await userRepo.updateStatus(userRecord.id, USER_STATUS.CONFIRMED, tx);
-      await teamRepo.updateStatus(userRecord.teamId, TEAM_STATUS.ACTIVE, tx);
+      // role=0 (owner) の場合のみチームもactivate
+      if (userRecord.roleId === 0) {
+        await teamRepo.updateStatus(userRecord.teamId, TEAM_STATUS.ACTIVE, tx);
+      }
     });
 
     return c.json({ message: "Activation successful" });

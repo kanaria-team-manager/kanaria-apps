@@ -1,4 +1,5 @@
 <script lang="ts">
+import { PUBLIC_BACKEND_URL } from "$env/static/public";
 import { goto } from "$app/navigation";
 import {
   validateEmail,
@@ -8,7 +9,11 @@ import {
 } from "$lib/domains/auth/validators";
 import { supabase } from "$lib/supabase";
 
-let { teamName, teamCode } = $props<{ teamName?: string; teamCode?: string }>();
+let { teamId, teamName, teamCode } = $props<{
+  teamId?: string;
+  teamName?: string;
+  teamCode?: string;
+}>();
 
 let name = $state("");
 let email = $state("");
@@ -16,9 +21,6 @@ let password = $state("");
 let passwordConfirm = $state("");
 let isLoading = $state(false);
 let error = $state("");
-
-const BACKEND_URL =
-  import.meta.env.PUBLIC_BACKEND_URL || "http://localhost:8787";
 
 async function handleRegister(e: Event) {
   e.preventDefault();
@@ -48,7 +50,7 @@ async function handleRegister(e: Event) {
     return;
   }
 
-  if (!teamName || !teamCode) {
+  if (!teamId) {
     error = "チーム情報が不足しています。最初からやり直してください。";
     return;
   }
@@ -71,16 +73,15 @@ async function handleRegister(e: Event) {
     if (authError) throw authError;
     if (!authData.user) throw new Error("ユーザー作成に失敗しました");
 
-    // 2. Backend Team Creation
-    const response = await fetch(`${BACKEND_URL}/teams`, {
+    // 2. Backend User Creation (既存チームに参加)
+    const response = await fetch(`${PUBLIC_BACKEND_URL}/auth/signup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         supabaseUserId: authData.user.id,
-        teamName,
-        teamCode,
+        teamId,
         name,
         email,
       }),
@@ -88,11 +89,9 @@ async function handleRegister(e: Event) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      // Orphan User Handling: User is created in Supabase but Team creation failed.
-      // Ideally we should rollback Supabase user or show a specific error to contact support / retry.
-      console.error("Team creation failed:", errorText);
+      console.error("User creation failed:", errorText);
       throw new Error(
-        "チームの作成に失敗しました。時間をおいて再試行してください。",
+        "ユーザーの作成に失敗しました。時間をおいて再試行してください。",
       );
     }
 
@@ -104,6 +103,10 @@ async function handleRegister(e: Event) {
     isLoading = false;
   }
 }
+
+// teamName, teamCode は表示用（未使用警告抑制）
+void teamName;
+void teamCode;
 </script>
   
   <form onsubmit={handleRegister} class="space-y-4">

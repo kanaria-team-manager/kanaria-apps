@@ -1,6 +1,8 @@
 <script lang="ts">
 interface Team {
+  id: string;
   name: string;
+  code: string;
 }
 
 let { onVerified } = $props<{ onVerified: (team: Team) => void }>();

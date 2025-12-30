@@ -3,7 +3,9 @@ import SignupForm from "$lib/domains/auth/components/signup-form.svelte";
 import TeamCodeForm from "$lib/domains/auth/components/team-code-form.svelte";
 
 interface Team {
+  id: string;
   name: string;
+  code: string;
 }
 
 let isTeamVerified = $state(false);
@@ -41,7 +43,7 @@ function handleTeamVerified(team: Team) {
               チーム: {verifiedTeam?.name}
             </p>
           </div>
-          <SignupForm />
+          <SignupForm teamId={verifiedTeam?.id} teamName={verifiedTeam?.name} teamCode={verifiedTeam?.code} />
         {/if}
 
         <!-- Login Link -->

@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { dbMiddleware } from "./middleware/db.js";
 import login from "./routes/auth/login.js";
+import signup from "./routes/auth/signup.js";
 import { labelsRoute } from "./routes/labels/labels.js";
 import { playersRoute } from "./routes/players/players.js";
 import { tagsRoute } from "./routes/tags/tags.js";
@@ -32,6 +33,7 @@ app.get("/", (c) => {
 });
 
 app.route("/auth/login", login);
+app.route("/auth/signup", signup);
 app.route("/teams", verifyTeam);
 app.route("/teams", createTeam);
 app.route("/teams", activateTeam);

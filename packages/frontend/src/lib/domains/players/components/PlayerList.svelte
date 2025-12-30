@@ -55,8 +55,8 @@ function handleRefresh() {
   <!-- Header / Controls -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-      <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">Team Players</h2>
-      <p class="text-gray-500">Manage and view your team roster</p>
+      <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">選手一覧</h2>
+      <p class="text-gray-500">チームの選手を管理して表示します</p>
     </div>
 
     <div class="flex items-center gap-3">
@@ -68,7 +68,7 @@ function handleRefresh() {
         </svg>
         <input
           type="text"
-          placeholder="Search players..."
+          placeholder="選手を検索..."
           bind:value={searchQuery}
           oninput={handleSearch}
           class="pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all w-full sm:w-64 shadow-sm"
@@ -115,14 +115,14 @@ function handleRefresh() {
           <path d="m21 21-4.3-4.3" />
         </svg>
       </div>
-      <h3 class="text-lg font-semibold text-gray-900">No players found</h3>
-      <p class="text-gray-500 mt-1 max-w-xs text-center">Try adjusting your search or filters to find what you're looking for.</p>
+      <h3 class="text-lg font-semibold text-gray-900">選手が見つかりませんでした</h3>
+      <p class="text-gray-500 mt-1 max-w-xs text-center">検索またはフィルターを調整して探しているものを見つけることができます。</p>
       {#if searchQuery}
         <button 
           onclick={() => { searchQuery = ''; handleRefresh(); }} 
           class="mt-4 text-sm text-indigo-600 font-medium hover:text-indigo-700"
         >
-          Clear search
+          検索をクリアする
         </button>
       {/if}
     </div>
