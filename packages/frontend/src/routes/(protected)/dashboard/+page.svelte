@@ -18,7 +18,7 @@ let { tags, labels } = data;
 
 // claims から email を取得（user_metadata がない場合のフォールバック）
 $effect(() => {
-  username = data.claims?.user_metadata?.name || data.claims?.email || "";
+  username = data.user?.user_metadata?.name || data.user?.email || "";
 });
 
 // Map Backend Data to UI

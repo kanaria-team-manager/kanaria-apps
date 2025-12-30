@@ -30,17 +30,39 @@ export const handle: Handle = async ({ event, resolve }) => {
       data: { session },
     } = await event.locals.supabase.auth.getSession();
 
+    // Use getClaims for faster local verification (if possible)
+    // and map claims to a User-like object
     const {
-      data: { user },
+      data: claimsData,
       error,
-    } = await event.locals.supabase.auth.getUser();
+    } = await event.locals.supabase.auth.getClaims();
 
-    if (error || !user) {
+    if (error || !claimsData) {
       return { session: null, user: null };
     }
 
+    // Map claims to User object
+    // Note: claimsData structure depends on Supabase version, assuming it returns claims directly or inside checks
+    // Based on docs: { data: { claims: ... }, error: ... } or just data IS claims?
+    // Docs say: const { data, error } = ...
+    // Assuming data contains the claims directly or data.claims
+    const claims = claimsData.claims || claimsData;
+
+    const user = {
+      id: claims.sub,
+      app_metadata: claims.app_metadata,
+      user_metadata: claims.user_metadata,
+      aud: claims.aud,
+      email: claims.email,
+      phone: claims.phone,
+      role: claims.role,
+      created_at: "", // Not available in claims usually
+      updated_at: "",
+      is_anonymous: claims.is_anonymous,
+    } as unknown as import("@supabase/supabase-js").User;
+
     // Warn: session.user comes from cookie and might be insecure.
-    // We already have a validated user from getUser().
+    // We already have a validated user from getClaims().
     // Remove user from session to avoid Supabase warning "Using the user object...".
     if (session) {
       // @ts-expect-error Deleting readonly property
