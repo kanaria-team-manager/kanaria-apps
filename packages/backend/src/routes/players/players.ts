@@ -95,7 +95,7 @@ playersRoute.get("/", async (c) => {
   const db = c.get("db");
   const user = c.get("user");
   const repo = new PlayerRepository(db);
-  const tag = c.req.query("tag");
+  const tagIds = c.req.queries("tagIds");
   const name = c.req.query("q") || c.req.query("name");
 
   const teamId = user.app_metadata?.teamId as string | undefined;
@@ -104,6 +104,6 @@ playersRoute.get("/", async (c) => {
     return c.json({ error: "Team ID not found in user context" }, 403);
   }
 
-  const players = await repo.findAll(teamId, { tag, name });
+  const players = await repo.findAll(teamId, { tagIds, name });
   return c.json(players);
 });

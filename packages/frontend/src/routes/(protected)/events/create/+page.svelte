@@ -49,18 +49,9 @@ const endTime = $derived.by(() => {
     return end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 });
 
-const filteredPlayers = $derived.by(() => {
-    if (selectedTagIds.length === 0) return allPlayers;
-    const selectedTagNames = tags.filter(t => selectedTagIds.includes(t.id)).map(t => t.name);
-    return allPlayers.filter(p => {
-         return p.tags?.some(tagName => selectedTagNames.includes(tagName));
-    });
-});
-
 // Helper to find default status
 const defaultStatusId = $derived.by(() => {
     if (attendanceStatuses.length === 0) return "";
-    // Priority: Name="回答待ち" -> System Flag=true -> First item
     const waiting = attendanceStatuses.find(s => s.name === "回答待ち");
     if (waiting) return waiting.id;
     const system = attendanceStatuses.find(s => s.systemFlag);
@@ -72,26 +63,14 @@ onMount(async () => {
     if (!session) return;
     isLoading = true;
     try {
-        const [l, t, s, p] = await Promise.all([
+        const [l, t, s] = await Promise.all([
             fetchLabels(window.fetch),
             fetchGradeTags(window.fetch),
             fetchAttendanceStatuses(window.fetch, session.access_token),
-            apiGet<Player[]>("/players", session.access_token)
         ]);
         labels = l;
         tags = t;
         attendanceStatuses = s;
-        allPlayers = p;
-        
-        // Initial selection: All players with default status
-        const defaultId = s.find(st => st.name === "回答待ち")?.id || s[0]?.id;
-        if (defaultId) {
-            const initialMap = new Map();
-            for (const player of p) {
-                initialMap.set(player.id, defaultId);
-            }
-            selectedAttendances = initialMap;
-        }
     } catch (e) {
         console.error(e);
         error = "Failed to load data";
@@ -100,12 +79,44 @@ onMount(async () => {
     }
 });
 
+async function fetchFilteredPlayers() {
+    if (selectedTagIds.length === 0) {
+        allPlayers = [];
+        return;
+    }
+    
+    // Build query params for multiple tagIds
+    const params = new URLSearchParams();
+    selectedTagIds.forEach(id => params.append("tagIds", id));
+    
+    try {
+        const players = await apiGet<Player[]>(`/players?${params.toString()}`, session?.access_token);
+        allPlayers = players;
+        
+        // Auto-select newly fetched players with default status
+        if (defaultStatusId) {
+            const newMap = new Map(selectedAttendances);
+            let changed = false;
+            for (const p of players) {
+                if (!newMap.has(p.id)) {
+                    newMap.set(p.id, defaultStatusId);
+                    changed = true;
+                }
+            }
+            if (changed) selectedAttendances = newMap;
+        }
+    } catch (e) {
+        console.error("Failed to fetch players", e);
+    }
+}
+
 function toggleTag(tagId: string) {
     if (selectedTagIds.includes(tagId)) {
         selectedTagIds = selectedTagIds.filter(id => id !== tagId);
     } else {
         selectedTagIds = [...selectedTagIds, tagId];
     }
+    fetchFilteredPlayers();
 }
 
 function togglePlayer(playerId: string) {
@@ -126,7 +137,7 @@ function updatePlayerStatus(playerId: string, statusId: string) {
 
 function selectAllFiltered() {
     const newMap = new Map(selectedAttendances);
-    for (const player of filteredPlayers) {
+    for (const player of allPlayers) {
         if (!newMap.has(player.id)) {
             newMap.set(player.id, defaultStatusId);
         }
@@ -136,7 +147,7 @@ function selectAllFiltered() {
 
 function deselectAllFiltered() {
     const newMap = new Map(selectedAttendances);
-    for (const player of filteredPlayers) {
+    for (const player of allPlayers) {
         newMap.delete(player.id);
     }
     selectedAttendances = newMap;
@@ -152,12 +163,8 @@ function clearForm() {
     
     // Reset players
     const newMap = new Map();
-    if (defaultStatusId) {
-        for (const player of allPlayers) {
-            newMap.set(player.id, defaultStatusId);
-        }
-    }
     selectedAttendances = newMap;
+    allPlayers = [];
 }
 
 async function handleSubmit(e: Event) {
@@ -369,7 +376,7 @@ async function handleSubmit(e: Event) {
                         
                         <div class="max-h-[300px] border border-gray-200 rounded-lg overflow-hidden bg-white">
                             <div class="overflow-y-auto max-h-[300px] p-2 space-y-1">
-                                {#each filteredPlayers as player}
+                                {#each allPlayers as player}
                                     <div class="flex items-center gap-3 p-3 rounded-md hover:bg-gray-50 transition-colors group">
                                         <input
                                             id="p-{player.id}"
@@ -401,7 +408,7 @@ async function handleSubmit(e: Event) {
                                         </div>
                                     </div>
                                 {/each}
-                                {#if filteredPlayers.length === 0}
+                                {#if allPlayers.length === 0}
                                     <div class="py-8 text-center text-gray-400 text-sm">
                                         表示するプレイヤーがいません
                                     </div>
