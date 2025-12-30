@@ -28,15 +28,13 @@ onMount(() => {
           error = data.error || "Activation failed";
         }
       } catch (e) {
-        console.error(e);
+        console.error("Fetch error:", e);
         error = "Communication error occurred";
       } finally {
         isActivating = false;
       }
     } else if (event === "SIGNED_OUT") {
-      // Handle case where user might not be signed in automatically (e.g. different browser)
-      // Ideally we might want to ask them to login, but for email link flow, it should auto-login.
-      // If it doesn't, we might be stuck.
+      console.log("User signed out during activation");
     }
   });
 
