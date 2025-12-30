@@ -14,11 +14,12 @@ let sidebarOpen = $state<boolean>(false);
 let username = $state<string>("");
 
 let { data } = $props();
-let { user, tags, labels } = data;
+let { tags, labels } = data;
 
-if (user) {
-  username = user.user_metadata.name;
-}
+// claims から email を取得（user_metadata がない場合のフォールバック）
+$effect(() => {
+  username = data.claims?.user_metadata?.name || data.claims?.email || "";
+});
 
 // Map Backend Data to UI
 const grades = $derived(tags ? tags.map((t) => t.name) : []);

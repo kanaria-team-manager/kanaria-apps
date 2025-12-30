@@ -54,7 +54,7 @@ export class PlayerRepository {
           ),
         );
     }
-    
+
     if (options?.name) {
       query = query.where(ilike(schema.players.name, `%${options.name}%`));
     }

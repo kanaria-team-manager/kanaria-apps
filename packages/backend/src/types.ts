@@ -9,8 +9,21 @@ export type Bindings = {
   FRONTEND_URL: string;
 };
 
+export interface AuthUser {
+  id: string;
+  email: string;
+  app_metadata: {
+    teamId?: string;
+    provider?: string;
+    [key: string]: unknown;
+  };
+  user_metadata: {
+    [key: string]: unknown;
+  };
+  role: string;
+}
+
 export type Variables = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  user: any; // Using any or specific JWT payload type
+  user: AuthUser;
   db: PostgresJsDatabase<typeof schema>;
 };

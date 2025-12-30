@@ -57,15 +57,15 @@ app.post("/", async (c) => {
     // Update Supabase User Metadata with teamId
     const supabase = createClient(
       c.env.SUPABASE_URL,
-      c.env.SUPABASE_SERVICE_ROLE_KEY
+      c.env.SUPABASE_SERVICE_ROLE_KEY,
     );
-    
+
     // Note: We use Admin Client (Service Role) to update user metadata
     const { error: updateError } = await supabase.auth.admin.updateUserById(
       supabaseUserId,
       {
         app_metadata: { teamId },
-      }
+      },
     );
 
     if (updateError) {

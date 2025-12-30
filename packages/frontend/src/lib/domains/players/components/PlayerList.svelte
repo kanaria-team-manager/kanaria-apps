@@ -1,5 +1,4 @@
 <script lang="ts">
-import { onMount } from "svelte";
 import PlayerCard from "./PlayerCard.svelte";
 
 // Types
@@ -10,16 +9,16 @@ interface Player {
 }
 
 // Props
-export let initialPlayers: Player[] = [];
+let { initialPlayers = [] }: { initialPlayers?: Player[] } = $props();
 
 // State
-let players = initialPlayers;
-let searchQuery = "";
-let isLoading = false;
-let activeFilter = "all";
+let players = $state(initialPlayers);
+let searchQuery = $state("");
+let isLoading = $state(false);
+let activeFilter = $state("all");
 
 // Debounce Search
-let searchTimeout: NodeJS.Timeout;
+let searchTimeout: ReturnType<typeof setTimeout>;
 
 async function fetchPlayers() {
   isLoading = true;
@@ -71,7 +70,7 @@ function handleRefresh() {
           type="text"
           placeholder="Search players..."
           bind:value={searchQuery}
-          on:input={handleSearch}
+          oninput={handleSearch}
           class="pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all w-full sm:w-64 shadow-sm"
         />
       </div>
@@ -120,7 +119,7 @@ function handleRefresh() {
       <p class="text-gray-500 mt-1 max-w-xs text-center">Try adjusting your search or filters to find what you're looking for.</p>
       {#if searchQuery}
         <button 
-          on:click={() => { searchQuery = ''; handleRefresh(); }} 
+          onclick={() => { searchQuery = ''; handleRefresh(); }} 
           class="mt-4 text-sm text-indigo-600 font-medium hover:text-indigo-700"
         >
           Clear search

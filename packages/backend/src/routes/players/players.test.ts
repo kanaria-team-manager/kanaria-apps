@@ -114,13 +114,14 @@ describe("POST /players", () => {
       $dynamic: vi.fn().mockReturnThis(),
       // Make the chain awaitable to return the data
       // biome-ignore lint/suspicious/noThenProperty: Mocking Promise behavior
-      then: (resolve: (arg: unknown) => unknown) => resolve([
-        {
-          id: "player_tagged",
-          name: "Tagged Player",
-          teamId: "team_123",
-        },
-      ]),
+      then: (resolve: (arg: unknown) => unknown) =>
+        resolve([
+          {
+            id: "player_tagged",
+            name: "Tagged Player",
+            teamId: "team_123",
+          },
+        ]),
     };
 
     // @ts-expect-error Mocking context
@@ -153,15 +154,16 @@ describe("POST /players", () => {
       orderBy: vi.fn().mockReturnThis(),
       $dynamic: vi.fn().mockReturnThis(),
       // biome-ignore lint/suspicious/noThenProperty: Mocking Promise behavior
-      then: (resolve: (arg: unknown) => unknown) => resolve([
-        {
-          id: "player_searched",
-          name: "Searched Player",
-          teamId: "team_123",
-        },
-      ]),
+      then: (resolve: (arg: unknown) => unknown) =>
+        resolve([
+          {
+            id: "player_searched",
+            name: "Searched Player",
+            teamId: "team_123",
+          },
+        ]),
     };
-    
+
     // @ts-expect-error Mocking context
     dbModule.createDb.mockReturnValue(mockDb);
     const app = new Hono();
@@ -176,12 +178,12 @@ describe("POST /players", () => {
       await next();
     });
     app.route("/players", playersRoute);
-    
+
     const res = await app.request("/players?name=Searched");
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data).toHaveLength(1);
-    // Should call ILIKE logic - difficult to test exact query construction with this mock, 
+    // Should call ILIKE logic - difficult to test exact query construction with this mock,
     // but at least we verify route logic passes param.
     // In real integration test we'd check DB results.
   });

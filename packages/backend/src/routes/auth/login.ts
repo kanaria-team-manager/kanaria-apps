@@ -22,10 +22,11 @@ login.post("/", async (c) => {
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   // 1. Sign In
-  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  const { data: authData, error: authError } =
+    await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
   if (authError || !authData.session || !authData.user) {
     return c.json({ error: "Invalid credentials" }, 401);
@@ -51,14 +52,18 @@ login.post("/", async (c) => {
 
     // 4. Refresh Session to get new JWT with updated claims
     // We use the refresh token from the initial login
-    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession({
-      refresh_token: session.refresh_token,
-    });
+    const { data: refreshData, error: refreshError } =
+      await supabase.auth.refreshSession({
+        refresh_token: session.refresh_token,
+      });
 
     if (!refreshError && refreshData.session) {
       session = refreshData.session;
     } else {
-      console.warn("Failed to refresh session after metadata update", refreshError);
+      console.warn(
+        "Failed to refresh session after metadata update",
+        refreshError,
+      );
       // Fallback: return initial session, but claims might be missing until next refresh.
     }
   }

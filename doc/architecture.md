@@ -40,3 +40,34 @@ soccer-team-app/
 
 が実現できます！  
 このスタックで決まりです。次は`create-svelte`から始めてみてください！
+
+
+```mermaid
+flowchart TB
+    subgraph Frontend["SvelteKit Frontend"]
+        Browser["ブラウザ"]
+        HooksServer["hooks.server.ts"]
+        LoadFn["load() 関数"]
+    end
+    
+    subgraph Auth["認証フロー"]
+        SupabaseAuth["Supabase Auth API"]
+        Cookie["HTTPOnly Cookie"]
+    end
+    
+    subgraph Backend["Hono Backend (Cloudflare Workers)"]
+        AuthMW["authMiddleware"]
+        API["API Routes"]
+    end
+    
+    Browser -->|"① supabase.auth.signInWithPassword()"| SupabaseAuth
+    SupabaseAuth -->|"② セッション返却"| Browser
+    Browser -->|"③ Cookie自動保存"| Cookie
+    
+    Cookie -->|"④ 各リクエストに自動付与"| HooksServer
+    HooksServer -->|"⑤ getClaims() でJWT検証"| SupabaseAuth
+    HooksServer -->|"⑥ session取得"| LoadFn
+    
+    LoadFn -->|"⑦ Authorization: Bearer token"| AuthMW
+    AuthMW -->|"⑧ JWT検証"| API
+```

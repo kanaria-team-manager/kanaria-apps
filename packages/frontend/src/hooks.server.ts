@@ -49,24 +49,16 @@ export const handle: Handle = async ({ event, resolve }) => {
   const { session } = await event.locals.safeGetSession();
   const path = event.url.pathname;
 
-  // Logic:
-  // 1. If user is logged in and visits public route -> redirect to dashboard
-  // 2. If user is NOT logged in and visits private route -> redirect to login
-
-  const isPublicKeyRoute = publicRoutes.some(
-    (route) => path === route || path.startsWith(`${route}/`),
-  );
-  const isPrivateKeyRoute = privateRoutes.some(
+  // ログイン済みユーザーが認証ページにアクセスした場合はダッシュボードにリダイレクト
+  const isAuthRoute = authRoutes.some(
     (route) => path === route || path.startsWith(`${route}/`),
   );
 
-  if (session && isPublicKeyRoute) {
+  if (session && isAuthRoute) {
     throw redirect(303, "/dashboard");
   }
 
-  if (!session && isPrivateKeyRoute) {
-    throw redirect(303, "/auth/login");
-  }
+  // 認証必須ルートの保護は (protected) グループの +layout.server.ts で行う
 
   return resolve(event, {
     filterSerializedResponseHeaders(name) {
@@ -75,13 +67,11 @@ export const handle: Handle = async ({ event, resolve }) => {
   });
 };
 
-// Route protection logic
-const publicRoutes = [
+// ログイン済みユーザーがアクセスした場合にダッシュボードにリダイレクトするルート
+const authRoutes = [
   "/auth/login",
   "/auth/activate",
   "/auth/signup",
   "/auth/verify-email",
   "/team/create",
 ];
-
-const privateRoutes = ["/dashboard", "/players"];

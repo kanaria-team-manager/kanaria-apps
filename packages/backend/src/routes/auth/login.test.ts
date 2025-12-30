@@ -15,9 +15,12 @@ vi.mock("@supabase/supabase-js", () => {
     error: null,
   });
   const signInWithPassword = vi.fn().mockResolvedValue({
-    data: { 
+    data: {
+      user: { id: "user_123" },
+      session: {
+        refresh_token: "initial_refresh_token",
         user: { id: "user_123" },
-        session: { refresh_token: "initial_refresh_token", user: { id: "user_123" } } 
+      },
     },
     error: null,
   });
@@ -77,19 +80,18 @@ describe("POST /auth/login", () => {
     });
 
     expect(res.status).toBe(200);
-    const data = await res.json() as { session: { access_token: string } };
+    const data = (await res.json()) as { session: { access_token: string } };
     expect(data.session.access_token).toBe("refreshed_token");
-    
+
     // Check if updateUserById was called with teamId from DB
     // Need to access the mock from the factory.
     // Vitest mocks are hoisted, but accessing the inner spy requires importing the mocked module or using check.
     // Since I mocked it inline, retrieving the mock:
     const { createClient } = await import("@supabase/supabase-js");
     const client = createClient("url", "key");
-    expect(client.auth.admin.updateUserById).toHaveBeenCalledWith(
-      "user_123",
-      { app_metadata: { teamId: "team_db_123" } }
-    );
+    expect(client.auth.admin.updateUserById).toHaveBeenCalledWith("user_123", {
+      app_metadata: { teamId: "team_db_123" },
+    });
     expect(client.auth.refreshSession).toHaveBeenCalled();
   });
 });

@@ -21,8 +21,8 @@ app.get("/activate", async (c) => {
     console.log("TEAM_STATUS:", TEAM_STATUS);
 
     if (!user || !user.id) {
-       console.error("User context missing or invalid");
-       return c.json({ error: "Invalid user context" }, 401);
+      console.error("User context missing or invalid");
+      return c.json({ error: "Invalid user context" }, 401);
     }
 
     // Find the user record
@@ -45,7 +45,10 @@ app.get("/activate", async (c) => {
 
     return c.json({ message: "Activation successful" });
   } catch (err) {
-    console.error("Activation failed details:", JSON.stringify(err, Object.getOwnPropertyNames(err)));
+    console.error(
+      "Activation failed details:",
+      JSON.stringify(err, Object.getOwnPropertyNames(err)),
+    );
     return c.json({ error: "Activation failed" }, 500);
   }
 });

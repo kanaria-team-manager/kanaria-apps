@@ -1,5 +1,5 @@
 <script lang="ts">
-import { goto } from "$app/navigation";
+import { goto, invalidateAll } from "$app/navigation";
 import { login } from "$lib/domains/auth/login.js";
 import type { LoginCredentials } from "$lib/domains/auth/types";
 import { validateEmail, validatePassword } from "$lib/domains/auth/validators";
@@ -32,7 +32,8 @@ async function handleLogin(e: Event) {
     const credentials: LoginCredentials = { email, password };
     await login(credentials);
 
-    // ダッシュボードへ遷移
+    // サーバーサイドのセッションを更新してからダッシュボードへ遷移
+    await invalidateAll();
     goto("/dashboard");
   } catch (err) {
     error = err instanceof Error ? err.message : "ログインに失敗しました";

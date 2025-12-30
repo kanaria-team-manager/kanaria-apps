@@ -32,12 +32,6 @@ export default defineConfig({
       },
     ],
   },
-  server: {
-    proxy: {
-      "/teams": "http://localhost:8787",
-      "/players": "http://localhost:8787",
-      "/tags": "http://localhost:8787",
-      "/labels": "http://localhost:8787",
-    },
-  },
+  // プロキシ設定を削除
+  // APIコールはサーバーサイド(+page.server.ts)からPUBLIC_BACKEND_URLを使用して行う
 });

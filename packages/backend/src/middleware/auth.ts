@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { type Context, type Next } from "hono";
+import type { Context, Next } from "hono";
 import { verify } from "hono/jwt";
 import type { Bindings, Variables } from "../types.js";
 
@@ -30,11 +30,14 @@ export const authMiddleware = async (
 
   const token = authHeader.replace("Bearer ", "");
   const jwtSecret = c.env.SUPABASE_JWT_SECRET;
-  
+
   // Strategy 1: Local Verification (Fast, requires Secret)
   if (jwtSecret) {
     try {
-      const payload = (await verify(token, jwtSecret)) as unknown as SupabaseJwtPayload;
+      const payload = (await verify(
+        token,
+        jwtSecret,
+      )) as unknown as SupabaseJwtPayload;
 
       console.log(`user data(payload) : ${JSON.stringify(payload)}`);
       c.set("user", {
@@ -54,28 +57,30 @@ export const authMiddleware = async (
 
   // Strategy 2: Remote Verification (Fallback, requires only URL/Key, no Secret)
   // This verifies the token against Supabase Auth API
-  console.warn("SUPABASE_JWT_SECRET not set. Falling back to Supabase API verification (slower).");
-  
+  console.warn(
+    "SUPABASE_JWT_SECRET not set. Falling back to Supabase API verification (slower).",
+  );
+
   const supabaseUrl = c.env.SUPABASE_URL;
-  // We can use the Service Role Key here effectively to act as admin, 
-  // OR we can create a client with the user's token directly? 
+  // We can use the Service Role Key here effectively to act as admin,
+  // OR we can create a client with the user's token directly?
   // No, standard patterns is creating client with Url/Key (Anon or Service) and then getUser(token).
   // Ideally use Anon key to be safe, but we have Service Role in types.
   // We'll use createClient(url, anon_key, { global: { headers: { Authorization: ... } } }) pattern
-  
-  // HACK: We assume SUPABASE_SERVICE_ROLE_KEY works for general client init, 
+
+  // HACK: We assume SUPABASE_SERVICE_ROLE_KEY works for general client init,
   // but strictly we should use ANON key for client-side ops simulation.
   // HOWEVER, getUser(token) validates the token regardless of the key used to init the client?
   // Let's use the provided SERVICE_ROLE_KEY but usually it's overkill.
   // Actually, we can just pass the token to getUser.
-  
+
   if (!supabaseUrl || !c.env.SUPABASE_SERVICE_ROLE_KEY) {
-     console.error("Supabase Config Missing");
-     return c.json({ error: "Server Configuration Error" }, 500);
+    console.error("Supabase Config Missing");
+    return c.json({ error: "Server Configuration Error" }, 500);
   }
 
   const supabase = createClient(supabaseUrl, c.env.SUPABASE_SERVICE_ROLE_KEY);
-  
+
   const { data, error } = await supabase.auth.getClaims(token);
 
   if (error || !data) {
