@@ -189,7 +189,7 @@ async function handleSubmit(e: Event) {
             attendanceStatusId: statusId
         }));
         
-        await apiPost("/events", session?.access_token, {
+        await apiPost("/events", {
             title,
             details: description,
             labelId: selectedLabelId,
@@ -197,7 +197,7 @@ async function handleSubmit(e: Event) {
             endDateTime,
             tagIds: selectedTagIds,
             attendances // New payload structure
-        });
+        }, session?.access_token);
         
         goto("/dashboard");
     } catch (e) {

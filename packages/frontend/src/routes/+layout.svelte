@@ -7,7 +7,7 @@ import GlobalHeader from "$lib/components/GlobalHeader.svelte";
 
 let { children } = $props();
 
-const privateRoutes = ["/dashboard", "/players"];
+const privateRoutes = ["/dashboard", "/players", "/places"];
 let shouldShowHeader = $derived(
   privateRoutes.some((route) => $page.url.pathname.startsWith(route)),
 );

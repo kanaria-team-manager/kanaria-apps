@@ -22,6 +22,12 @@ import UserMenu from "$lib/components/UserMenu.svelte";
         >
           プレイヤー
         </a>
+        <a 
+          href="/places"
+          class="transition-colors hover:text-foreground/80 {$page.url.pathname.startsWith('/places') ? 'text-foreground' : 'text-foreground/60'}"
+        >
+          場所
+        </a>
       </nav>
     </div>
 
@@ -46,6 +52,12 @@ import UserMenu from "$lib/components/UserMenu.svelte";
             class="p-2 {$page.url.pathname.startsWith('/players') ? 'text-primary' : 'text-muted-foreground'}"
           >
             プレイヤー
+          </a>
+          <a 
+            href="/places"
+            class="p-2 {$page.url.pathname.startsWith('/places') ? 'text-primary' : 'text-muted-foreground'}"
+          >
+            場所
           </a>
         </nav>
         <UserMenu />

@@ -6,6 +6,7 @@ import login from "./routes/auth/login.js";
 import signup from "./routes/auth/signup.js";
 import { eventsRoute } from "./routes/events/events.js";
 import { labelsRoute } from "./routes/labels/labels.js";
+import { placesRoute } from "./routes/places/places.js";
 import { playersRoute } from "./routes/players/players.js";
 import { tagsRoute } from "./routes/tags/tags.js";
 import activateTeam from "./routes/teams/activate.js";
@@ -47,5 +48,6 @@ app.route("/players", playersRoute);
 app.route("/users", usersRoute);
 app.route("/events", eventsRoute);
 app.route("/attendance-statuses", attendanceStatusesRoute);
+app.route("/places", placesRoute);
 
 export default app;

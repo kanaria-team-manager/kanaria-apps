@@ -86,12 +86,12 @@ async function handleSubmit(e: Event) {
   try {
     await apiPost(
       "/players",
-      session.access_token,
       {
         name,
         tagId: selectedTagId,
         parentUserId: selectedParentId,
       },
+      session.access_token,
     );
     onCreated();
     onClose();

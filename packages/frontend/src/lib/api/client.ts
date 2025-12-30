@@ -41,8 +41,8 @@ export async function apiGet<T>(
  */
 export async function apiPost<T>(
   endpoint: string,
-  accessToken: string | undefined,
   body: unknown,
+  accessToken: string | undefined,
 ): Promise<T> {
   const res = await fetchWithAuth(endpoint, accessToken, {
     method: "POST",
@@ -52,4 +52,37 @@ export async function apiPost<T>(
     throw new Error(`API Error: ${res.status} ${res.statusText}`);
   }
   return res.json();
+}
+
+/**
+ * PUT リクエスト用ヘルパー
+ */
+export async function apiPut<T>(
+  endpoint: string,
+  body: unknown,
+  accessToken: string | undefined,
+): Promise<T> {
+  const res = await fetchWithAuth(endpoint, accessToken, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    throw new Error(`API Error: ${res.status} ${res.statusText}`);
+  }
+  return res.json();
+}
+
+/**
+ * DELETE リクエスト用ヘルパー
+ */
+export async function apiDelete(
+  endpoint: string,
+  accessToken: string | undefined,
+): Promise<void> {
+  const res = await fetchWithAuth(endpoint, accessToken, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    throw new Error(`API Error: ${res.status} ${res.statusText}`);
+  }
 }
