@@ -171,7 +171,8 @@ eventsRoute.put(
       return c.json({ error: "Permission denied" }, 403);
     }
 
-    const { title, details, placeId, startDateTime, endDateTime } = c.req.valid("json");
+    const { title, details, placeId, startDateTime, endDateTime } =
+      c.req.valid("json");
 
     try {
       const [updatedEvent] = await repo.update(eventNo, currentUser.teamId, {
