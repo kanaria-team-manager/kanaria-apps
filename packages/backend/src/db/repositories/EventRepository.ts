@@ -145,12 +145,13 @@ export class EventRepository {
   }
 
   async findByEventNo(teamId: string, eventNo: string) {
-    // 1. Fetch Event & Label & Owner
+    // 1. Fetch Event & Label & Owner & Place
     const eventRows = await this.db
       .select({
         event: schema.events,
         label: schema.labels,
         owner: schema.users,
+        place: schema.places,
       })
       .from(schema.events)
       .leftJoin(
@@ -162,6 +163,7 @@ export class EventRepository {
       )
       .leftJoin(schema.labels, eq(schema.labels.id, schema.labelables.labelId))
       .leftJoin(schema.users, eq(schema.users.id, schema.events.ownerId))
+      .leftJoin(schema.places, eq(schema.places.id, schema.events.placeId))
       .where(
         and(
           eq(schema.events.teamId, teamId),
@@ -170,7 +172,7 @@ export class EventRepository {
       );
 
     if (eventRows.length === 0) return null;
-    const { event, label, owner } = eventRows[0];
+    const { event, label, owner, place } = eventRows[0];
 
     // 2. Fetch Tags
     const tags = await this.db
@@ -202,6 +204,7 @@ export class EventRepository {
       ...event,
       label,
       owner,
+      place,
       tags: tags.map((t) => t.tag),
       attendances: attendances.map((a) => ({
         ...a.attendance,

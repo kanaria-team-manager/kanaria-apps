@@ -17,6 +17,7 @@ const createEventSchema = z.object({
   title: z.string().min(1, "タイトルは必須です"),
   details: z.string().optional(),
   labelId: z.string().min(1, "ラベルは必須です"),
+  placeId: z.string().optional(),
   startDateTime: z.string().datetime(),
   endDateTime: z.string().datetime(),
   tagIds: z.array(z.string()).default([]),
@@ -98,6 +99,7 @@ eventsRoute.post("/", zValidator("json", createEventSchema), async (c) => {
     title,
     details,
     labelId,
+    placeId,
     startDateTime,
     endDateTime,
     tagIds,
@@ -111,6 +113,7 @@ eventsRoute.post("/", zValidator("json", createEventSchema), async (c) => {
       {
         title,
         details: details || null,
+        placeId: placeId || null,
         startDateTime: new Date(startDateTime),
         endDateTime: new Date(endDateTime),
         teamId: currentUser.teamId,
@@ -131,6 +134,7 @@ eventsRoute.post("/", zValidator("json", createEventSchema), async (c) => {
 const updateEventSchema = z.object({
   title: z.string().min(1).optional(),
   details: z.string().optional(),
+  placeId: z.string().optional().nullable(),
   startDateTime: z.string().datetime().optional(),
   endDateTime: z.string().datetime().optional(),
 });
@@ -167,12 +171,13 @@ eventsRoute.put(
       return c.json({ error: "Permission denied" }, 403);
     }
 
-    const { title, details, startDateTime, endDateTime } = c.req.valid("json");
+    const { title, details, placeId, startDateTime, endDateTime } = c.req.valid("json");
 
     try {
       const [updatedEvent] = await repo.update(eventNo, currentUser.teamId, {
         title,
         details: details ?? undefined, // undefined to skip update if not provided
+        placeId: placeId === null ? null : (placeId ?? undefined),
         startDateTime: startDateTime ? new Date(startDateTime) : undefined,
         endDateTime: endDateTime ? new Date(endDateTime) : undefined,
       });

@@ -6,6 +6,7 @@ import { fetchAttendanceStatuses, fetchGradeTags, fetchLabels } from "$lib/api/m
 import type { AttendanceStatus, Label, Tag } from "$lib/api/types";
 import type { Session, User } from "@supabase/supabase-js";
 import { onMount } from "svelte";
+import PlacePicker from '$lib/components/PlacePicker.svelte';
 
 // Types
 interface Player {
@@ -15,6 +16,13 @@ interface Player {
   role?: string;
 }
 
+interface Place {
+  id: string;
+  name: string;
+  description?: string | null;
+  location?: { x: number; y: number } | null;
+}
+
 let { data } = $props();
 const session: Session | null = data.session;
 
@@ -22,6 +30,7 @@ const session: Session | null = data.session;
 let title = $state("");
 let description = $state("");
 let selectedLabelId = $state("");
+let selectedPlaceId = $state("");
 let date = $state($page.url.searchParams.get("date") || "");
 let startTime = $state("09:00");
 let durationMinutes = $state(120);
@@ -31,6 +40,7 @@ let labels = $state<Label[]>([]);
 let tags = $state<Tag[]>([]);
 let attendanceStatuses = $state<AttendanceStatus[]>([]);
 let allPlayers = $state<Player[]>([]);
+let places = $state<Place[]>([]);
 
 let selectedTagIds = $state<string[]>([]);
 // Map of playerId -> statusId. Presence in map implies selection.
@@ -63,14 +73,16 @@ onMount(async () => {
     if (!session) return;
     isLoading = true;
     try {
-        const [l, t, s] = await Promise.all([
+        const [l, t, s, p] = await Promise.all([
             fetchLabels(window.fetch),
             fetchGradeTags(window.fetch),
             fetchAttendanceStatuses(window.fetch, session.access_token),
+            apiGet<Place[]>('/places', session.access_token),
         ]);
         labels = l;
         tags = t;
         attendanceStatuses = s;
+        places = p;
     } catch (e) {
         console.error(e);
         error = "Failed to load data";
@@ -157,6 +169,7 @@ function clearForm() {
     title = "";
     description = "";
     selectedLabelId = "";
+    selectedPlaceId = "";
     selectedTagIds = [];
     startTime = "09:00";
     durationMinutes = 120;
@@ -193,6 +206,7 @@ async function handleSubmit(e: Event) {
             title,
             details: description,
             labelId: selectedLabelId,
+            placeId: selectedPlaceId || undefined,
             startDateTime,
             endDateTime,
             tagIds: selectedTagIds,
@@ -285,6 +299,13 @@ async function handleSubmit(e: Event) {
                             </div>
                         </div>
                     </div>
+
+                    <!-- Place -->
+                    <PlacePicker 
+                        {places} 
+                        value={selectedPlaceId} 
+                        onchange={(id) => selectedPlaceId = id} 
+                    />
 
                     <!-- Tags -->
                     <div class="space-y-3">

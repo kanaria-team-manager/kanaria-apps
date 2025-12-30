@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/stores';
   import { apiGet } from '$lib/api/client';
-  import { onMount } from 'svelte';
+  import PlaceDisplay from '$lib/components/PlaceDisplay.svelte';
 
   const { data } = $props();
   const eventNo = $page.params.eventNo;
@@ -10,16 +10,18 @@
   let isLoading = $state(true);
   let error = $state<string | null>(null);
 
-  onMount(async () => {
+  $effect(() => {
     if (!data.session?.access_token) return;
-    try {
-      event = await apiGet(`/events/${eventNo}`, data.session.access_token);
-    } catch (e) {
-      console.error(e);
-      error = "イベントの取得に失敗しました";
-    } finally {
-      isLoading = false;
-    }
+    (async () => {
+      try {
+        event = await apiGet(`/events/${eventNo}`, data.session.access_token);
+      } catch (e) {
+        console.error(e);
+        error = "イベントの取得に失敗しました";
+      } finally {
+        isLoading = false;
+      }
+    })();
   });
 </script>
 
@@ -74,10 +76,16 @@
         {#if event.details}
           <div class="flex items-start gap-3 text-muted-foreground">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <p class="whitespace-pre-wrap">{event.details}</p>
+          </div>
+        {/if}
+
+        {#if event.place}
+          <div class="border-t border-border pt-4 mt-4">
+            <h3 class="font-semibold mb-3">場所</h3>
+            <PlaceDisplay place={event.place} />
           </div>
         {/if}
 
