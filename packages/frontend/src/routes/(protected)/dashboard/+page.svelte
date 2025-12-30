@@ -165,8 +165,14 @@ function clearFilters() {
   selectedDate = null;
 }
 
+import { goto } from "$app/navigation";
+
 function handleDateSelect(date: Date) {
-  selectedDate = date;
+  // YYYY-MM-DD format (local time)
+  const offset = date.getTimezoneOffset();
+  const localDate = new Date(date.getTime() - offset * 60 * 1000);
+  const dateStr = localDate.toISOString().split('T')[0];
+  goto(`/events/create?date=${dateStr}`);
 }
 </script>
 

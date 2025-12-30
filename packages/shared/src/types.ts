@@ -17,3 +17,13 @@ export interface Label {
   createdAt: string | Date;
   updatedAt: string | Date;
 }
+
+export interface AttendanceStatus {
+  id: string;
+  name: string;
+  color: string;
+  systemFlag: boolean;
+  teamId: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
