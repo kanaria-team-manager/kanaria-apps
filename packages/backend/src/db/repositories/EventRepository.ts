@@ -1,4 +1,4 @@
-import { and, eq, gte, lt } from "drizzle-orm";
+import { and, eq, gte, lt, sql } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { ulid } from "ulid";
 import * as schema from "../schemas/index.js";
@@ -9,12 +9,36 @@ export class EventRepository {
   constructor(private db: PostgresJsDatabase<typeof schema>) {}
 
   async createWithRelations(
-    eventData: Omit<NewEvent, "id" | "createdAt" | "updatedAt">,
+    eventData: Omit<
+      NewEvent,
+      "id" | "createdAt" | "updatedAt" | "eventNo" | "localSequence"
+    >,
     labelId: string,
     tagIds: string[],
     attendances: { playerId: string; attendanceStatusId: string }[],
   ) {
     return await this.db.transaction(async (tx) => {
+      // 0. Lock Team and Get Code
+      const teamRows = await tx
+        .select({ code: schema.teams.code })
+        .from(schema.teams)
+        .where(eq(schema.teams.id, eventData.teamId))
+        .for("update"); // Row Lock
+
+      if (teamRows.length === 0) {
+        throw new Error("Team not found");
+      }
+      const teamCode = teamRows[0].code;
+
+      // 0.5 Numbering
+      const maxRes = await tx
+        .select({ maxSeq: sql<number>`max(${schema.events.localSequence})` })
+        .from(schema.events)
+        .where(eq(schema.events.teamId, eventData.teamId));
+
+      const nextSequence = (maxRes[0]?.maxSeq || 0) + 1;
+      const eventNo = `${teamCode}-${nextSequence}`;
+
       const eventId = ulid();
 
       // 1. Create Event
@@ -23,6 +47,8 @@ export class EventRepository {
         .values({
           ...eventData,
           id: eventId,
+          eventNo,
+          localSequence: nextSequence,
         })
         .returning();
 
