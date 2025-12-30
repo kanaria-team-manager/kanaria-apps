@@ -15,6 +15,13 @@
       "when": 1765715648059,
       "tag": "0001_initialize_data",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1767084351054,
+      "tag": "0002_initialize-attendance-status",
+      "breakpoints": true
     }
   ]
 }
