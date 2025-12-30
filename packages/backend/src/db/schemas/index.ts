@@ -3,6 +3,7 @@ export * from "./attendances";
 export * from "./events";
 export * from "./labelables";
 export * from "./labels";
+export * from "./places";
 export * from "./players";
 export * from "./roles";
 export * from "./taggables";

@@ -115,6 +115,7 @@ eventsRoute.post("/", zValidator("json", createEventSchema), async (c) => {
         endDateTime: new Date(endDateTime),
         teamId: currentUser.teamId,
       },
+      currentUser.id, // ownerId
       labelId,
       tagIds,
       attendances,
@@ -126,3 +127,60 @@ eventsRoute.post("/", zValidator("json", createEventSchema), async (c) => {
     return c.json({ error: "Failed to create event" }, 500);
   }
 });
+
+const updateEventSchema = z.object({
+  title: z.string().min(1).optional(),
+  details: z.string().optional(),
+  startDateTime: z.string().datetime().optional(),
+  endDateTime: z.string().datetime().optional(),
+});
+
+eventsRoute.put(
+  "/:eventNo",
+  zValidator("json", updateEventSchema),
+  async (c) => {
+    const db = c.get("db");
+    const user = c.get("user");
+    const eventNo = c.req.param("eventNo");
+
+    const userRepo = new UserRepository(db);
+    const currentUser = await userRepo.findBySupabaseId(user.id);
+
+    if (!currentUser?.teamId) {
+      return c.json({ error: "Team ID not found" }, 403);
+    }
+
+    const repo = new EventRepository(db);
+    const event = await repo.findByEventNo(currentUser.teamId, eventNo);
+
+    if (!event) {
+      return c.json({ error: "Event not found" }, 404);
+    }
+
+    // Permission Check
+    // 0: Admin, 1: Manager (Assuming these values based on request)
+    // Allow if owner OR role is 0 or 1
+    const isOwner = event.ownerId === currentUser.id;
+    const hasRole = [0, 1].includes(currentUser.roleId ?? -1);
+
+    if (!isOwner && !hasRole) {
+      return c.json({ error: "Permission denied" }, 403);
+    }
+
+    const { title, details, startDateTime, endDateTime } = c.req.valid("json");
+
+    try {
+      const [updatedEvent] = await repo.update(eventNo, currentUser.teamId, {
+        title,
+        details: details ?? undefined, // undefined to skip update if not provided
+        startDateTime: startDateTime ? new Date(startDateTime) : undefined,
+        endDateTime: endDateTime ? new Date(endDateTime) : undefined,
+      });
+
+      return c.json(updatedEvent);
+    } catch (e) {
+      console.error("Failed to update event:", e);
+      return c.json({ error: "Failed to update event" }, 500);
+    }
+  },
+);

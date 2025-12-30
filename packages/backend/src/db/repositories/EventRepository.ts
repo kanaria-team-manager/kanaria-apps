@@ -9,7 +9,11 @@ export class EventRepository {
   constructor(private db: PostgresJsDatabase<typeof schema>) {}
 
   async createWithRelations(
-    eventData: Omit<NewEvent, "id" | "createdAt" | "updatedAt" | "eventNo">,
+    eventData: Omit<
+      NewEvent,
+      "id" | "createdAt" | "updatedAt" | "eventNo" | "ownerId"
+    >,
+    ownerId: string,
     labelId: string,
     tagIds: string[],
     attendances: { playerId: string; attendanceStatusId: string }[],
@@ -41,6 +45,7 @@ export class EventRepository {
           ...eventData,
           id: eventId,
           eventNo,
+          ownerId,
         })
         .returning();
 
@@ -140,11 +145,12 @@ export class EventRepository {
   }
 
   async findByEventNo(teamId: string, eventNo: string) {
-    // 1. Fetch Event & Label
+    // 1. Fetch Event & Label & Owner
     const eventRows = await this.db
       .select({
         event: schema.events,
         label: schema.labels,
+        owner: schema.users,
       })
       .from(schema.events)
       .leftJoin(
@@ -155,6 +161,7 @@ export class EventRepository {
         ),
       )
       .leftJoin(schema.labels, eq(schema.labels.id, schema.labelables.labelId))
+      .leftJoin(schema.users, eq(schema.users.id, schema.events.ownerId))
       .where(
         and(
           eq(schema.events.teamId, teamId),
@@ -163,7 +170,7 @@ export class EventRepository {
       );
 
     if (eventRows.length === 0) return null;
-    const { event, label } = eventRows[0];
+    const { event, label, owner } = eventRows[0];
 
     // 2. Fetch Tags
     const tags = await this.db
@@ -194,11 +201,32 @@ export class EventRepository {
     return {
       ...event,
       label,
+      owner,
       tags: tags.map((t) => t.tag),
       attendances: attendances.map((a) => ({
         ...a.attendance,
         player: a.player,
       })),
     };
+  }
+
+  async update(
+    eventNo: string,
+    teamId: string,
+    updateData: Partial<typeof schema.events.$inferInsert>,
+  ) {
+    return await this.db
+      .update(schema.events)
+      .set({
+        ...updateData,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(schema.events.teamId, teamId),
+          eq(schema.events.eventNo, eventNo),
+        ),
+      )
+      .returning();
   }
 }

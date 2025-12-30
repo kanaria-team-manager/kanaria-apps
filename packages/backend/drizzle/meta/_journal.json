@@ -36,6 +36,20 @@
       "when": 1767100094668,
       "tag": "0004_dry_shooting_star",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1767101882830,
+      "tag": "0005_low_daredevil",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1767102570647,
+      "tag": "0006_married_luckman",
+      "breakpoints": true
     }
   ]
 }
