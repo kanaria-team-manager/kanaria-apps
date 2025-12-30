@@ -1,6 +1,9 @@
 <script lang="ts">
 import { apiGet } from "$lib/api/client";
+import { fetchGradeTags } from "$lib/api/master";
+import type { Tag } from "@kanaria/shared";
 import type { Session } from "@supabase/supabase-js";
+import { onMount } from "svelte";
 import PlayerCard from "./PlayerCard.svelte";
 
 // Types
@@ -18,17 +21,26 @@ let { initialPlayers = [], session }: { initialPlayers?: Player[], session: Sess
 let players = $state(initialPlayers);
 let searchQuery = $state("");
 let isLoading = $state(false);
-let activeFilter = $state("all");
+let activeFilter = $state(""); // Empty string means "All"
+let gradeTags = $state<Tag[]>([]);
 
 // Debounce Search
 let searchTimeout: ReturnType<typeof setTimeout>;
+
+onMount(async () => {
+    try {
+        gradeTags = await fetchGradeTags(window.fetch);
+    } catch (e) {
+        console.error("Failed to fetch grade tags", e);
+    }
+});
 
 async function fetchPlayers() {
   isLoading = true;
   try {
     const params = new URLSearchParams();
     if (searchQuery) params.append("q", searchQuery);
-    // if (activeFilter !== 'all') params.append('tag', activeFilter);
+    if (activeFilter) params.append("tag", activeFilter);
 
     players = await apiGet<Player[]>(`/players?${params.toString()}`, session?.access_token);
   } catch (err) {
@@ -44,6 +56,11 @@ function handleSearch(e: Event) {
 
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(fetchPlayers, 300);
+}
+
+function handleFilter(tagName: string) {
+    activeFilter = tagName;
+    fetchPlayers();
 }
 
 function handleRefresh() {
@@ -74,22 +91,23 @@ function handleRefresh() {
           class="pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all w-full sm:w-64 shadow-sm"
         />
       </div>
-
-      <!-- Add Button -->
-      <!-- <button class="px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-xl shadow-lg shadow-gray-900/10 transition-all active:scale-95 flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Add Player
-      </button> -->
     </div>
   </div>
 
   <!-- Filters (Tabs) -->
   <div class="flex items-center gap-2 border-b border-gray-100 pb-1 overflow-x-auto">
-    {#each ['All', 'Active', 'Injured', 'Archived'] as tab}
+    <button 
+      onclick={() => handleFilter("")}
+      class="px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap {activeFilter === "" ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}"
+    >
+      全て
+    </button>
+    {#each gradeTags as tag}
       <button 
-        class="px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap {activeFilter.toLowerCase() === tab.toLowerCase() || (activeFilter === 'all' && tab === 'All') ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}"
+        onclick={() => handleFilter(tag.name)}
+        class="px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap {activeFilter === tag.name ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}"
       >
-        {tab}
+        {tag.name}
       </button>
     {/each}
   </div>
