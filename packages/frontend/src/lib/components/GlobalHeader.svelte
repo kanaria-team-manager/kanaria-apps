@@ -1,6 +1,8 @@
 <script lang="ts">
 import { page } from "$app/state";
 import UserMenu from "$lib/components/UserMenu.svelte";
+
+  const userName = $derived(page.data.user?.user_metadata?.name || page.data.user?.email || "");
 </script>
 
 <header class="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -32,7 +34,10 @@ import UserMenu from "$lib/components/UserMenu.svelte";
     </div>
 
     <!-- Desktop User Menu -->
-    <div class="hidden md:flex flex-1 justify-end">
+    <div class="hidden md:flex flex-1 justify-end items-center">
+      {#if userName}
+        <span class="mr-3 text-sm font-medium text-foreground">{userName}</span>
+      {/if}
       <UserMenu />
     </div>
 
