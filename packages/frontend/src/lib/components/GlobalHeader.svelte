@@ -30,6 +30,12 @@ import UserMenu from "$lib/components/UserMenu.svelte";
         >
           場所
         </a>
+        <a 
+          href="/tags"
+          class="transition-colors hover:text-foreground/80 {page.url.pathname.startsWith('/tags') ? 'text-foreground' : 'text-foreground/60'}"
+        >
+          タグ
+        </a>
       </nav>
     </div>
 
@@ -63,6 +69,12 @@ import UserMenu from "$lib/components/UserMenu.svelte";
             class="p-2 {page.url.pathname.startsWith('/places') ? 'text-primary' : 'text-muted-foreground'}"
           >
             場所
+          </a>
+          <a 
+            href="/tags"
+            class="p-2 {page.url.pathname.startsWith('/tags') ? 'text-primary' : 'text-muted-foreground'}"
+          >
+            タグ
           </a>
         </nav>
         <UserMenu />

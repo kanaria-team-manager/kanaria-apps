@@ -1,4 +1,4 @@
-import { fetchLabels, fetchTags } from "$lib/api/master";
+import { fetchLabels, fetchGradeTags } from "$lib/api/master";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ fetch, locals }) => {
@@ -6,7 +6,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
   const accessToken = session?.access_token || "";
 
   const [tags, labels] = await Promise.all([
-    fetchTags(fetch),
+    fetchGradeTags(fetch),
     fetchLabels(fetch, accessToken, "event"),
   ]);
 
