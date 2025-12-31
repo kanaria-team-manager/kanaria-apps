@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, or } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import * as schema from "../schemas/index.js";
 import { SYSTEM_FLAG } from "../schemas/utils.js";
@@ -41,5 +41,3 @@ export class AttendanceStatusRepository {
       );
   }
 }
-
-import { or } from "drizzle-orm";

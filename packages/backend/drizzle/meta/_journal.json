@@ -50,6 +50,13 @@
       "when": 1767102570647,
       "tag": "0006_married_luckman",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1767143861978,
+      "tag": "0007_crazy_morlun",
+      "breakpoints": true
     }
   ]
 }

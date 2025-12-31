@@ -7,6 +7,7 @@ export const labels = pgTable("labels", {
   name: text("name").notNull(),
   teamId: ulid("team_id").references(() => teams.id), // システムフラグが立っている時はnull
   color: text("color").notNull().default("#000000"),
+  type: text("type").notNull().default("event"),
   systemFlag: boolean("system_flag").default(SYSTEM_FLAG.CUSTOM).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
