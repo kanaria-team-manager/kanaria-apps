@@ -36,14 +36,24 @@ const eventTypes = $derived(
     : [],
 );
 
+import { apiGet } from "$lib/api/client";
+
+// State - must be declared before labelStats which references it
+let events = $state<any[]>([]);
+
+// Compute label stats for sidebar (label name, color, and event count)
+const labelStats = $derived(
+  eventTypes.map((label) => ({
+    id: label.id,
+    name: label.name,
+    color: label.color,
+    count: events.filter((e) => e.type === label.id).length,
+  })),
+);
+
 // Helper to find ID by name for mock data
 const getLabelId = (name: string) =>
   labels?.find((l) => l.name === name)?.id || name;
-
-import { apiGet } from "$lib/api/client";
-
-// State
-let events = $state<any[]>([]);
 
 async function fetchEvents() {
     if (!data.session?.access_token) return;
@@ -132,6 +142,7 @@ function handleDateSelect(date: Date) {
       bind:open={sidebarOpen}
       {grades}
       {eventTypes}
+      {labelStats}
       {selectedGrades}
       {selectedTypes}
       {toggleGrade}

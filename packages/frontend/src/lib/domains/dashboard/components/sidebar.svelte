@@ -3,6 +3,7 @@ let {
   open = $bindable(),
   grades,
   eventTypes,
+  labelStats = [],
   selectedGrades,
   selectedTypes,
   toggleGrade,
@@ -120,27 +121,18 @@ let {
     <div class="mt-8 p-4 bg-muted rounded-xl">
       <h3 class="text-sm font-semibold text-foreground mb-3">今月の予定</h3>
       <div class="space-y-2">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-match"></span>
-            <span class="text-sm text-muted-foreground">試合</span>
+        {#each labelStats as stat}
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full" style="background-color: {stat.color}"></span>
+              <span class="text-sm text-muted-foreground">{stat.name}</span>
+            </div>
+            <span class="text-sm font-medium text-foreground">{stat.count}件</span>
           </div>
-          <span class="text-sm font-medium text-foreground">4件</span>
-        </div>
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-practice"></span>
-            <span class="text-sm text-muted-foreground">練習</span>
-          </div>
-          <span class="text-sm font-medium text-foreground">4件</span>
-        </div>
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-event"></span>
-            <span class="text-sm text-muted-foreground">イベント</span>
-          </div>
-          <span class="text-sm font-medium text-foreground">2件</span>
-        </div>
+        {/each}
+        {#if labelStats.length === 0}
+          <p class="text-sm text-muted-foreground">データなし</p>
+        {/if}
       </div>
     </div>
   </div>
