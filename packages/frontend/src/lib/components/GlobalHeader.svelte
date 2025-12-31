@@ -1,5 +1,5 @@
 <script lang="ts">
-import { page } from "$app/stores";
+import { page } from "$app/state";
 import UserMenu from "$lib/components/UserMenu.svelte";
 </script>
 
@@ -12,19 +12,19 @@ import UserMenu from "$lib/components/UserMenu.svelte";
       <nav class="flex items-center space-x-6 text-sm font-medium">
         <a 
           href="/dashboard"
-          class="transition-colors hover:text-foreground/80 {$page.url.pathname.startsWith('/dashboard') ? 'text-foreground' : 'text-foreground/60'}"
+          class="transition-colors hover:text-foreground/80 {page.url.pathname.startsWith('/dashboard') ? 'text-foreground' : 'text-foreground/60'}"
         >
           予定
         </a>
         <a 
           href="/players"
-          class="transition-colors hover:text-foreground/80 {$page.url.pathname.startsWith('/players') ? 'text-foreground' : 'text-foreground/60'}"
+          class="transition-colors hover:text-foreground/80 {page.url.pathname.startsWith('/players') ? 'text-foreground' : 'text-foreground/60'}"
         >
           プレイヤー
         </a>
         <a 
           href="/places"
-          class="transition-colors hover:text-foreground/80 {$page.url.pathname.startsWith('/places') ? 'text-foreground' : 'text-foreground/60'}"
+          class="transition-colors hover:text-foreground/80 {page.url.pathname.startsWith('/places') ? 'text-foreground' : 'text-foreground/60'}"
         >
           場所
         </a>
@@ -43,19 +43,19 @@ import UserMenu from "$lib/components/UserMenu.svelte";
         <nav class="flex items-center gap-2 text-sm font-medium">
           <a 
             href="/dashboard"
-            class="p-2 {$page.url.pathname.startsWith('/dashboard') ? 'text-primary' : 'text-muted-foreground'}"
+            class="p-2 {page.url.pathname.startsWith('/dashboard') ? 'text-primary' : 'text-muted-foreground'}"
           >
             予定
           </a>
           <a 
             href="/players"
-            class="p-2 {$page.url.pathname.startsWith('/players') ? 'text-primary' : 'text-muted-foreground'}"
+            class="p-2 {page.url.pathname.startsWith('/players') ? 'text-primary' : 'text-muted-foreground'}"
           >
             プレイヤー
           </a>
           <a 
             href="/places"
-            class="p-2 {$page.url.pathname.startsWith('/places') ? 'text-primary' : 'text-muted-foreground'}"
+            class="p-2 {page.url.pathname.startsWith('/places') ? 'text-primary' : 'text-muted-foreground'}"
           >
             場所
           </a>

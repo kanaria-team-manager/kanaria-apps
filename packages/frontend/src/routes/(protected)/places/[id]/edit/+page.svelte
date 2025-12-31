@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { apiGet, apiPut } from '$lib/api/client';
   import MapPicker from '$lib/components/MapPicker.svelte';
   
   const { data } = $props();
-  const id = $page.params.id;
+  const id = page.params.id;
 
   let name = $state('');
   let description = $state('');

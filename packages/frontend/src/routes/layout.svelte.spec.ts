@@ -1,26 +1,27 @@
 import { createRawSnippet } from "svelte";
-import { readable, writable } from "svelte/store";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-svelte";
 import Layout from "./+layout.svelte";
 
-// Mock $page store
-const mockPage = writable({
-  url: new URL("http://localhost/dashboard"),
-  route: { id: "/dashboard" },
-  data: {},
-  params: {},
-  status: 200,
-  error: null,
-  state: {},
-  form: null,
+// Mock $page state
+const { mockPage } = vi.hoisted(() => {
+  return {
+    mockPage: {
+      url: new URL("http://localhost/dashboard"),
+      route: { id: "/dashboard" },
+      data: {},
+      params: {},
+      status: 200,
+      error: null,
+      state: {},
+      form: null,
+    },
+  };
 });
 
-vi.mock("$app/stores", () => ({
-  page: {
-    subscribe: (fn: (value: any) => void) => mockPage.subscribe(fn),
-  },
+vi.mock("$app/state", () => ({
+  page: mockPage,
 }));
 
 vi.mock("$app/navigation", () => ({
@@ -37,25 +38,13 @@ vi.mock("$app/navigation", () => ({
 
 describe("+layout.svelte", () => {
   // We need to render something as children
-  const snippets = {
-    children: '<div data-testid="child">Child Content</div>',
-  };
-
   const childrenSnippet = createRawSnippet(() => ({
     render: () => '<div data-testid="child">Child Content</div>',
   }));
 
   it("should render GlobalHeader on private routes (/dashboard)", async () => {
-    mockPage.set({
-      url: new URL("http://localhost/dashboard"),
-      route: { id: "/dashboard" },
-      data: {},
-      params: {},
-      status: 200,
-      error: null,
-      state: {},
-      form: null,
-    });
+    mockPage.url = new URL("http://localhost/dashboard");
+    mockPage.route = { id: "/dashboard" };
 
     render(Layout, { children: childrenSnippet });
 
@@ -66,16 +55,8 @@ describe("+layout.svelte", () => {
   });
 
   it("should NOT render GlobalHeader on public routes (/auth/login)", async () => {
-    mockPage.set({
-      url: new URL("http://localhost/auth/login"),
-      route: { id: "/auth/login" },
-      data: {},
-      params: {},
-      status: 200,
-      error: null,
-      state: {},
-      form: null,
-    });
+    mockPage.url = new URL("http://localhost/auth/login");
+    mockPage.route = { id: "/auth/login" };
 
     render(Layout, { children: childrenSnippet });
 

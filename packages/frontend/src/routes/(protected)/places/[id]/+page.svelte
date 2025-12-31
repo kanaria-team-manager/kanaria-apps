@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
   import { apiGet } from '$lib/api/client';
   import MapPicker from '$lib/components/MapPicker.svelte';
 
   const { data } = $props();
-  const id = $page.params.id;
+  const id = page.params.id;
 
   let place = $state<any>(null);
   let isLoading = $state(true);

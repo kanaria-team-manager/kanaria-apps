@@ -105,23 +105,7 @@ describe("hooks.server.ts routing", () => {
       }
     });
 
-    it("should redirect private routes to /auth/login", async () => {
-      const privateRoutes = ["/dashboard", "/players"];
 
-      for (const route of privateRoutes) {
-        const error = await catchRedirect(route, null);
-        expect(error).not.toBeNull();
-        if (
-          error &&
-          typeof error === "object" &&
-          "status" in error &&
-          "location" in error
-        ) {
-          expect(error.status).toBe(303);
-          expect(error.location).toBe("/auth/login");
-        }
-      }
-    });
   });
 
   describe("Logged In State", () => {

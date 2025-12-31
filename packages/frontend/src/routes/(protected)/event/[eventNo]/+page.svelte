@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
   import { apiGet, apiPut } from '$lib/api/client';
   import { fetchAttendanceStatuses } from '$lib/api/master';
   import PlaceDisplay from '$lib/components/PlaceDisplay.svelte';
@@ -27,7 +27,7 @@
   }
 
   const { data } = $props();
-  const eventNo = $page.params.eventNo;
+  const eventNo = page.params.eventNo;
 
   let event = $state<any>(null);
   let currentUser = $state<CurrentUser | null>(null);
@@ -97,14 +97,7 @@
 </script>
 
 <div class="container mx-auto px-4 py-6 max-w-2xl">
-  <div class="mb-6">
-    <a href="/dashboard" class="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-      </svg>
-      ダッシュボードに戻る
-    </a>
-  </div>
+
 
   {#if isLoading}
     <div class="flex justify-center p-8">
