@@ -8,6 +8,7 @@ export const taggableType = pgEnum("taggable_type", [
   "event",
   "player",
   "team",
+  "user",
 ]);
 
 export const taggables = pgTable(

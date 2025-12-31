@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { dbMiddleware } from "./middleware/db.js";
 import { attendanceStatusesRoute } from "./routes/attendance-statuses/attendance-statuses.js";
+import { attendancesRoute } from "./routes/attendances/attendances.js";
 import login from "./routes/auth/login.js";
 import signup from "./routes/auth/signup.js";
 import { eventsRoute } from "./routes/events/events.js";
@@ -48,6 +49,7 @@ app.route("/players", playersRoute);
 app.route("/users", usersRoute);
 app.route("/events", eventsRoute);
 app.route("/attendance-statuses", attendanceStatusesRoute);
+app.route("/attendances", attendancesRoute);
 app.route("/places", placesRoute);
 
 export default app;

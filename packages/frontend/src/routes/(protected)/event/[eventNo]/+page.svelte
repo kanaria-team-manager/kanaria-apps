@@ -1,20 +1,66 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import { apiGet } from '$lib/api/client';
+  import { apiGet, apiPut } from '$lib/api/client';
+  import { fetchAttendanceStatuses } from '$lib/api/master';
   import PlaceDisplay from '$lib/components/PlaceDisplay.svelte';
+  import type { AttendanceStatus } from '$lib/api/types';
+
+  interface CurrentUser {
+    id: string;
+    roleId: number;
+  }
+
+  interface Attendance {
+    id: string;
+    playerId: string;
+    attendanceStatusIds: string[];
+    player: {
+      id: string;
+      name: string;
+      parentUserId: string;
+      tags: string[];
+    };
+    status: {
+      name: string;
+      color: string;
+    };
+  }
 
   const { data } = $props();
   const eventNo = $page.params.eventNo;
 
   let event = $state<any>(null);
+  let currentUser = $state<CurrentUser | null>(null);
+  let attendanceStatuses = $state<AttendanceStatus[]>([]);
   let isLoading = $state(true);
   let error = $state<string | null>(null);
+
+  // Check if user can edit status
+  const canEditAny = $derived(currentUser?.roleId === 0 || currentUser?.roleId === 1);
+
+  function canEditPlayer(att: Attendance): boolean {
+    if (canEditAny) return true;
+    if (!currentUser) return false;
+    return att.player.parentUserId === currentUser.id;
+  }
+
+  function isMyChild(att: Attendance): boolean {
+    if (!currentUser) return false;
+    return att.player.parentUserId === currentUser.id;
+  }
 
   $effect(() => {
     if (!data.session?.access_token) return;
     (async () => {
       try {
-        event = await apiGet(`/events/${eventNo}`, data.session.access_token);
+        const [eventData, userData, statusData] = await Promise.all([
+          apiGet(`/events/${eventNo}`, data.session.access_token),
+          apiGet<CurrentUser>('/users/me', data.session.access_token),
+          fetchAttendanceStatuses(window.fetch, data.session.access_token),
+        ]);
+        event = eventData;
+        currentUser = userData;
+        attendanceStatuses = statusData;
       } catch (e) {
         console.error(e);
         error = "イベントの取得に失敗しました";
@@ -23,6 +69,31 @@
       }
     })();
   });
+
+  async function updateAttendanceStatus(attendanceId: string, newStatusId: string) {
+    if (!data.session?.access_token) return;
+    try {
+      await apiPut(`/attendances/${attendanceId}`, {
+        attendanceStatusId: newStatusId,
+      }, data.session.access_token);
+      
+      // Update local state
+      if (event?.attendances) {
+        const status = attendanceStatuses.find(s => s.id === newStatusId);
+        event = {
+          ...event,
+          attendances: event.attendances.map((att: Attendance) => 
+            att.id === attendanceId 
+              ? { ...att, attendanceStatusIds: [newStatusId], status: status ? { name: status.name, color: status.color } : att.status }
+              : att
+          ),
+        };
+      }
+    } catch (e) {
+      console.error('Failed to update status:', e);
+      alert('ステータスの更新に失敗しました');
+    }
+  }
 </script>
 
 <div class="container mx-auto px-4 py-6 max-w-2xl">
@@ -102,18 +173,47 @@
 
         <div class="border-t border-border pt-4 mt-4">
           <h3 class="font-semibold mb-3">参加予定 ({event.attendances?.length || 0}名)</h3>
-          <!-- Player list placeholder or implementation -->
-           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-             {#each event.attendances || [] as att}
-               <div class="flex items-center justify-between p-2 bg-muted/50 rounded">
-                 <span>{att.player?.name}</span>
-                 <!-- Status display could be improved with color mapping if we had status master data -->
-                 <span class="text-xs bg-card px-2 py-1 rounded border border-border">
-                    {att.attendanceStatusIds?.[0] || '未定'}
-                 </span>
-               </div>
-             {/each}
-           </div>
+          <div class="space-y-2">
+            {#each event.attendances || [] as att}
+              <div 
+                class="flex items-center justify-between p-3 rounded-lg border transition-all {isMyChild(att) ? 'bg-primary/5 border-primary/30 ring-1 ring-primary/20' : 'bg-muted/30 border-border'}"
+              >
+                <div class="flex items-center gap-3">
+                  {#if isMyChild(att)}
+                    <span class="text-primary text-lg">★</span>
+                  {/if}
+                  <div>
+                    <span class="font-medium">{att.player.name}</span>
+                    {#if att.player.tags?.length > 0}
+                      <span class="ml-2 text-xs text-muted-foreground">
+                        {att.player.tags.join(', ')}
+                      </span>
+                    {/if}
+                  </div>
+                </div>
+                
+                {#if canEditPlayer(att)}
+                  <select
+                    value={att.attendanceStatusIds?.[0] || ''}
+                    onchange={(e) => updateAttendanceStatus(att.id, e.currentTarget.value)}
+                    class="text-sm border rounded-md py-1 px-2 focus:ring-primary focus:border-primary"
+                    style="background-color: {att.status?.color || '#f3f4f6'}20; border-color: {att.status?.color || '#d1d5db'}"
+                  >
+                    {#each attendanceStatuses as status}
+                      <option value={status.id}>{status.name}</option>
+                    {/each}
+                  </select>
+                {:else}
+                  <span 
+                    class="text-xs px-3 py-1 rounded-full font-medium"
+                    style="background-color: {att.status?.color || '#f3f4f6'}20; color: {att.status?.color || '#666'}"
+                  >
+                    {att.status?.name || '未定'}
+                  </span>
+                {/if}
+              </div>
+            {/each}
+          </div>
         </div>
 
       </div>

@@ -200,16 +200,73 @@ export class EventRepository {
       )
       .where(eq(schema.attendances.eventId, event.id));
 
+    // 4. Fetch player tags (grade info)
+    const playerIds = attendances.map((a) => a.player.id);
+    const playerTagsMap = new Map<string, string[]>();
+
+    if (playerIds.length > 0) {
+      const playerTags = await this.db
+        .select({
+          playerId: schema.taggables.taggableId,
+          tagName: schema.tags.name,
+        })
+        .from(schema.taggables)
+        .innerJoin(schema.tags, eq(schema.tags.id, schema.taggables.tagId))
+        .where(
+          and(
+            eq(schema.taggables.taggableType, "player"),
+            sql`${schema.taggables.taggableId} IN ${playerIds}`,
+          ),
+        );
+
+      for (const pt of playerTags) {
+        if (!playerTagsMap.has(pt.playerId)) {
+          playerTagsMap.set(pt.playerId, []);
+        }
+        playerTagsMap.get(pt.playerId)?.push(pt.tagName);
+      }
+    }
+
+    // 5. Fetch attendance status names
+    const allStatusIds = attendances.flatMap(
+      (a) => a.attendance.attendanceStatusIds,
+    );
+    const uniqueStatusIds = [...new Set(allStatusIds)];
+    const statusMap = new Map<string, { name: string; color: string }>();
+
+    if (uniqueStatusIds.length > 0) {
+      const statuses = await this.db
+        .select({
+          id: schema.attendanceStatuses.id,
+          name: schema.attendanceStatuses.name,
+          color: schema.attendanceStatuses.color,
+        })
+        .from(schema.attendanceStatuses)
+        .where(sql`${schema.attendanceStatuses.id} IN ${uniqueStatusIds}`);
+
+      for (const s of statuses) {
+        statusMap.set(s.id, { name: s.name, color: s.color });
+      }
+    }
+
     return {
       ...event,
       label,
       owner,
       place,
       tags: tags.map((t) => t.tag),
-      attendances: attendances.map((a) => ({
-        ...a.attendance,
-        player: a.player,
-      })),
+      attendances: attendances.map((a) => {
+        const statusId = a.attendance.attendanceStatusIds[0];
+        const status = statusId ? statusMap.get(statusId) : null;
+        return {
+          ...a.attendance,
+          player: {
+            ...a.player,
+            tags: playerTagsMap.get(a.player.id) || [],
+          },
+          status: status || { name: "未定", color: "#999999" },
+        };
+      }),
     };
   }
 

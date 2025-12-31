@@ -51,7 +51,7 @@
     // Postgres Point: (x, y). Traditionally (lng, lat) in GIS (x=lng, y=lat). Leaflet takes [lat, lng].
     // So if value is {x, y} (lng, lat), then center is [y, x].
     
-    mapInstance = L.map(mapElement).setView(initialCenter, 13);
+    mapInstance = L.map(mapElement).setView(initialCenter, 15);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -91,12 +91,12 @@
         // Only update if significantly different to avoid loop/jitters or if marker is missing
         if (!markerInstance) {
             addMarker(value.y, value.x);
-            mapInstance.setView([value.y, value.x], 13);
+            mapInstance.setView([value.y, value.x], 15);
         } else {
             const cur = markerInstance.getLatLng();
             if (Math.abs(cur.lat - value.y) > 0.0001 || Math.abs(cur.lng - value.x) > 0.0001) {
                 markerInstance.setLatLng([value.y, value.x]);
-                mapInstance.setView([value.y, value.x], 13); // Optional: pan to new location
+                mapInstance.setView([value.y, value.x], 15); // Optional: pan to new location
             }
         }
     }
