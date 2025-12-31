@@ -118,14 +118,11 @@ const days = $derived(getDaysInMonth(currentMonth));
                   e.stopPropagation();
                   goto(`/event/${event.eventNo}`);
                 }}
-                class="
-                  w-full text-left text-xs px-1.5 py-0.5 rounded truncate font-medium shadow-sm
-                  {typeInfo ? typeInfo.color + ' text-white' : 'bg-gray-100 text-gray-800'}
-                  hover:scale-[1.02] transition-transform
-                "
+                class="w-full text-left text-xs px-1.5 py-0.5 rounded truncate font-medium shadow-sm text-white hover:scale-[1.02] transition-transform"
+                style="background-color: {typeInfo?.color || '#6b7280'}"
               >
                 <span class="hidden sm:inline">{event.title}</span>
-                <span class="sm:hidden">{typeInfo ? typeInfo.label.charAt(0) : 'E'}</span>
+                <span class="sm:hidden">{typeInfo?.name?.charAt(0) || 'E'}</span>
               </button>
             {/each}
             {#if dayEvents.length > 3}
@@ -144,8 +141,8 @@ const days = $derived(getDaysInMonth(currentMonth));
 <div class="mt-4 flex flex-wrap items-center gap-4 text-sm">
   {#each eventTypes as type}
     <div class="flex items-center gap-2">
-      <span class="w-3 h-3 rounded-full {type.color}"></span>
-      <span class="text-muted-foreground">{type.label}</span>
+      <span class="w-3 h-3 rounded-full" style="background-color: {type.color}"></span>
+      <span class="text-muted-foreground">{type.name}</span>
     </div>
   {/each}
 </div>

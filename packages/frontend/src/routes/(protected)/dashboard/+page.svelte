@@ -24,19 +24,15 @@ $effect(() => {
 // Map Backend Data to UI
 const grades = $derived(tags ? tags.map((t) => t.name) : []);
 
+// Labels are already filtered by type='event' from server, use directly
 const eventTypes = $derived(
   labels
-    ? labels.map((l) => {
-        let color = "bg-gray-500"; // Default
-        if (l.name === "試合") color = "bg-match";
-        if (l.name === "練習") color = "bg-practice";
-        if (l.name === "イベント") color = "bg-event";
-        return {
-          id: l.id,
-          label: l.name,
-          color,
-        };
-      })
+    ? labels.map((l) => ({
+        id: l.id,
+        name: l.name,
+        color: l.color || "#6b7280", // Use label color from DB, fallback to gray
+        type: l.type,
+      }))
     : [],
 );
 
@@ -130,8 +126,6 @@ function handleDateSelect(date: Date) {
 </script>
 
 <div class="min-h-screen bg-background text-foreground">
-
-  <h1>username : {username}</h1>
  
   <div class="flex">
     <Sidebar 

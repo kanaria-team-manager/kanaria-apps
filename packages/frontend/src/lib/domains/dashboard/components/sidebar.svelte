@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 let {
   open = $bindable(),
   grades,
@@ -78,7 +78,7 @@ let {
       <div class="space-y-2">
         {#each eventTypes as type}
           <button
-            aria-label={`Toggle event type ${type.label}`}
+            aria-label={`Toggle event type ${type.name}`}
             onclick={() => toggleType(type.id)}
             class="
               w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all
@@ -87,11 +87,11 @@ let {
                 : 'hover:bg-hover'}
             "
           >
-            <span class="
-              w-3 h-3 rounded-full
-              {type.id === 'match' ? 'bg-match' : type.id === 'practice' ? 'bg-practice' : 'bg-event'}
-            "></span>
-            <span class="text-sm text-foreground">{type.label}</span>
+            <span 
+              class="w-3 h-3 rounded-full"
+              style="background-color: {type.color}"
+            ></span>
+            <span class="text-sm text-foreground">{type.name}</span>
             {#if selectedTypes.includes(type.id)}
               <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 ml-auto text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />

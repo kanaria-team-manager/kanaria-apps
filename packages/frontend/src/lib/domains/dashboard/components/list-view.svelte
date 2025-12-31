@@ -24,9 +24,9 @@ function getTypeIcon(typeId: number | string): string {
   const typeInfo = eventTypes.find((t) => t.id === typeId);
   if (!typeInfo) return "";
 
-  if (typeInfo.label === "試合") {
+  if (typeInfo.name === "試合") {
     return `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />`;
-  } else if (typeInfo.label === "練習") {
+  } else if (typeInfo.name === "練習") {
     return `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />`;
   }
   return `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />`;
@@ -56,14 +56,14 @@ function getTypeIcon(typeId: number | string): string {
       >
         <div class="flex items-start gap-4">
           <!-- Type indicator -->
-          <div class="
-            flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center
-            {typeInfo ? typeInfo.color.replace('bg-', 'bg-') + '-light' : 'bg-gray-100'} 
-            {typeInfo ? typeInfo.color + '/10' : 'bg-gray-100'}
-          ">
+          <div 
+            class="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center"
+            style="background-color: {typeInfo?.color || '#6b7280'}20"
+          >
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              class="w-6 h-6 {typeInfo ? typeInfo.color.replace('bg-', 'text-') : 'text-gray-500'}"
+              class="w-6 h-6"
+              style="color: {typeInfo?.color || '#6b7280'}"
               fill="none" 
               viewBox="0 0 24 24" 
               stroke="currentColor"
@@ -76,11 +76,11 @@ function getTypeIcon(typeId: number | string): string {
           <div class="flex-1 min-w-0">
             <div class="flex items-start justify-between gap-2">
               <h3 class="font-semibold text-foreground truncate">{event.title}</h3>
-              <span class="
-                flex-shrink-0 px-2 py-0.5 text-xs font-medium rounded-full
-                {typeInfo ? typeInfo.color + '/10 ' + typeInfo.color.replace('bg-', 'text-') : 'bg-gray-100 text-gray-800'}
-              ">
-                {typeInfo ? typeInfo.label : 'Event'}
+              <span 
+                class="flex-shrink-0 px-2 py-0.5 text-xs font-medium rounded-full"
+                style="background-color: {typeInfo?.color || '#6b7280'}20; color: {typeInfo?.color || '#6b7280'}"
+              >
+                {typeInfo?.name || 'Event'}
               </span>
             </div>
 

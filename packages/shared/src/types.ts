@@ -13,6 +13,7 @@ export interface Label {
   name: string;
   teamId: string | null;
   color: string;
+  type: string;
   systemFlag: boolean;
   createdAt: string | Date;
   updatedAt: string | Date;

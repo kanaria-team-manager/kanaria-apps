@@ -7,7 +7,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
 
   const [tags, labels] = await Promise.all([
     fetchTags(fetch),
-    fetchLabels(fetch, accessToken),
+    fetchLabels(fetch, accessToken, "event"),
   ]);
 
   return {
