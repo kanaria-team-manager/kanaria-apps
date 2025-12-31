@@ -41,13 +41,20 @@ import { apiGet } from "$lib/api/client";
 // State - must be declared before labelStats which references it
 let events = $state<any[]>([]);
 
+// Grade-filtered events for sidebar stats (only grade filter applied, not label filter)
+const gradeFilteredEvents = $derived(
+  events.filter((event) => {
+    return selectedGrades.length === 0 || event.grades.some((g: string) => selectedGrades.includes(g));
+  }),
+);
+
 // Compute label stats for sidebar (label name, color, and event count)
 const labelStats = $derived(
   eventTypes.map((label) => ({
     id: label.id,
     name: label.name,
     color: label.color,
-    count: events.filter((e) => e.type === label.id).length,
+    count: gradeFilteredEvents.filter((e) => e.type === label.id).length,
   })),
 );
 
