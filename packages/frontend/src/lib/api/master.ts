@@ -21,8 +21,17 @@ export async function fetchGradeTags(
 
 export async function fetchLabels(
   fetch: typeof window.fetch,
+  accessToken: string,
+  type?: string,
 ): Promise<Label[]> {
-  const res = await fetch(`${PUBLIC_BACKEND_URL}/labels`);
+  const headers: HeadersInit = {
+    Authorization: `Bearer ${accessToken}`,
+  };
+  const url = type
+    ? `${PUBLIC_BACKEND_URL}/labels?type=${encodeURIComponent(type)}`
+    : `${PUBLIC_BACKEND_URL}/labels`;
+
+  const res = await fetch(url, { headers });
   if (!res.ok) {
     throw new Error("Failed to fetch labels");
   }

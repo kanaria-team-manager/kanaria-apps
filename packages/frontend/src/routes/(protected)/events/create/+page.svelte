@@ -74,7 +74,7 @@ onMount(async () => {
     isLoading = true;
     try {
         const [l, t, s, p] = await Promise.all([
-            fetchLabels(window.fetch),
+            fetchLabels(window.fetch, session.access_token, 'event'),
             fetchGradeTags(window.fetch),
             fetchAttendanceStatuses(window.fetch, session.access_token),
             apiGet<Place[]>('/places', session.access_token),
