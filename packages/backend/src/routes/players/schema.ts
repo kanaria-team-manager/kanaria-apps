@@ -14,4 +14,5 @@ export const updatePlayerSchema = z.object({
   firstName: z.string().min(1).optional(),
   nickName: z.string().optional(),
   imageUrl: z.string().url().optional(),
+  tagIds: z.array(z.string()).optional(),
 });

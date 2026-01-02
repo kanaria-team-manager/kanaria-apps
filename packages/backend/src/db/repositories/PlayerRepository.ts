@@ -35,11 +35,43 @@ export class PlayerRepository {
   }
 
   async findById(id: string) {
-    const result = await this.db
-      .select()
+    // Get player with tags and parent user
+    const rows = await this.db
+      .select({
+        player: schema.players,
+        tag: schema.tags,
+        parentUser: {
+          id: schema.users.id,
+          name: schema.users.name,
+        },
+      })
       .from(schema.players)
+      .leftJoin(
+        schema.taggables,
+        and(
+          eq(schema.taggables.taggableId, schema.players.id),
+          eq(schema.taggables.taggableType, "player"),
+        ),
+      )
+      .leftJoin(schema.tags, eq(schema.tags.id, schema.taggables.tagId))
+      .leftJoin(schema.users, eq(schema.users.id, schema.players.parentUserId))
       .where(eq(schema.players.id, id));
-    return result[0];
+
+    if (rows.length === 0) return null;
+
+    // Aggregate tags
+    const tags: { id: string; name: string }[] = [];
+    for (const row of rows) {
+      if (row.tag && !tags.find((t) => t.id === row.tag!.id)) {
+        tags.push({ id: row.tag.id, name: row.tag.name });
+      }
+    }
+
+    return {
+      ...rows[0].player,
+      tags,
+      parentUser: rows[0].parentUser,
+    };
   }
 
   async findAll(teamId: string, options?: { tagIds?: string[]; q?: string }) {
@@ -92,5 +124,28 @@ export class PlayerRepository {
       .where(eq(schema.players.id, id))
       .returning();
     return result[0];
+  }
+
+  async updateTags(playerId: string, tagIds: string[]) {
+    // Delete existing player tags
+    await this.db
+      .delete(schema.taggables)
+      .where(
+        and(
+          eq(schema.taggables.taggableType, "player"),
+          eq(schema.taggables.taggableId, playerId),
+        ),
+      );
+
+    // Insert new tags
+    if (tagIds.length > 0) {
+      await this.db.insert(schema.taggables).values(
+        tagIds.map((tagId) => ({
+          tagId,
+          taggableType: "player" as const,
+          taggableId: playerId,
+        })),
+      );
+    }
   }
 }

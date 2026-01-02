@@ -83,15 +83,24 @@ playersRoute.put("/:id", zValidator("json", updatePlayerSchema), async (c) => {
   const db = c.get("db");
   const repo = new PlayerRepository(db);
   const id = c.req.param("id");
-  const body = c.req.valid("json");
+  const { tagIds, ...playerData } = c.req.valid("json");
 
-  const player = await repo.update(id, body);
-
-  if (!player) {
-    return c.json({ message: "Player not found" }, 404);
+  // Update player data if any fields provided
+  if (Object.keys(playerData).length > 0) {
+    const player = await repo.update(id, playerData);
+    if (!player) {
+      return c.json({ message: "Player not found" }, 404);
+    }
   }
 
-  return c.json(player);
+  // Update tags if provided
+  if (tagIds !== undefined) {
+    await repo.updateTags(id, tagIds);
+  }
+
+  // Fetch updated player with tags
+  const updatedPlayer = await repo.findById(id);
+  return c.json(updatedPlayer);
 });
 
 // List players with optional tag filter and name search

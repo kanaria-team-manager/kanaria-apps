@@ -17,6 +17,8 @@ interface Player {
   tags?: string[];
 }
 
+type ViewMode = 'card' | 'list';
+
 // Props
 let { initialPlayers = [], session }: { initialPlayers?: Player[], session: Session } = $props();
 
@@ -26,9 +28,21 @@ let searchQuery = $state("");
 let isLoading = $state(false);
 let activeFilterId = $state(""); // Empty string means "All"
 let gradeTags = $state<Tag[]>([]);
+let viewMode = $state<ViewMode>('card');
 
 // Debounce Search
 let searchTimeout: ReturnType<typeof setTimeout>;
+
+// Display name logic
+function getDisplayName(p: Player): string {
+  if (p.nickName) return p.nickName;
+  return `${p.lastName} ${p.firstName}`;
+}
+
+function getInitial(p: Player): string {
+  if (p.nickName) return p.nickName.charAt(0);
+  return p.lastName.charAt(0);
+}
 
 onMount(async () => {
     try {
@@ -69,6 +83,10 @@ function handleFilter(tagId: string) {
 function handleRefresh() {
   fetchPlayers();
 }
+
+function toggleViewMode() {
+  viewMode = viewMode === 'card' ? 'list' : 'card';
+}
 </script>
 
 <div class="space-y-8">
@@ -80,6 +98,36 @@ function handleRefresh() {
     </div>
 
     <div class="flex items-center gap-3">
+      <!-- View Toggle -->
+      <div class="flex items-center bg-gray-100 rounded-lg p-1">
+        <button
+          onclick={() => viewMode = 'card'}
+          class="p-2 rounded-md transition-colors {viewMode === 'card' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500 hover:text-gray-700'}"
+          aria-label="カード表示"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="7" height="7" x="3" y="3" rx="1"/>
+            <rect width="7" height="7" x="14" y="3" rx="1"/>
+            <rect width="7" height="7" x="14" y="14" rx="1"/>
+            <rect width="7" height="7" x="3" y="14" rx="1"/>
+          </svg>
+        </button>
+        <button
+          onclick={() => viewMode = 'list'}
+          class="p-2 rounded-md transition-colors {viewMode === 'list' ? 'bg-white shadow-sm text-indigo-600' : 'text-gray-500 hover:text-gray-700'}"
+          aria-label="リスト表示"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="8" x2="21" y1="6" y2="6"/>
+            <line x1="8" x2="21" y1="12" y2="12"/>
+            <line x1="8" x2="21" y1="18" y2="18"/>
+            <line x1="3" x2="3.01" y1="6" y2="6"/>
+            <line x1="3" x2="3.01" y1="12" y2="12"/>
+            <line x1="3" x2="3.01" y1="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
       <!-- Search -->
       <div class="relative group">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-500 transition-colors">
@@ -115,19 +163,92 @@ function handleRefresh() {
     {/each}
   </div>
 
-  <!-- Grid -->
+  <!-- Content -->
   {#if isLoading}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-pulse">
-      {#each Array(4) as _}
-        <div class="h-64 bg-gray-100 rounded-2xl"></div>
-      {/each}
-    </div>
+    {#if viewMode === 'card'}
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-pulse">
+        {#each Array(4) as _}
+          <div class="h-64 bg-gray-100 rounded-2xl"></div>
+        {/each}
+      </div>
+    {:else}
+      <div class="space-y-2 animate-pulse">
+        {#each Array(6) as _}
+          <div class="h-16 bg-gray-100 rounded-xl"></div>
+        {/each}
+      </div>
+    {/if}
   {:else if players.length > 0}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {#each players as player (player.id)}
-        <PlayerCard {player} />
-      {/each}
-    </div>
+    {#if viewMode === 'card'}
+      <!-- Card View -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {#each players as player (player.id)}
+          <PlayerCard {player} />
+        {/each}
+      </div>
+    {:else}
+      <!-- List View -->
+      <div class="bg-white border border-gray-100 rounded-xl overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-gray-50 border-b border-gray-100">
+            <tr>
+              <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">選手</th>
+              <th class="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">タグ</th>
+              <th class="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-50">
+            {#each players as player (player.id)}
+              <tr class="hover:bg-gray-50 transition-colors cursor-pointer" onclick={() => window.location.href = `/players/${player.id}`}>
+                <td class="py-3 px-4">
+                  <div class="flex items-center gap-3">
+                    {#if player.imageUrl}
+                      <img 
+                        src={player.imageUrl} 
+                        alt={getDisplayName(player)} 
+                        class="w-10 h-10 rounded-full object-cover"
+                      />
+                    {:else}
+                      <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-50 to-indigo-50 flex items-center justify-center text-sm font-bold text-indigo-600">
+                        {getInitial(player)}
+                      </div>
+                    {/if}
+                    <div>
+                      <p class="font-medium text-gray-900">{getDisplayName(player)}</p>
+                      {#if player.nickName}
+                        <p class="text-xs text-gray-400">{player.lastName} {player.firstName}</p>
+                      {/if}
+                    </div>
+                  </div>
+                </td>
+                <td class="py-3 px-4 hidden sm:table-cell">
+                  <div class="flex flex-wrap gap-1">
+                    {#if player.tags && player.tags.length > 0}
+                      {#each player.tags as tag}
+                        <span class="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">
+                          {tag}
+                        </span>
+                      {/each}
+                    {:else}
+                      <span class="text-xs text-gray-400">-</span>
+                    {/if}
+                  </div>
+                </td>
+                <td class="py-3 px-4 text-right">
+                  <button class="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" aria-label="Player options">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="1" />
+                      <circle cx="12" cy="5" r="1" />
+                      <circle cx="12" cy="19" r="1" />
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {/if}
   {:else}
     <div class="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
       <div class="p-4 bg-white rounded-2xl shadow-sm mb-4">
