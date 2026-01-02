@@ -1,4 +1,4 @@
-import { and, eq, or } from "drizzle-orm";
+import { and, asc, eq, or } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { ulid } from "ulid";
 import type * as schema from "../schemas/index";
@@ -18,7 +18,8 @@ export class TagRepository {
     return await this.db
       .select()
       .from(tags)
-      .where(or(eq(tags.teamId, teamId), eq(tags.systemFlag, true)));
+      .where(or(eq(tags.teamId, teamId), eq(tags.systemFlag, true)))
+      .orderBy(asc(tags.name));
   }
 
   async findByTeamIdWithSystemAndLabels(teamId: string) {
@@ -26,7 +27,8 @@ export class TagRepository {
     const tagsResult = await this.db
       .select()
       .from(tags)
-      .where(or(eq(tags.teamId, teamId), eq(tags.systemFlag, true)));
+      .where(or(eq(tags.teamId, teamId), eq(tags.systemFlag, true)))
+      .orderBy(asc(tags.systemFlag), asc(tags.name));
 
     // 各タグに紐づくラベルを取得
     const tagsWithLabels = await Promise.all(
@@ -70,7 +72,8 @@ export class TagRepository {
         ),
       )
       .innerJoin(labels, eq(labelables.labelId, labels.id))
-      .where(eq(labels.name, "学年"));
+      .where(eq(labels.name, "学年"))
+      .orderBy(asc(tags.name));
 
     return result;
   }

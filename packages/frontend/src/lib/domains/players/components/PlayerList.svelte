@@ -21,7 +21,7 @@ let { initialPlayers = [], session }: { initialPlayers?: Player[], session: Sess
 let players = $state(initialPlayers);
 let searchQuery = $state("");
 let isLoading = $state(false);
-let activeFilter = $state(""); // Empty string means "All"
+let activeFilterId = $state(""); // Empty string means "All"
 let gradeTags = $state<Tag[]>([]);
 
 // Debounce Search
@@ -40,7 +40,7 @@ async function fetchPlayers() {
   try {
     const params = new URLSearchParams();
     if (searchQuery) params.append("q", searchQuery);
-    if (activeFilter) params.append("tag", activeFilter);
+    if (activeFilterId) params.append("tagIds", activeFilterId);
 
     players = await apiGet<Player[]>(`/players?${params.toString()}`, session?.access_token);
   } catch (err) {
@@ -58,8 +58,8 @@ function handleSearch(e: Event) {
   searchTimeout = setTimeout(fetchPlayers, 300);
 }
 
-function handleFilter(tagName: string) {
-    activeFilter = tagName;
+function handleFilter(tagId: string) {
+    activeFilterId = tagId;
     fetchPlayers();
 }
 
@@ -98,14 +98,14 @@ function handleRefresh() {
   <div class="flex items-center gap-2 border-b border-gray-100 pb-1 overflow-x-auto">
     <button 
       onclick={() => handleFilter("")}
-      class="px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap {activeFilter === "" ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}"
+      class="px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap {activeFilterId === "" ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}"
     >
       全て
     </button>
     {#each gradeTags as tag}
       <button 
-        onclick={() => handleFilter(tag.name)}
-        class="px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap {activeFilter === tag.name ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}"
+        onclick={() => handleFilter(tag.id)}
+        class="px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap {activeFilterId === tag.id ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}"
       >
         {tag.name}
       </button>
