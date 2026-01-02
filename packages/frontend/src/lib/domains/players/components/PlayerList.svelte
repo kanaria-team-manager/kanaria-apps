@@ -29,6 +29,17 @@ let isLoading = $state(false);
 let activeFilterId = $state(""); // Empty string means "All"
 let gradeTags = $state<Tag[]>([]);
 let viewMode = $state<ViewMode>('card');
+let openMenuId = $state<string | null>(null);
+
+function toggleListMenu(e: Event, playerId: string) {
+  e.stopPropagation();
+  e.preventDefault();
+  openMenuId = openMenuId === playerId ? null : playerId;
+}
+
+function closeListMenu() {
+  openMenuId = null;
+}
 
 // Debounce Search
 let searchTimeout: ReturnType<typeof setTimeout>;
@@ -234,14 +245,47 @@ function toggleViewMode() {
                     {/if}
                   </div>
                 </td>
-                <td class="py-3 px-4 text-right">
-                  <button class="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" aria-label="Player options">
+                <td class="py-3 px-4 text-right relative">
+                  <button 
+                    onclick={(e) => toggleListMenu(e, player.id)}
+                    class="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" 
+                    aria-label="Player options"
+                  >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <circle cx="12" cy="12" r="1" />
                       <circle cx="12" cy="5" r="1" />
                       <circle cx="12" cy="19" r="1" />
                     </svg>
                   </button>
+                  
+                  {#if openMenuId === player.id}
+                    <!-- Backdrop -->
+                    <div 
+                      class="fixed inset-0 z-40" 
+                      onclick={closeListMenu}
+                      role="presentation"
+                    ></div>
+                    
+                    <!-- Dropdown Menu -->
+                    <div class="absolute right-4 top-full mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
+                      <a 
+                        href="/players/{player.id}"
+                        class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors no-underline"
+                        onclick={(e) => e.stopPropagation()}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        詳細
+                      </a>
+                      <a 
+                        href="/players/{player.id}/edit"
+                        class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors no-underline"
+                        onclick={(e) => e.stopPropagation()}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                        編集
+                      </a>
+                    </div>
+                  {/if}
                 </td>
               </tr>
             {/each}
