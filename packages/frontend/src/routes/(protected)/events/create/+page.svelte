@@ -58,6 +58,10 @@ let selectedAttendances = $state<Map<string, string>>(new Map());
 let isLoading = $state(false);
 let isSubmitting = $state(false);
 let error = $state("");
+let isSearchModalOpen = $state(false);
+let searchQuery = $state("");
+let searchResults = $state<Player[]>([]);
+let isSearching = $state(false);
 
 // Derived
 const endTime = $derived.by(() => {
@@ -75,6 +79,22 @@ const defaultStatusId = $derived.by(() => {
     const system = attendanceStatuses.find(s => s.systemFlag);
     if (system) return system.id;
     return attendanceStatuses[0].id;
+});
+
+// Sorted players: first by tag name, then by player display name
+const sortedPlayers = $derived.by(() => {
+    return [...allPlayers].sort((a, b) => {
+        // First sort by first tag name
+        const tagA = a.tags?.[0] || '';
+        const tagB = b.tags?.[0] || '';
+        const tagCompare = tagA.localeCompare(tagB);
+        if (tagCompare !== 0) return tagCompare;
+        
+        // Then sort by display name
+        const nameA = getPlayerDisplayName(a);
+        const nameB = getPlayerDisplayName(b);
+        return nameA.localeCompare(nameB);
+    });
 });
 
 onMount(async () => {
@@ -186,6 +206,53 @@ function clearForm() {
     const newMap = new Map();
     selectedAttendances = newMap;
     allPlayers = [];
+}
+
+// Player search modal functions
+function openSearchModal() {
+    isSearchModalOpen = true;
+    searchQuery = "";
+    searchResults = [];
+}
+
+function closeSearchModal() {
+    isSearchModalOpen = false;
+    searchQuery = "";
+    searchResults = [];
+}
+
+async function searchPlayers() {
+    if (!searchQuery.trim()) {
+        searchResults = [];
+        return;
+    }
+    
+    isSearching = true;
+    try {
+        const results = await apiGet<Player[]>(`/players?q=${encodeURIComponent(searchQuery)}`, session?.access_token);
+        // Filter out players already in allPlayers
+        const existingIds = new Set(allPlayers.map(p => p.id));
+        searchResults = results.filter(p => !existingIds.has(p.id));
+    } catch (e) {
+        console.error("Failed to search players", e);
+    } finally {
+        isSearching = false;
+    }
+}
+
+function addPlayerFromSearch(player: Player) {
+    // Add to allPlayers if not already there
+    if (!allPlayers.find(p => p.id === player.id)) {
+        allPlayers = [...allPlayers, player];
+    }
+    // Add to selectedAttendances with default status
+    const newMap = new Map(selectedAttendances);
+    if (!newMap.has(player.id)) {
+        newMap.set(player.id, defaultStatusId);
+        selectedAttendances = newMap;
+    }
+    // Remove from search results
+    searchResults = searchResults.filter(p => p.id !== player.id);
 }
 
 async function handleSubmit(e: Event) {
@@ -395,11 +462,19 @@ async function handleSubmit(e: Event) {
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                 出欠者リスト（{selectedAttendances.size}名選択中）
                             </span>
+                            <button
+                                type="button"
+                                onclick={openSearchModal}
+                                class="text-xs px-2 py-1 text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors flex items-center gap-1"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                                プレイヤー検索
+                            </button>
                         </span>
                         
                         <div class="max-h-[300px] border border-gray-200 rounded-lg overflow-hidden bg-white">
                             <div class="overflow-y-auto max-h-[300px] p-2 space-y-1">
-                                {#each allPlayers as player}
+                                {#each sortedPlayers as player}
                                     <div class="flex items-center gap-3 p-3 rounded-md hover:bg-gray-50 transition-colors group">
                                         <input
                                             id="p-{player.id}"
@@ -431,9 +506,9 @@ async function handleSubmit(e: Event) {
                                         </div>
                                     </div>
                                 {/each}
-                                {#if allPlayers.length === 0}
+                                {#if sortedPlayers.length === 0}
                                     <div class="py-8 text-center text-gray-400 text-sm">
-                                        表示するプレイヤーがいません
+                                        タグを選択するか、プレイヤー検索で追加してください
                                     </div>
                                 {/if}
                             </div>
@@ -468,3 +543,80 @@ async function handleSubmit(e: Event) {
         </div>
     </div>
 </div>
+
+<!-- Player Search Modal -->
+{#if isSearchModalOpen}
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <!-- Backdrop -->
+        <div 
+            class="absolute inset-0 bg-black/50" 
+            onclick={closeSearchModal}
+            role="presentation"
+        ></div>
+        
+        <!-- Modal -->
+        <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 max-h-[80vh] overflow-hidden">
+            <div class="p-4 border-b border-gray-100">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-lg font-semibold text-gray-900">プレイヤー検索</h2>
+                    <button
+                        type="button"
+                        onclick={closeSearchModal}
+                        aria-label="閉じる"
+                        class="p-1 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100 transition-colors"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                </div>
+                <div class="flex gap-2">
+                    <input
+                        type="text"
+                        bind:value={searchQuery}
+                        placeholder="名前で検索..."
+                        class="flex-1 px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                        onkeydown={(e) => e.key === 'Enter' && searchPlayers()}
+                    />
+                    <button
+                        type="button"
+                        onclick={searchPlayers}
+                        disabled={isSearching}
+                        class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                    >
+                        {isSearching ? '検索中...' : '検索'}
+                    </button>
+                </div>
+            </div>
+            
+            <div class="overflow-y-auto max-h-[50vh] p-2">
+                {#if searchResults.length > 0}
+                    {#each searchResults as player}
+                        <div class="flex items-center justify-between p-3 rounded-md hover:bg-gray-50 transition-colors">
+                            <div class="flex flex-col">
+                                <span class="font-medium text-gray-700">{getPlayerDisplayName(player)}</span>
+                                {#if player.tags && player.tags.length > 0}
+                                    <span class="text-xs text-gray-400">{player.tags.join(', ')}</span>
+                                {/if}
+                            </div>
+                            <button
+                                type="button"
+                                onclick={() => addPlayerFromSearch(player)}
+                                class="px-3 py-1 text-sm text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors flex items-center gap-1"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                                追加
+                            </button>
+                        </div>
+                    {/each}
+                {:else if searchQuery && !isSearching}
+                    <div class="py-8 text-center text-gray-400 text-sm">
+                        検索結果がありません
+                    </div>
+                {:else}
+                    <div class="py-8 text-center text-gray-400 text-sm">
+                        名前を入力して検索してください
+                    </div>
+                {/if}
+            </div>
+        </div>
+    </div>
+{/if}
