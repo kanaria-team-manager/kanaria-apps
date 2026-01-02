@@ -192,28 +192,6 @@
       <!-- Tags -->
       <div class="space-y-3">
         <span class="text-sm font-medium text-muted-foreground">タグ</span>
-        
-        <!-- Current tags -->
-        <div class="flex flex-wrap gap-2 min-h-[2rem]">
-          {#each user.tags as tag}
-            <span class="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
-              {tag.name}
-              <button
-                onclick={() => removeTag(tag.id)}
-                disabled={isSavingTags}
-                class="hover:bg-primary/20 rounded-full p-0.5 disabled:opacity-50"
-                aria-label="タグを削除"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </span>
-          {/each}
-          {#if user.tags.length === 0}
-            <span class="text-sm text-muted-foreground">タグがありません</span>
-          {/if}
-        </div>
 
         <!-- Tag search -->
         <div class="relative">
@@ -237,6 +215,28 @@
                 </button>
               {/each}
             </div>
+          {/if}
+        </div>
+
+        <!-- Current tags -->
+        <div class="flex flex-wrap gap-2 min-h-[2rem]">
+          {#each user.tags as tag}
+            <span class="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
+              {tag.name}
+              <button
+                onclick={() => removeTag(tag.id)}
+                disabled={isSavingTags}
+                class="hover:bg-primary/20 rounded-full p-0.5 disabled:opacity-50"
+                aria-label="タグを削除"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </span>
+          {/each}
+          {#if user.tags.length === 0}
+            <span class="text-sm text-muted-foreground">タグがありません</span>
           {/if}
         </div>
       </div>
