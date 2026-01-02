@@ -11,12 +11,26 @@
   const { place } = $props<{ place: Place }>();
 
   // Normalize location: handle both array [x, y] and object {x, y} formats
+  // Also handle potential edge cases like nested location or invalid values
   const normalizedLocation = $derived.by(() => {
     if (!place.location) return null;
+    
+    let x: number | undefined;
+    let y: number | undefined;
+    
     if (Array.isArray(place.location)) {
-      return { x: place.location[0], y: place.location[1] };
+      [x, y] = place.location;
+    } else if (typeof place.location === 'object') {
+      x = place.location.x;
+      y = place.location.y;
     }
-    return place.location;
+    
+    // Ensure both x and y are valid numbers
+    if (typeof x === 'number' && typeof y === 'number' && !Number.isNaN(x) && !Number.isNaN(y)) {
+      return { x, y };
+    }
+    
+    return null;
   });
 </script>
 

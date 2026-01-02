@@ -11,9 +11,17 @@ import PlacePicker from '$lib/components/PlacePicker.svelte';
 // Types
 interface Player {
   id: string;
-  name: string;
+  lastName: string;
+  firstName: string;
+  nickName?: string | null;
   tags?: string[];
   role?: string;
+}
+
+// Display name logic: prefer nickName, fallback to lastName + firstName
+function getPlayerDisplayName(player: Player): string {
+  if (player.nickName) return player.nickName;
+  return `${player.lastName} ${player.firstName}`;
 }
 
 interface Place {
@@ -402,7 +410,7 @@ async function handleSubmit(e: Event) {
                                         />
                                         <div class="flex flex-1 items-center justify-between gap-4">
                                             <label for="p-{player.id}" class="flex-1 flex flex-col cursor-pointer">
-                                                <span class="font-medium text-gray-700 group-hover:text-gray-900">{player.name}</span>
+                                                <span class="font-medium text-gray-700 group-hover:text-gray-900">{getPlayerDisplayName(player)}</span>
                                                 {#if player.tags && player.tags.length > 0}
                                                     <span class="text-xs text-gray-400">{player.tags.join(', ')}</span>
                                                 {/if}

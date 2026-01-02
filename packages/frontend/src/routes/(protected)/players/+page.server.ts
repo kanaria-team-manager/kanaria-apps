@@ -3,7 +3,10 @@ import type { PageServerLoad } from "./$types";
 
 interface Player {
   id: string;
-  name: string;
+  lastName: string;
+  firstName: string;
+  nickName?: string | null;
+  imageUrl?: string | null;
   teamId: string;
   tags?: string[];
 }

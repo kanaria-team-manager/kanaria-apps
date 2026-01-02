@@ -16,7 +16,9 @@
     attendanceStatusIds: string[];
     player: {
       id: string;
-      name: string;
+      lastName: string;
+      firstName: string;
+      nickName?: string | null;
       parentUserId: string;
       tags: string[];
     };
@@ -24,6 +26,12 @@
       name: string;
       color: string;
     };
+  }
+
+  // Display name logic: prefer nickName, fallback to lastName + firstName
+  function getPlayerDisplayName(player: Attendance['player']): string {
+    if (player.nickName) return player.nickName;
+    return `${player.lastName} ${player.firstName}`;
   }
 
   const { data } = $props();
@@ -156,7 +164,7 @@
         <div class="border-t border-border pt-4 mt-4">
           <h3 class="font-semibold mb-3">対象学年</h3>
           <div class="flex flex-wrap gap-2">
-            {#each event.tags as tag}
+            {#each event.tags.toSorted((a: {name: string}, b: {name: string}) => a.name.localeCompare(b.name)) as tag}
               <span class="px-2 py-1 bg-secondary text-secondary-foreground rounded text-sm">
                 {tag.name}
               </span>
@@ -176,7 +184,7 @@
                     <span class="text-primary text-lg">★</span>
                   {/if}
                   <div>
-                    <span class="font-medium">{att.player.name}</span>
+                    <span class="font-medium">{getPlayerDisplayName(att.player)}</span>
                     {#if att.player.tags?.length > 0}
                       <span class="ml-2 text-xs text-muted-foreground">
                         {att.player.tags.join(', ')}

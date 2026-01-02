@@ -14,7 +14,9 @@ let { isOpen, onClose, onCreated, session, user } = $props<{
   user: User | null;
 }>();
 
-let name = $state("");
+let lastName = $state("");
+let firstName = $state("");
+let nickName = $state("");
 let selectedTagId = $state("");
 let selectedParentId = $state("");
 let tags = $state<Tag[]>([]);
@@ -32,7 +34,9 @@ $effect(() => {
   if (isOpen) {
     loadData();
     // Default form reset
-    name = "";
+    lastName = "";
+    firstName = "";
+    nickName = "";
     selectedTagId = "";
     error = "";
     // selectedParentId will be set after loading users
@@ -75,7 +79,7 @@ async function loadData() {
 
 async function handleSubmit(e: Event) {
   e.preventDefault();
-  if (!name || !selectedTagId) {
+  if (!lastName || !firstName || !selectedTagId) {
     error = "必須項目を入力してください";
     return;
   }
@@ -87,7 +91,9 @@ async function handleSubmit(e: Event) {
     await apiPost(
       "/players",
       {
-        name,
+        lastName,
+        firstName,
+        nickName: nickName || undefined,
         tagId: selectedTagId,
         parentUserId: selectedParentId,
       },
@@ -139,17 +145,43 @@ function handleClose() {
           </div>
         {:else}
           <form onsubmit={handleSubmit} class="space-y-6">
-            <!-- Name -->
+            <!-- Last Name -->
             <div>
-              <label for="name" class="block text-sm font-medium text-foreground">名前 <span class="text-red-500">*</span></label>
+              <label for="lastName" class="block text-sm font-medium text-foreground">姓 <span class="text-red-500">*</span></label>
               <input
-                id="name"
+                id="lastName"
                 type="text"
-                bind:value={name}
+                bind:value={lastName}
                 class="mt-1 block w-full px-3 py-2 border border-input rounded-md shadow-sm bg-background text-foreground focus:ring-primary focus:border-primary sm:text-sm"
-                placeholder="選手名を入力"
+                placeholder="山田"
                 required
               />
+            </div>
+
+            <!-- First Name -->
+            <div>
+              <label for="firstName" class="block text-sm font-medium text-foreground">名 <span class="text-red-500">*</span></label>
+              <input
+                id="firstName"
+                type="text"
+                bind:value={firstName}
+                class="mt-1 block w-full px-3 py-2 border border-input rounded-md shadow-sm bg-background text-foreground focus:ring-primary focus:border-primary sm:text-sm"
+                placeholder="太郎"
+                required
+              />
+            </div>
+
+            <!-- Nick Name -->
+            <div>
+              <label for="nickName" class="block text-sm font-medium text-foreground">ニックネーム</label>
+              <input
+                id="nickName"
+                type="text"
+                bind:value={nickName}
+                class="mt-1 block w-full px-3 py-2 border border-input rounded-md shadow-sm bg-background text-foreground focus:ring-primary focus:border-primary sm:text-sm"
+                placeholder="たろう"
+              />
+              <p class="mt-1 text-xs text-muted-foreground">ニックネームがあれば優先的に表示されます</p>
             </div>
 
             <!-- Grade Tag -->

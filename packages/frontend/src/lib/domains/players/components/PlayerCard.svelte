@@ -1,26 +1,48 @@
 <script lang="ts">
 interface Player {
   id: string;
-  name: string;
+  lastName: string;
+  firstName: string;
+  nickName?: string | null;
+  imageUrl?: string | null;
   teamId: string;
   tags?: string[];
 }
 
 let { player } = $props<{ player: Player }>();
+
+// Display name logic: prefer nickName, fallback to lastName + firstName
+function getDisplayName(p: Player): string {
+  if (p.nickName) return p.nickName;
+  return `${p.lastName} ${p.firstName}`;
+}
+
+function getInitial(p: Player): string {
+  if (p.nickName) return p.nickName.charAt(0);
+  return p.lastName.charAt(0);
+}
 </script>
 
 <div class="group relative flex flex-col items-center bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-gray-200 transition-all duration-300 ease-out cursor-pointer">
-  <!-- Avatar Placeholder -->
+  <!-- Avatar -->
   <div class="relative mb-4">
-    <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-blue-50 to-indigo-50 flex items-center justify-center text-2xl font-bold text-indigo-600 shadow-inner group-hover:scale-105 transition-transform duration-300">
-      {player.name.charAt(0)}
-    </div>
+    {#if player.imageUrl}
+      <img 
+        src={player.imageUrl} 
+        alt={getDisplayName(player)} 
+        class="w-20 h-20 rounded-full object-cover shadow-inner group-hover:scale-105 transition-transform duration-300"
+      />
+    {:else}
+      <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-blue-50 to-indigo-50 flex items-center justify-center text-2xl font-bold text-indigo-600 shadow-inner group-hover:scale-105 transition-transform duration-300">
+        {getInitial(player)}
+      </div>
+    {/if}
     <!-- Status Dot (Mock) -->
     <div class="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-4 border-white rounded-full"></div>
   </div>
 
   <!-- Info -->
-  <h3 class="text-lg font-bold text-gray-900 mb-1 group-hover:text-indigo-600 transition-colors">{player.name}</h3>
+  <h3 class="text-lg font-bold text-gray-900 mb-1 group-hover:text-indigo-600 transition-colors">{getDisplayName(player)}</h3>
   <p class="text-sm text-gray-400 mb-4">Player</p>
 
   <!-- Tags (Mock or Real) -->

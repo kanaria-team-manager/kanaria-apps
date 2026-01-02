@@ -12,7 +12,10 @@ export const players = pgTable("players", {
   parentUserId: ulid("parent_user_id")
     .notNull()
     .references(() => users.id),
-  name: text("name").notNull(),
+  lastName: text("last_name").notNull(),
+  firstName: text("first_name").notNull(),
+  nickName: text("nick_name"),
+  imageUrl: text("image_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

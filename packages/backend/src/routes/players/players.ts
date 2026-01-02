@@ -26,7 +26,8 @@ playersRoute.post("/", zValidator("json", createPlayerSchema), async (c) => {
   const user = c.get("user");
   const repo = new PlayerRepository(db);
   const userRepo = new UserRepository(db);
-  const { name, tagId, parentUserId } = c.req.valid("json");
+  const { lastName, firstName, nickName, imageUrl, tagId, parentUserId } =
+    c.req.valid("json");
 
   // Get current user details from DB to check role
   const currentUser = await userRepo.findBySupabaseId(user.id);
@@ -52,7 +53,10 @@ playersRoute.post("/", zValidator("json", createPlayerSchema), async (c) => {
   const player = await repo.createWithTag(
     {
       id: ulid(),
-      name,
+      lastName,
+      firstName,
+      nickName,
+      imageUrl,
       teamId,
       parentUserId: targetParentId,
     },
@@ -96,7 +100,7 @@ playersRoute.get("/", async (c) => {
   const user = c.get("user");
   const repo = new PlayerRepository(db);
   const tagIds = c.req.queries("tagIds");
-  const name = c.req.query("q") || c.req.query("name");
+  const q = c.req.query("q");
 
   const teamId = user.app_metadata?.teamId as string | undefined;
 
@@ -104,6 +108,6 @@ playersRoute.get("/", async (c) => {
     return c.json({ error: "Team ID not found in user context" }, 403);
   }
 
-  const players = await repo.findAll(teamId, { tagIds, name });
+  const players = await repo.findAll(teamId, { tagIds, q });
   return c.json(players);
 });

@@ -46,10 +46,10 @@
   function initMap() {
     if (!mapElement) return;
 
-    const initialCenter = value ? [value.y, value.x] : defaultCenter; // value is {x:lng, y:lat} usually, Leaflet uses [lat, lng]
-    // Wait, let's standardize:
-    // Postgres Point: (x, y). Traditionally (lng, lat) in GIS (x=lng, y=lat). Leaflet takes [lat, lng].
-    // So if value is {x, y} (lng, lat), then center is [y, x].
+    // value is {x:lng, y:lat}. Leaflet uses [lat, lng].
+    // Check if value has valid coordinates
+    const hasValidCoords = value && typeof value.x === 'number' && typeof value.y === 'number';
+    const initialCenter = hasValidCoords ? [value.y, value.x] : defaultCenter;
     
     mapInstance = L.map(mapElement).setView(initialCenter, 15);
 
@@ -57,7 +57,7 @@
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(mapInstance);
 
-    if (value) {
+    if (hasValidCoords) {
       addMarker(value.y, value.x);
     }
 

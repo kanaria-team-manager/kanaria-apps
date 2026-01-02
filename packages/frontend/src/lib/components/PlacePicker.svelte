@@ -6,7 +6,7 @@
     id: string;
     name: string;
     description?: string | null;
-    location?: { x: number; y: number } | null;
+    location?: { x: number; y: number } | [number, number] | null;
   }
 
   const {
@@ -21,6 +21,28 @@
 
   // Derived: find the selected place
   const selectedPlace = $derived(places.find((p: Place) => p.id === value) || null);
+
+  // Normalize location: handle both array [x, y] and object {x, y} formats
+  const normalizedLocation = $derived.by(() => {
+    if (!selectedPlace?.location) return null;
+    
+    let x: number | undefined;
+    let y: number | undefined;
+    
+    if (Array.isArray(selectedPlace.location)) {
+      [x, y] = selectedPlace.location;
+    } else if (typeof selectedPlace.location === 'object') {
+      x = selectedPlace.location.x;
+      y = selectedPlace.location.y;
+    }
+    
+    // Ensure both x and y are valid numbers
+    if (typeof x === 'number' && typeof y === 'number' && !Number.isNaN(x) && !Number.isNaN(y)) {
+      return { x, y };
+    }
+    
+    return null;
+  });
 
   function handleChange(e: Event) {
     const target = e.target as HTMLSelectElement;
@@ -57,12 +79,12 @@
     </div>
   </div>
 
-  {#if selectedPlace?.location}
+  {#if normalizedLocation}
     <div class="space-y-2">
       <span class="text-sm font-medium text-gray-700">地図</span>
       <div class="h-48 border rounded-md overflow-hidden relative z-0">
         {#if browser}
-          <MapPicker value={selectedPlace.location} readonly={true} />
+          <MapPicker value={normalizedLocation} readonly={true} />
         {/if}
       </div>
     </div>

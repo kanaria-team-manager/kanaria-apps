@@ -1,4 +1,4 @@
-import { and, eq, ilike, inArray } from "drizzle-orm";
+import { and, eq, ilike, inArray, or } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import * as schema from "../schemas/index.js";
 
@@ -42,10 +42,7 @@ export class PlayerRepository {
     return result[0];
   }
 
-  async findAll(
-    teamId: string,
-    options?: { tagIds?: string[]; name?: string },
-  ) {
+  async findAll(teamId: string, options?: { tagIds?: string[]; q?: string }) {
     const rows = await this.db
       .select({
         player: schema.players,
@@ -63,8 +60,11 @@ export class PlayerRepository {
       .where(
         and(
           eq(schema.players.teamId, teamId),
-          options?.name
-            ? ilike(schema.players.name, `%${options.name}%`)
+          options?.q
+            ? or(
+                ilike(schema.players.lastName, `%${options.q}%`),
+                ilike(schema.players.firstName, `%${options.q}%`),
+              )
             : undefined,
           options?.tagIds?.length
             ? inArray(schema.taggables.tagId, options.tagIds)
