@@ -289,4 +289,129 @@ export class EventRepository {
       )
       .returning();
   }
+
+  async updateWithRelations(
+    eventNo: string,
+    teamId: string,
+    updateData: Partial<typeof schema.events.$inferInsert>,
+    tagIds?: string[],
+    attendances?: { playerId: string; attendanceStatusId: string }[],
+  ) {
+    return await this.db.transaction(async (tx) => {
+      // 1. Update Event
+      const [updatedEvent] = await tx
+        .update(schema.events)
+        .set({
+          ...updateData,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(schema.events.teamId, teamId),
+            eq(schema.events.eventNo, eventNo),
+          ),
+        )
+        .returning();
+
+      if (!updatedEvent) {
+        throw new Error("Event not found");
+      }
+
+      const eventId = updatedEvent.id;
+
+      // 2. Update Tags (Diff update)
+      if (tagIds !== undefined) {
+        const currentTags = await tx
+          .select()
+          .from(schema.taggables)
+          .where(
+            and(
+              eq(schema.taggables.taggableId, eventId),
+              eq(schema.taggables.taggableType, "event"),
+            ),
+          );
+
+        const currentTagIds = new Set(currentTags.map((t) => t.tagId));
+        const newTagIds = new Set(tagIds);
+
+        // To Delete: In current but not in new
+        const tagsToDelete = [...currentTagIds].filter(
+          (id) => !newTagIds.has(id),
+        );
+
+        if (tagsToDelete.length > 0) {
+          await tx
+            .delete(schema.taggables)
+            .where(
+              and(
+                eq(schema.taggables.taggableId, eventId),
+                eq(schema.taggables.taggableType, "event"),
+                sql`${schema.taggables.tagId} IN ${tagsToDelete}`,
+              ),
+            );
+        }
+
+        // To Add: In new but not in current
+        const tagsToAdd = tagIds.filter((id) => !currentTagIds.has(id));
+
+        if (tagsToAdd.length > 0) {
+          await tx.insert(schema.taggables).values(
+            tagsToAdd.map((tagId) => ({
+              tagId,
+              taggableType: "event" as const,
+              taggableId: eventId,
+            })),
+          );
+        }
+      }
+
+      // 3. Update Attendances (Diff update)
+      if (attendances !== undefined) {
+        const currentAttendances = await tx
+          .select()
+          .from(schema.attendances)
+          .where(eq(schema.attendances.eventId, eventId));
+
+        const currentPlayerIds = new Set(
+          currentAttendances.map((a) => a.playerId),
+        );
+        const newPlayerIds = new Set(attendances.map((a) => a.playerId));
+
+        // To Delete: In current but not in new
+        const playersToDelete = [...currentPlayerIds].filter(
+          (id) => !newPlayerIds.has(id),
+        );
+
+        if (playersToDelete.length > 0) {
+          await tx
+            .delete(schema.attendances)
+            .where(
+              and(
+                eq(schema.attendances.eventId, eventId),
+                sql`${schema.attendances.playerId} IN ${playersToDelete}`,
+              ),
+            );
+        }
+
+        // To Add: In new but not in current
+        const playersToAdd = attendances.filter(
+          (a) => !currentPlayerIds.has(a.playerId),
+        );
+
+        if (playersToAdd.length > 0) {
+          await tx.insert(schema.attendances).values(
+            playersToAdd.map((att) => ({
+              id: ulid(),
+              teamId,
+              eventId,
+              playerId: att.playerId,
+              attendanceStatusIds: [att.attendanceStatusId],
+            })),
+          );
+        }
+      }
+
+      return updatedEvent;
+    });
+  }
 }

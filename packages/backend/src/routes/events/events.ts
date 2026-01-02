@@ -137,6 +137,15 @@ const updateEventSchema = z.object({
   placeId: z.string().optional().nullable(),
   startDateTime: z.string().datetime().optional(),
   endDateTime: z.string().datetime().optional(),
+  tagIds: z.array(z.string()).optional(),
+  attendances: z
+    .array(
+      z.object({
+        playerId: z.string(),
+        attendanceStatusId: z.string(),
+      }),
+    )
+    .optional(),
 });
 
 eventsRoute.put(
@@ -171,17 +180,30 @@ eventsRoute.put(
       return c.json({ error: "Permission denied" }, 403);
     }
 
-    const { title, details, placeId, startDateTime, endDateTime } =
-      c.req.valid("json");
+    const {
+      title,
+      details,
+      placeId,
+      startDateTime,
+      endDateTime,
+      tagIds,
+      attendances,
+    } = c.req.valid("json");
 
     try {
-      const [updatedEvent] = await repo.update(eventNo, currentUser.teamId, {
-        title,
-        details: details ?? undefined, // undefined to skip update if not provided
-        placeId: placeId === null ? null : (placeId ?? undefined),
-        startDateTime: startDateTime ? new Date(startDateTime) : undefined,
-        endDateTime: endDateTime ? new Date(endDateTime) : undefined,
-      });
+      const updatedEvent = await repo.updateWithRelations(
+        eventNo,
+        currentUser.teamId,
+        {
+          title,
+          details: details ?? undefined, // undefined to skip update if not provided
+          placeId: placeId === null ? null : (placeId ?? undefined),
+          startDateTime: startDateTime ? new Date(startDateTime) : undefined,
+          endDateTime: endDateTime ? new Date(endDateTime) : undefined,
+        },
+        tagIds,
+        attendances,
+      );
 
       return c.json(updatedEvent);
     } catch (e) {
