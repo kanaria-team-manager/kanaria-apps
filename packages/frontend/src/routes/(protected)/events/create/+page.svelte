@@ -103,7 +103,7 @@ onMount(async () => {
     try {
         const [l, t, s, p] = await Promise.all([
             fetchLabels(window.fetch, session.access_token, 'event'),
-            fetchGradeTags(window.fetch),
+            fetchGradeTags(window.fetch, session.access_token),
             fetchAttendanceStatuses(window.fetch, session.access_token),
             apiGet<Place[]>('/places', session.access_token),
         ]);

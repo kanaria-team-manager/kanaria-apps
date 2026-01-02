@@ -127,7 +127,7 @@
           apiGet<EventData>(`/events/${eventNo}`, data.session.access_token),
           apiGet<CurrentUser>('/users/me', data.session.access_token),
           apiGet<Place[]>('/places', data.session.access_token),
-          fetchGradeTags(window.fetch),
+          fetchGradeTags(window.fetch, data.session.access_token),
           fetchAttendanceStatuses(window.fetch, data.session.access_token),
         ]);
         event = eventData;

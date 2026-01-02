@@ -50,7 +50,7 @@
       try {
         const [userData, tagsData] = await Promise.all([
           apiGet<UserProfile>('/users/me', data.session.access_token),
-          fetchTags(window.fetch),
+          fetchTags(window.fetch, data.session.access_token),
         ]);
         user = userData;
         allTags = tagsData;
