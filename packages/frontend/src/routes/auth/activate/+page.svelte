@@ -34,7 +34,6 @@ onMount(() => {
         isActivating = false;
       }
     } else if (event === "SIGNED_OUT") {
-      console.log("User signed out during activation");
     }
   });
 

@@ -16,9 +16,7 @@ app.get("/activate", async (c) => {
   const teamRepo = new TeamRepository(db);
 
   try {
-    console.log("Activation request for user:", user?.id);
-    console.log("USER_STATUS:", USER_STATUS);
-    console.log("TEAM_STATUS:", TEAM_STATUS);
+
 
     if (!user || !user.id) {
       console.error("User context missing or invalid");

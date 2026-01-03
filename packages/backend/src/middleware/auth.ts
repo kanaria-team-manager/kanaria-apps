@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Context, Next } from "hono";
-import { verify } from "hono/jwt";
+import { createRemoteJWKSet, jwtVerify } from "jose";
 import type { Bindings, Variables } from "../types.js";
 
 // Supabase JWT Payload Type
@@ -29,17 +29,26 @@ export const authMiddleware = async (
   }
 
   const token = authHeader.replace("Bearer ", "");
-  const jwtSecret = c.env.SUPABASE_JWT_SECRET;
 
-  // Strategy 1: Local Verification (Fast, requires Secret)
-  if (jwtSecret) {
+  // Strategy 1: Local Verification with JWKS (Fast, Asymmetric support)
+  // We use Supabase URL to construct the JWKS URL.
+  // Strategy 1: Local Verification with JWKS (Fast, Asymmetric support)
+  // We use Supabase URL to construct the JWKS URL.
+  const supabaseUrl = c.env.SUPABASE_URL;
+
+  if (supabaseUrl) {
     try {
-      const payload = (await verify(
-        token,
-        jwtSecret,
-      )) as unknown as SupabaseJwtPayload;
+      const jwksUrl = new URL(
+        "/auth/v1/.well-known/jwks.json",
+        supabaseUrl,
+      ).toString();
 
-      console.log(`user data(payload) : ${JSON.stringify(payload)}`);
+      const JWKS = createRemoteJWKSet(new URL(jwksUrl));
+
+      const { payload: verifiedPayload } = await jwtVerify(token, JWKS);
+      const payload = verifiedPayload as unknown as SupabaseJwtPayload;
+
+
       c.set("user", {
         id: payload.sub,
         email: payload.email,
@@ -50,7 +59,11 @@ export const authMiddleware = async (
 
       return next();
     } catch (err) {
-      console.error("JWT Local Verification failed:", err);
+      console.error("JWT Local Verification (JWKS) failed:", err);
+      // If validation fails (likely invalid signature or expired), we should probably stop here
+      // rather than falling back to remote verification which will likely also fail but slower.
+      // However, if the failure is network related (can't fetch JWKS), fallback might work?
+      // For now, staying consistent with return Unauthorized.
       return c.json({ error: "Unauthorized" }, 401);
     }
   }
@@ -61,7 +74,6 @@ export const authMiddleware = async (
     "SUPABASE_JWT_SECRET not set. Falling back to Supabase API verification (slower).",
   );
 
-  const supabaseUrl = c.env.SUPABASE_URL;
   // We can use the Service Role Key here effectively to act as admin,
   // OR we can create a client with the user's token directly?
   // No, standard patterns is creating client with Url/Key (Anon or Service) and then getUser(token).
@@ -96,7 +108,7 @@ export const authMiddleware = async (
     role: data.claims.role || "",
   };
 
-  console.log(`user data : ${JSON.stringify(userData)}`);
+
 
   // Map Supabase User to our Context User format
   c.set("user", userData);
