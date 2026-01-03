@@ -102,9 +102,9 @@ export const authMiddleware = async (
 
   const userData = {
     id: data.claims.sub,
-    email: data.claims.email,
-    app_metadata: data.claims.app_metadata,
-    user_metadata: data.claims.user_metadata,
+    email: data.claims.email || "",
+    app_metadata: data.claims.app_metadata || {},
+    user_metadata: data.claims.user_metadata || {},
     role: data.claims.role || "",
   };
 
