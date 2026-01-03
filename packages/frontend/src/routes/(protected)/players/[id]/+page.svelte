@@ -1,7 +1,4 @@
 <script lang="ts">
-  import { page } from '$app/state';
-  import { apiGet } from '$lib/api/client';
-
   interface PlayerTag {
     id: string;
     name: string;
@@ -27,11 +24,10 @@
   }
 
   const { data } = $props();
-  const playerId = page.params.id;
 
-  let player = $state<Player | null>(null);
-  let isLoading = $state(true);
-  let error = $state<string | null>(null);
+  // Use data from load function
+  const player = data.player as Player | null;
+  const error = data.error as string | undefined;
 
   function getDisplayName(p: Player): string {
     if (p.nickName) return p.nickName;
@@ -52,20 +48,6 @@
       minute: '2-digit',
     });
   }
-
-  $effect(() => {
-    if (!data.session?.access_token) return;
-    (async () => {
-      try {
-        player = await apiGet<Player>(`/players/${playerId}`, data.session.access_token);
-      } catch (e) {
-        console.error(e);
-        error = "選手情報の取得に失敗しました";
-      } finally {
-        isLoading = false;
-      }
-    })();
-  });
 </script>
 
 <div class="container mx-auto px-4 py-8 max-w-2xl">
@@ -78,11 +60,7 @@
     </a>
   </div>
 
-  {#if isLoading}
-    <div class="flex justify-center p-8">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-    </div>
-  {:else if error}
+  {#if error}
     <div class="bg-destructive/10 text-destructive p-4 rounded-lg mb-6">
       {error}
     </div>
@@ -165,6 +143,10 @@
           </div>
         </div>
       </div>
+    </div>
+  {:else}
+    <div class="bg-destructive/10 text-destructive p-4 rounded-lg">
+      選手情報が見つかりませんでした
     </div>
   {/if}
 </div>

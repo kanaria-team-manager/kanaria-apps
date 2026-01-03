@@ -1,7 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import { apiGet, apiPut } from '$lib/api/client';
-  import { fetchAttendanceStatuses } from '$lib/api/master';
+  import { apiPut } from '$lib/api/client';
   import PlaceDisplay from '$lib/components/PlaceDisplay.svelte';
   import type { AttendanceStatus } from '$lib/api/types';
 
@@ -37,11 +36,11 @@
   const { data } = $props();
   const eventNo = page.params.eventNo;
 
-  let event = $state<any>(null);
-  let currentUser = $state<CurrentUser | null>(null);
-  let attendanceStatuses = $state<AttendanceStatus[]>([]);
-  let isLoading = $state(true);
-  let error = $state<string | null>(null);
+  // Use data from load function
+  let event = $state<any>(data.event);
+  const currentUser = data.currentUser as CurrentUser | null;
+  const attendanceStatuses = (data.attendanceStatuses || []) as AttendanceStatus[];
+  const error = data.error as string | undefined;
 
   // Check if user can edit status
   const canEditAny = $derived(currentUser?.roleId === 0 || currentUser?.roleId === 1);
@@ -66,27 +65,6 @@
     if (!currentUser) return false;
     return att.player.parentUserId === currentUser.id;
   }
-
-  $effect(() => {
-    if (!data.session?.access_token) return;
-    (async () => {
-      try {
-        const [eventData, userData, statusData] = await Promise.all([
-          apiGet(`/events/${eventNo}`, data.session.access_token),
-          apiGet<CurrentUser>('/users/me', data.session.access_token),
-          fetchAttendanceStatuses(window.fetch, data.session.access_token),
-        ]);
-        event = eventData;
-        currentUser = userData;
-        attendanceStatuses = statusData;
-      } catch (e) {
-        console.error(e);
-        error = "イベントの取得に失敗しました";
-      } finally {
-        isLoading = false;
-      }
-    })();
-  });
 
   async function updateAttendanceStatus(attendanceId: string, newStatusId: string) {
     if (!data.session?.access_token) return;
@@ -117,11 +95,7 @@
 <div class="container mx-auto px-4 py-6 max-w-2xl">
 
 
-  {#if isLoading}
-    <div class="flex justify-center p-8">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-    </div>
-  {:else if error}
+  {#if error}
     <div class="bg-destructive/10 text-destructive p-4 rounded-lg">
       {error}
     </div>
@@ -239,6 +213,10 @@
         </div>
 
       </div>
+    </div>
+  {:else}
+    <div class="bg-destructive/10 text-destructive p-4 rounded-lg">
+      イベントが見つかりませんでした
     </div>
   {/if}
 </div>

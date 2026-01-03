@@ -1,23 +1,61 @@
 import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import * as dbModule from "../../db/index.js";
 import createTeam from "./create.js";
 
 // Mock the db module
-vi.mock("../../db/index.js");
+vi.mock("../../db/index.js", () => ({
+  createDb: vi.fn().mockReturnValue({}),
+}));
+
+const mockTeamCreate = vi.fn();
+const mockUserCreate = vi.fn();
+
+// Mock TeamRepository
+vi.mock("../../db/repositories/TeamRepository.js", () => ({
+  TeamRepository: class {
+    create = mockTeamCreate;
+    findByCode = vi.fn();
+  },
+}));
+
+// Mock UserRepository
+vi.mock("../../db/repositories/UserRepository.js", () => ({
+  UserRepository: class {
+    create = mockUserCreate;
+    findBySupabaseId = vi.fn();
+    updateStatus = vi.fn();
+  },
+}));
+
+// Mock Supabase client - must return a proper nested structure
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: () => ({
+    auth: {
+      admin: {
+        updateUserById: async () => ({ error: null }),
+      },
+    },
+  }),
+}));
 
 describe("POST /teams", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    mockTeamCreate.mockResolvedValue(undefined);
+    mockUserCreate.mockResolvedValue(undefined);
   });
 
   it("should return 400 if fields are missing", async () => {
     const app = new Hono();
 
-    // Inject mock DB
+    // Inject mock DB with transaction
     app.use("*", async (c, next) => {
       // @ts-expect-error Mocking context
-      c.set("db", {} as typeof dbModule);
+      c.set("db", {
+        transaction: vi.fn(async (callback: (tx: unknown) => Promise<void>) => {
+          await callback({});
+        }),
+      });
       await next();
     });
 
@@ -25,27 +63,24 @@ describe("POST /teams", () => {
 
     const req = new Request("http://localhost/teams", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
     });
-    const res = await app.fetch(req, { DATABASE_URL: "mock-url" });
+    const res = await app.fetch(req, {
+      DATABASE_URL: "mock-url",
+      SUPABASE_URL: "http://mock.supabase.io",
+      SUPABASE_SERVICE_ROLE_KEY: "mock-service-role-key",
+    });
 
     expect(res.status).toBe(400);
   });
 
   it("should create team and user successfully", async () => {
-    const mockTx = {
-      insert: vi.fn().mockReturnThis(),
-      values: vi.fn().mockResolvedValue(undefined),
-    };
-
     const mockDb = {
-      transaction: vi.fn(async (callback) => {
-        await callback(mockTx);
+      transaction: vi.fn(async (callback: (tx: unknown) => Promise<void>) => {
+        await callback({});
       }),
     };
-
-    // @ts-expect-error
-    dbModule.createDb.mockReturnValue(mockDb);
 
     const app = new Hono();
 
@@ -60,6 +95,7 @@ describe("POST /teams", () => {
 
     const req = new Request("http://localhost/teams", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         supabaseUserId: "user_123",
         teamName: "Test Team",
@@ -68,12 +104,17 @@ describe("POST /teams", () => {
         email: "test@example.com",
       }),
     });
-    const res = await app.fetch(req, { DATABASE_URL: "mock-url" });
+    const res = await app.fetch(req, {
+      DATABASE_URL: "mock-url",
+      SUPABASE_URL: "http://mock.supabase.io",
+      SUPABASE_SERVICE_ROLE_KEY: "mock-service-role-key",
+    });
 
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data).toHaveProperty("message", "Team created successfully");
     expect(mockDb.transaction).toHaveBeenCalled();
-    expect(mockTx.insert).toHaveBeenCalledTimes(2); // Teams and Users
+    expect(mockTeamCreate).toHaveBeenCalled();
+    expect(mockUserCreate).toHaveBeenCalled();
   });
 });

@@ -1,15 +1,11 @@
 import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { TeamRepository } from "../../db/repositories/TeamRepository.js";
-import { UserRepository } from "../../db/repositories/UserRepository.js";
 import activateTeam from "./activate.js";
 
 // Mock modules
 vi.mock("../../db/index.js", () => ({
   createDb: vi.fn(),
 }));
-vi.mock("../../db/repositories/UserRepository.js");
-vi.mock("../../db/repositories/TeamRepository.js");
 
 // Mock auth middleware
 vi.mock("../../middleware/auth.js", () => ({
@@ -20,27 +16,45 @@ vi.mock("../../middleware/auth.js", () => ({
   },
 }));
 
+const mockFindBySupabaseId = vi.fn();
+const mockUpdateStatusUser = vi.fn();
+const mockUpdateStatusTeam = vi.fn();
+
+// Mock UserRepository
+vi.mock("../../db/repositories/UserRepository.js", () => ({
+  UserRepository: class {
+    findBySupabaseId = mockFindBySupabaseId;
+    updateStatus = mockUpdateStatusUser;
+  },
+}));
+
+// Mock TeamRepository
+vi.mock("../../db/repositories/TeamRepository.js", () => ({
+  TeamRepository: class {
+    updateStatus = mockUpdateStatusTeam;
+    create = vi.fn();
+    findByCode = vi.fn();
+  },
+}));
+
 describe("GET /teams/activate", () => {
   beforeEach(() => {
     vi.resetAllMocks();
   });
 
   it("should return 404 if user not found", async () => {
-    // Mock UserRepository behavior
-    vi.mocked(UserRepository).mockImplementation(
-      class {
-        findBySupabaseId = vi.fn().mockResolvedValue(null);
-        updateStatus = vi.fn();
-        // biome-ignore lint/suspicious/noExplicitAny: Mock Implementation
-      } as any,
-    );
+    mockFindBySupabaseId.mockResolvedValue(null);
 
     const app = new Hono();
 
     // Inject mock DB
     app.use("*", async (c, next) => {
       // @ts-expect-error Mocking context
-      c.set("db", {} as typeof dbModule);
+      c.set("db", {
+        transaction: vi.fn(async (callback: (tx: unknown) => Promise<void>) => {
+          await callback({});
+        }),
+      });
       await next();
     });
 
@@ -53,41 +67,21 @@ describe("GET /teams/activate", () => {
   });
 
   it("should activate user and team successfully", async () => {
-    const mockUpdateStatusUser = vi.fn();
-    const mockUpdateStatusTeam = vi.fn();
+    mockFindBySupabaseId.mockResolvedValue({
+      id: "user_rec_1",
+      teamId: "team_1",
+      status: 0, // TEMPORARY
+      roleId: 0, // OWNER
+    });
+    mockUpdateStatusUser.mockResolvedValue(undefined);
+    mockUpdateStatusTeam.mockResolvedValue(undefined);
 
-    vi.mocked(UserRepository).mockImplementation(
-      class {
-        findBySupabaseId = vi.fn().mockResolvedValue({
-          id: "user_rec_1",
-          teamId: "team_1",
-          status: 0, // TEMPORARY
-        });
-        updateStatus = mockUpdateStatusUser;
-        // biome-ignore lint/suspicious/noExplicitAny: Mock Implementation
-      } as any,
-    );
-
-    vi.mocked(TeamRepository).mockImplementation(
-      class {
-        updateStatus = mockUpdateStatusTeam;
-        create = vi.fn();
-        findByCode = vi.fn();
-        // biome-ignore lint/suspicious/noExplicitAny: Mock Implementation
-      } as any,
-    );
-
-    // Need to mock db.transaction as well because activate.ts calls db.transaction
-    // But wait, activate.ts calls db.transaction directly on db object.
-    // So I still need to mock db object returned by createDb.
     const mockDb = {
-      transaction: vi.fn(async (callback) => {
-        await callback({}); // pass dummy tx
+      transaction: vi.fn(async (callback: (tx: unknown) => Promise<void>) => {
+        const mockTx = {};
+        await callback(mockTx);
       }),
     };
-    const { createDb } = await import("../../db/index.js");
-    // biome-ignore lint/suspicious/noExplicitAny: Mock DB
-    vi.mocked(createDb).mockReturnValue(mockDb as any);
 
     const app = new Hono();
 
@@ -109,12 +103,12 @@ describe("GET /teams/activate", () => {
 
     expect(mockUpdateStatusUser).toHaveBeenCalledWith(
       "user_rec_1",
-      1,
+      1, // CONFIRMED
       expect.anything(),
     );
     expect(mockUpdateStatusTeam).toHaveBeenCalledWith(
       "team_1",
-      1,
+      1, // ACTIVE
       expect.anything(),
     );
   });

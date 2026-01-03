@@ -1,38 +1,21 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import { apiGet } from '$lib/api/client';
   import MapPicker from '$lib/components/MapPicker.svelte';
 
   const { data } = $props();
   const id = page.params.id;
 
-  let place = $state<any>(null);
-  let isLoading = $state(true);
-  let error = $state<string | null>(null);
+  // Use data from load function
+  const place = data.place;
+  const error = data.error as string | undefined;
+  
   // location for MapPicker {x, y}
-  let location = $state<{x: number, y: number} | null>(null);
-
-  $effect(() => {
-    if (!data.session?.access_token) return;
-    (async () => {
-      try {
-        const res = await apiGet<any>(`/places/${id}`, data.session.access_token);
-        place = res;
-        
-        if (res.location) {
-          if (Array.isArray(res.location)) {
-             location = { x: res.location[0], y: res.location[1] };
-          } else {
-             location = res.location;
-          }
-        }
-      } catch (e) {
-        console.error(e);
-        error = "場所の取得に失敗しました";
-      } finally {
-        isLoading = false;
-      }
-    })();
+  const location = $derived.by(() => {
+    if (!place?.location) return null;
+    if (Array.isArray(place.location)) {
+      return { x: place.location[0], y: place.location[1] };
+    }
+    return place.location;
   });
 </script>
 
@@ -46,11 +29,7 @@
     </a>
   </div>
 
-  {#if isLoading}
-    <div class="flex justify-center p-8">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-    </div>
-  {:else if error}
+  {#if error}
     <div class="bg-destructive/10 text-destructive p-4 rounded-lg mb-6">
       {error}
     </div>
@@ -79,6 +58,10 @@
             />
          {/if}
       </div>
+    </div>
+  {:else}
+    <div class="bg-destructive/10 text-destructive p-4 rounded-lg">
+      場所が見つかりませんでした
     </div>
   {/if}
 </div>

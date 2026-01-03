@@ -1,8 +1,6 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { apiGet, apiPut } from '$lib/api/client';
-  import { fetchGradeTags } from '$lib/api/master';
+  import { enhance } from '$app/forms';
   import type { Tag } from '@kanaria/shared';
 
   interface PlayerTag {
@@ -19,47 +17,21 @@
     tags: PlayerTag[];
   }
 
-  const { data } = $props();
+  const { data, form } = $props();
   const playerId = page.params.id;
 
-  let player = $state<Player | null>(null);
-  let isLoading = $state(true);
-  let isSaving = $state(false);
-  let error = $state<string | null>(null);
-  let gradeTags = $state<Tag[]>([]);
+  // Use data from load function
+  const player = data.player as Player | null;
+  const gradeTags = (data.gradeTags || []) as Tag[];
 
-  // Form state
-  let lastName = $state('');
-  let firstName = $state('');
-  let nickName = $state('');
-  let imageUrl = $state('');
-  let selectedTagIds = $state<string[]>([]);
+  let isSubmitting = $state(false);
 
-  $effect(() => {
-    if (!data.session?.access_token) return;
-    (async () => {
-      try {
-        const [playerData, tags] = await Promise.all([
-          apiGet<Player>(`/players/${playerId}`, data.session.access_token),
-          fetchGradeTags(window.fetch, data.session.access_token),
-        ]);
-        player = playerData;
-        gradeTags = tags;
-
-        // Populate form
-        lastName = playerData.lastName;
-        firstName = playerData.firstName;
-        nickName = playerData.nickName || '';
-        imageUrl = playerData.imageUrl || '';
-        selectedTagIds = playerData.tags.map(t => t.id);
-      } catch (e) {
-        console.error(e);
-        error = "選手情報の取得に失敗しました";
-      } finally {
-        isLoading = false;
-      }
-    })();
-  });
+  // Form state (initialized from load data, updated from form on error)
+  let lastName = $state(form?.lastName ?? player?.lastName ?? '');
+  let firstName = $state(form?.firstName ?? player?.firstName ?? '');
+  let nickName = $state(form?.nickName ?? player?.nickName ?? '');
+  let imageUrl = $state(form?.imageUrl ?? player?.imageUrl ?? '');
+  let selectedTagIds = $state<string[]>(player?.tags.map(t => t.id) || []);
 
   function toggleTag(tagId: string) {
     if (selectedTagIds.includes(tagId)) {
@@ -67,39 +39,6 @@
     } else {
       selectedTagIds = [...selectedTagIds, tagId];
     }
-  }
-
-  async function handleSubmit(e: Event) {
-    e.preventDefault();
-    
-    if (!lastName.trim() || !firstName.trim()) {
-      error = "姓と名は必須です";
-      return;
-    }
-
-    isSaving = true;
-    error = null;
-
-    try {
-      await apiPut(`/players/${playerId}`, {
-        lastName: lastName.trim(),
-        firstName: firstName.trim(),
-        nickName: nickName.trim() || undefined,
-        imageUrl: imageUrl.trim() || undefined,
-        tagIds: selectedTagIds,
-      }, data.session?.access_token);
-
-      goto(`/players/${playerId}`);
-    } catch (e) {
-      console.error(e);
-      error = "保存に失敗しました";
-    } finally {
-      isSaving = false;
-    }
-  }
-
-  function handleCancel() {
-    goto(`/players/${playerId}`);
   }
 </script>
 
@@ -113,13 +52,9 @@
     </a>
   </div>
 
-  {#if isLoading}
-    <div class="flex justify-center p-8">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-    </div>
-  {:else if error && !player}
+  {#if (form?.error || data.error) && !player}
     <div class="bg-destructive/10 text-destructive p-4 rounded-lg mb-6">
-      {error}
+      {form?.error || data.error}
     </div>
   {:else if player}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -127,12 +62,25 @@
         <h1 class="text-xl font-bold text-gray-900">選手を編集</h1>
       </div>
       
-      <form onsubmit={handleSubmit} class="p-6 space-y-6">
-        {#if error}
+      <form 
+        method="POST" 
+        class="p-6 space-y-6"
+        use:enhance={() => {
+          isSubmitting = true;
+          return async ({ update }) => {
+            await update();
+            isSubmitting = false;
+          };
+        }}
+      >
+        {#if form?.error}
           <div class="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">
-            {error}
+            {form.error}
           </div>
         {/if}
+
+        <!-- Hidden input for tag IDs -->
+        <input type="hidden" name="tagIds" value={JSON.stringify(selectedTagIds)} />
 
         <!-- Name Fields -->
         <div class="grid grid-cols-2 gap-4">
@@ -142,6 +90,7 @@
             </label>
             <input
               id="lastName"
+              name="lastName"
               type="text"
               bind:value={lastName}
               required
@@ -155,6 +104,7 @@
             </label>
             <input
               id="firstName"
+              name="firstName"
               type="text"
               bind:value={firstName}
               required
@@ -171,6 +121,7 @@
           </label>
           <input
             id="nickName"
+            name="nickName"
             type="text"
             bind:value={nickName}
             class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
@@ -185,6 +136,7 @@
           </label>
           <input
             id="imageUrl"
+            name="imageUrl"
             type="url"
             bind:value={imageUrl}
             class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
@@ -194,9 +146,9 @@
 
         <!-- Tags -->
         <div class="space-y-3">
-          <label class="block text-sm font-medium text-gray-700">
+          <span class="block text-sm font-medium text-gray-700">
             タグ（複数選択可）
-          </label>
+          </span>
           <div class="flex flex-wrap gap-2">
             {#each gradeTags as tag}
               <button
@@ -214,20 +166,23 @@
         <div class="flex gap-3 pt-4 border-t border-gray-100">
           <button
             type="submit"
-            disabled={isSaving}
+            disabled={isSubmitting}
             class="flex-1 bg-indigo-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
-            {isSaving ? '保存中...' : '保存'}
+            {isSubmitting ? '保存中...' : '保存'}
           </button>
-          <button
-            type="button"
-            onclick={handleCancel}
-            class="px-6 py-2.5 text-gray-600 font-medium hover:bg-gray-50 rounded-lg border border-gray-200 transition-all"
+          <a
+            href="/players/{playerId}"
+            class="px-6 py-2.5 text-gray-600 font-medium hover:bg-gray-50 rounded-lg border border-gray-200 transition-all text-center"
           >
             キャンセル
-          </button>
+          </a>
         </div>
       </form>
+    </div>
+  {:else}
+    <div class="bg-destructive/10 text-destructive p-4 rounded-lg">
+      選手情報が見つかりませんでした
     </div>
   {/if}
 </div>

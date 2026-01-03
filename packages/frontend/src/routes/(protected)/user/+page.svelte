@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { apiGet, apiPut } from '$lib/api/client';
-  import { fetchTags } from '$lib/api/master';
+  import { enhance } from '$app/forms';
   import type { Tag } from '$lib/api/types';
 
   interface UserTag {
@@ -16,16 +15,15 @@
     tags: UserTag[];
   }
 
-  const { data } = $props();
+  const { data, form } = $props();
 
-  let user = $state<UserProfile | null>(null);
-  let allTags = $state<Tag[]>([]);
-  let isLoading = $state(true);
-  let error = $state<string | null>(null);
+  // Use data from load function
+  let user = $state<UserProfile | null>(data.user);
+  let allTags = $state<Tag[]>(data.allTags || []);
   
   // Edit states
   let isEditingName = $state(false);
-  let editedName = $state('');
+  let editedName = $state(data.user?.name || '');
   let isSavingName = $state(false);
   let isSavingTags = $state(false);
   
@@ -44,26 +42,6 @@
       .slice(0, 5);
   });
 
-  $effect(() => {
-    if (!data.session?.access_token) return;
-    (async () => {
-      try {
-        const [userData, tagsData] = await Promise.all([
-          apiGet<UserProfile>('/users/me', data.session.access_token),
-          fetchTags(window.fetch, data.session.access_token),
-        ]);
-        user = userData;
-        allTags = tagsData;
-        editedName = userData.name;
-      } catch (e) {
-        console.error(e);
-        error = 'ユーザー情報の取得に失敗しました';
-      } finally {
-        isLoading = false;
-      }
-    })();
-  });
-
   function startEditName() {
     editedName = user?.name || '';
     isEditingName = true;
@@ -74,52 +52,23 @@
     editedName = user?.name || '';
   }
 
-  async function saveName() {
-    if (!data.session?.access_token || !editedName.trim()) return;
-    isSavingName = true;
-    try {
-      await apiPut('/users/me', { name: editedName }, data.session.access_token);
-      if (user) {
-        user = { ...user, name: editedName };
-      }
+  // Handle form action results
+  $effect(() => {
+    if (form?.nameSuccess && user) {
+      user = { ...user, name: editedName };
       isEditingName = false;
-    } catch (e) {
-      console.error(e);
-      alert('名前の保存に失敗しました');
-    } finally {
-      isSavingName = false;
     }
+    if (form?.tagSuccess) {
+      // Tag update was successful, data is reloaded by invalidation
+    }
+  });
+
+  function getNewTagIds(tagToAdd: Tag): string[] {
+    return [...(user?.tags.map(t => t.id) || []), tagToAdd.id];
   }
 
-  async function addTag(tag: Tag) {
-    if (!data.session?.access_token || !user) return;
-    isSavingTags = true;
-    const newTagIds = [...user.tags.map(t => t.id), tag.id];
-    try {
-      const updatedTags = await apiPut<UserTag[]>('/users/me/tags', { tagIds: newTagIds }, data.session.access_token);
-      user = { ...user, tags: updatedTags };
-      tagSearch = '';
-    } catch (e) {
-      console.error(e);
-      alert('タグの追加に失敗しました');
-    } finally {
-      isSavingTags = false;
-    }
-  }
-
-  async function removeTag(tagId: string) {
-    if (!data.session?.access_token || !user) return;
-    isSavingTags = true;
-    const newTagIds = user.tags.filter(t => t.id !== tagId).map(t => t.id);
-    try {
-      const updatedTags = await apiPut<UserTag[]>('/users/me/tags', { tagIds: newTagIds }, data.session.access_token);
-      user = { ...user, tags: updatedTags };
-    } catch (e) {
-      console.error(e);
-      alert('タグの削除に失敗しました');
-    } finally {
-      isSavingTags = false;
-    }
+  function getTagIdsAfterRemove(tagIdToRemove: string): string[] {
+    return (user?.tags || []).filter(t => t.id !== tagIdToRemove).map(t => t.id);
   }
 </script>
 
@@ -128,13 +77,9 @@
 
   <h1 class="text-2xl font-bold mb-6">ユーザー設定</h1>
 
-  {#if isLoading}
-    <div class="flex justify-center p-8">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-    </div>
-  {:else if error}
+  {#if data.error}
     <div class="bg-destructive/10 text-destructive p-4 rounded-lg">
-      {error}
+      {data.error}
     </div>
   {:else if user}
     <div class="bg-card border border-border rounded-xl p-6 shadow-sm space-y-6">
@@ -143,28 +88,44 @@
       <div class="space-y-2">
         <span class="text-sm font-medium text-muted-foreground">名前</span>
         {#if isEditingName}
-          <div class="flex gap-2">
+          <form 
+            method="POST" 
+            action="?/updateName"
+            class="flex gap-2"
+            use:enhance={() => {
+              isSavingName = true;
+              return async ({ update }) => {
+                await update();
+                isSavingName = false;
+              };
+            }}
+          >
             <input
               type="text"
+              name="name"
               bind:value={editedName}
               class="flex-1 px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
               placeholder="名前を入力"
             />
             <button
-              onclick={saveName}
+              type="submit"
               disabled={isSavingName || !editedName.trim()}
               class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
             >
               {isSavingName ? '保存中...' : '保存'}
             </button>
             <button
+              type="button"
               onclick={cancelEditName}
               disabled={isSavingName}
               class="px-4 py-2 border border-input rounded-md hover:bg-accent"
             >
               キャンセル
             </button>
-          </div>
+          </form>
+          {#if form?.nameError}
+            <p class="text-sm text-destructive">{form.nameError}</p>
+          {/if}
         {:else}
           <div class="flex items-center justify-between">
             <span class="text-lg">{user.name}</span>
@@ -205,34 +166,75 @@
           {#if filteredTags.length > 0}
             <div class="absolute z-10 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-48 overflow-auto">
               {#each filteredTags as tag}
-                <button
-                  onclick={() => addTag(tag)}
-                  disabled={isSavingTags}
-                  class="w-full px-3 py-2 text-left hover:bg-accent disabled:opacity-50 flex items-center gap-2"
+                <form 
+                  method="POST" 
+                  action="?/addTag" 
+                  class="contents"
+                  use:enhance={() => {
+                    isSavingTags = true;
+                    tagSearch = '';
+                    // Optimistically update UI
+                    if (user) {
+                      user = { ...user, tags: [...user.tags, { id: tag.id, name: tag.name }] };
+                    }
+                    return async ({ update }) => {
+                      await update({ invalidateAll: true });
+                      isSavingTags = false;
+                    };
+                  }}
                 >
-                  <span class="text-primary">+</span>
-                  {tag.name}
-                </button>
+                  <input type="hidden" name="tagIds" value={JSON.stringify(getNewTagIds(tag))} />
+                  <button
+                    type="submit"
+                    disabled={isSavingTags}
+                    class="w-full px-3 py-2 text-left hover:bg-accent disabled:opacity-50 flex items-center gap-2"
+                  >
+                    <span class="text-primary">+</span>
+                    {tag.name}
+                  </button>
+                </form>
               {/each}
             </div>
           {/if}
         </div>
 
+        {#if form?.tagError}
+          <p class="text-sm text-destructive">{form.tagError}</p>
+        {/if}
+
         <!-- Current tags -->
         <div class="flex flex-wrap gap-2 min-h-[2rem]">
-          {#each user.tags as tag}
+          {#each user.tags as tag (tag.id)}
             <span class="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
               {tag.name}
-              <button
-                onclick={() => removeTag(tag.id)}
-                disabled={isSavingTags}
-                class="hover:bg-primary/20 rounded-full p-0.5 disabled:opacity-50"
-                aria-label="タグを削除"
+              <form 
+                method="POST" 
+                action="?/removeTag" 
+                class="contents"
+                use:enhance={() => {
+                  isSavingTags = true;
+                  // Optimistically update UI
+                  if (user) {
+                    user = { ...user, tags: user.tags.filter(t => t.id !== tag.id) };
+                  }
+                  return async ({ update }) => {
+                    await update({ invalidateAll: true });
+                    isSavingTags = false;
+                  };
+                }}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+                <input type="hidden" name="tagIds" value={JSON.stringify(getTagIdsAfterRemove(tag.id))} />
+                <button
+                  type="submit"
+                  disabled={isSavingTags}
+                  class="hover:bg-primary/20 rounded-full p-0.5 disabled:opacity-50"
+                  aria-label="タグを削除"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </form>
             </span>
           {/each}
           {#if user.tags.length === 0}
@@ -241,6 +243,10 @@
         </div>
       </div>
 
+    </div>
+  {:else}
+    <div class="bg-destructive/10 text-destructive p-4 rounded-lg">
+      ユーザー情報が見つかりませんでした
     </div>
   {/if}
 </div>

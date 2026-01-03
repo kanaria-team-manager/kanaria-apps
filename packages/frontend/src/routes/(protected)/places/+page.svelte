@@ -1,42 +1,18 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { apiGet, apiDelete } from '$lib/api/client';
+  import { enhance } from '$app/forms';
 
-  const { data } = $props();
+  const { data, form } = $props();
 
-  let places = $state<any[]>([]);
-  let isLoading = $state(true);
-  let error = $state<string | null>(null);
+  // Use data from load function
+  let places = $state<any[]>(data.places || []);
+  const error = data.error as string | undefined;
 
-  async function fetchPlaces() {
-    if (!data.session?.access_token) return;
-    isLoading = true;
-    try {
-      places = await apiGet('/places', data.session.access_token);
-    } catch (e) {
-      console.error(e);
-      error = "場所の取得に失敗しました";
-    } finally {
-      isLoading = false;
-    }
-  }
-
-  async function handleDelete(e: Event, id: string) {
-    e.stopPropagation();
-    if (!confirm('本当に削除しますか？')) return;
-    if (!data.session?.access_token) return;
-    
-    try {
-      await apiDelete(`/places/${id}`, data.session.access_token);
-      places = places.filter(p => p.id !== id);
-    } catch(e) {
-      console.error(e);
-      alert('削除に失敗しました');
-    }
-  }
-
+  // Handle successful deletion
   $effect(() => {
-    fetchPlaces();
+    if (form?.deleted) {
+      places = places.filter(p => p.id !== form.deleted);
+    }
   });
 </script>
 
@@ -51,21 +27,23 @@
     </a>
   </div>
 
-  {#if isLoading}
-    <div class="flex justify-center p-8">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-    </div>
-  {:else if error}
+  {#if error}
     <div class="bg-destructive/10 text-destructive p-4 rounded-lg">
       {error}
     </div>
-  {:else if places.length === 0}
+  {:else if form?.deleteError}
+    <div class="bg-destructive/10 text-destructive p-4 rounded-lg mb-4">
+      {form.deleteError}
+    </div>
+  {/if}
+  
+  {#if places.length === 0}
     <div class="text-center py-12 text-muted-foreground bg-muted/30 rounded-lg border border-border">
       <p>場所が登録されていません</p>
     </div>
   {:else}
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {#each places as place}
+      {#each places as place (place.id)}
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div 
@@ -74,9 +52,22 @@
         >
           <div class="flex justify-between items-start mb-2">
             <h3 class="font-semibold text-lg">{place.name}</h3>
-            <div class="flex gap-2">
+            <form 
+              method="POST" 
+              action="?/delete" 
+              use:enhance={() => {
+                if (!confirm('本当に削除しますか？')) {
+                  return () => {};
+                }
+                return async ({ update }) => {
+                  await update();
+                };
+              }}
+              onclick={(e) => e.stopPropagation()}
+            >
+              <input type="hidden" name="id" value={place.id} />
               <button 
-                onclick={(e) => handleDelete(e, place.id)}
+                type="submit"
                 class="text-sm text-destructive hover:text-destructive/80 p-1"
                 aria-label="削除"
               >
@@ -84,7 +75,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </button>
-            </div>
+            </form>
           </div>
           {#if place.description}
             <p class="text-sm text-muted-foreground line-clamp-2 mb-2">{place.description}</p>

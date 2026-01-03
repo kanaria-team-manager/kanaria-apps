@@ -48,20 +48,38 @@
 
 ---
 
-## Phase 2: Data Fetching Optimization (Load Functions)
+## Phase 2: Data Fetching Optimization (Load Functions) - 進行中
 **目標**: データ取得（GET）を「コンポーネント内での非同期取得」から「Load関数による事前取得」に移行する。
 
-- [ ] **Load関数の活用**: `onMount` や `$effect` で行っているデータ取得を、`+page.ts` または `+page.server.ts` の `load` 関数に移動する。
-  - これにより、ページ表示時の「Loadingスピナー」を減らし、SSRによる高速な初期表示を実現する。
-- [ ] **SvelteKit Fetchの適用**: `load` 関数内で `client.ts` のヘルパーを使用する際、引数として `fetch` (from LoadEvent) を渡す。
-  - バックエンドへのCookie自動転送や内部APIの高速化などの恩恵を受ける。
+**完了:**
+- [x] `user/+page.svelte` - ユーザー設定
+- [x] `players/[id]/+page.svelte` - プレイヤー詳細
+- [x] `players/[id]/edit/+page.svelte` - プレイヤー編集
+- [x] `event/[eventNo]/+page.svelte` - イベント詳細
+- [x] `places/+page.svelte` - 場所一覧
+- [x] `places/[id]/+page.svelte` - 場所詳細
+- [x] `places/[id]/edit/+page.svelte` - 場所編集
 
-## Phase 3: Mutation Logic Migration (Form Actions)
+**スキップ (複雑なインライン編集、Phase 3で対応予定):**
+- [ ] `tags/+page.svelte` - タグ管理（インラインCRUD）
+- [ ] `event/[eventNo]/edit/+page.svelte` - イベント編集
+- [ ] `events/create/+page.svelte` - イベント作成
+
+## Phase 3: Mutation Logic Migration (Form Actions) - 進行中
 **目標**: データ更新（POST/PUT/DELETE）を「APIクライアントの直接呼び出し」から「Form Actions」に移行する。
 
-- [ ] **Form Actionsへの移行**: `apiPost/apiPut` を使用しているイベントハンドラを、`<form method="POST" action="?/create">` 形式に書き換え、`+page.server.ts` の `actions` で処理する。
-  - **対象候補**: ログイン、サインアップ、イベント作成・編集、ユーザー設定変更など。
-- [ ] **バリデーションのサーバーサイド化**: バリデーションロジックをAction内に移動し、`fail()` 関数を使ってエラー時の入力を保持するUIへ移行する。
+**完了:**
+- [x] `places/new` - 新規作成 (POST)
+- [x] `places/[id]/edit` - 編集 (PUT)
+- [x] `places` - 削除 (DELETE)
+- [x] `players/[id]/edit` - 編集 (PUT)
+- [x] `user` - プロフィール・タグ更新 (PUT)
+
+**スキップ（複雑またはリアルタイム更新が必要）:**
+- [ ] `event/[eventNo]/edit` - イベント編集（複数データソース）
+- [ ] `events/create` - イベント作成（複数データソース）
+- [ ] `tags` - インラインCRUD
+- [ ] `event/[eventNo]` - 出席ステータス更新（リアルタイム更新）
 
 ## Phase 4: Full BFF & Security Hardening (Optional / Long-term)
 **目標**: クライアントからバックエンドへの直接アクセスを完全に遮断し、全ての通信をSvelteKitサーバー経由にする。

@@ -1,39 +1,14 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
-  import { apiPost } from '$lib/api/client';
+  import { enhance } from '$app/forms';
   import MapPicker from '$lib/components/MapPicker.svelte';
   
-  const { data } = $props();
+  const { form } = $props();
 
-  let name = $state('');
-  let description = $state('');
-  let isSubmitting = $state(false);
-  let error = $state<string | null>(null);
-
-  // Map state (placeholder for now)
+  // Form state (use form data for persistence on error)
+  let name = $state(form?.name || '');
+  let description = $state(form?.description || '');
   let location = $state<{x: number, y: number} | null>(null);
-
-  async function handleSubmit(e: Event) {
-    e.preventDefault();
-    if (!data.session?.access_token) return;
-    
-    isSubmitting = true;
-    error = null;
-
-    try {
-      await apiPost('/places', {
-        name,
-        description,
-        location
-      }, data.session.access_token);
-      goto('/places');
-    } catch (e) {
-      console.error(e);
-      error = "作成に失敗しました";
-    } finally {
-      isSubmitting = false;
-    }
-  }
+  let isSubmitting = $state(false);
 </script>
 
 <div class="container mx-auto px-4 py-8 max-w-2xl">
@@ -48,19 +23,30 @@
   
   <h1 class="text-2xl font-bold mb-6">場所の新規作成</h1>
 
-  {#if error}
+  {#if form?.error}
     <div class="bg-destructive/10 text-destructive p-4 rounded-lg mb-6">
-      {error}
+      {form.error}
     </div>
   {/if}
 
-  <form onsubmit={handleSubmit} class="space-y-6">
+  <form 
+    method="POST" 
+    class="space-y-6"
+    use:enhance={() => {
+      isSubmitting = true;
+      return async ({ update }) => {
+        await update();
+        isSubmitting = false;
+      };
+    }}
+  >
     <div class="space-y-2">
       <label for="name" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
         場所名 <span class="text-destructive">*</span>
       </label>
       <input
         id="name"
+        name="name"
         type="text"
         bind:value={name}
         required
@@ -75,6 +61,7 @@
       </label>
       <textarea
         id="description"
+        name="description"
         bind:value={description}
         rows="3"
         class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -82,7 +69,9 @@
       ></textarea>
     </div>
 
-    <!-- Map Component Placeholder -->
+    <!-- Hidden input to pass location as JSON -->
+    <input type="hidden" name="location" value={location ? JSON.stringify(location) : ''} />
+
     <!-- Map Component -->
     <div class="space-y-2">
       <span class="text-sm font-medium">地図</span>

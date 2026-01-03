@@ -1,63 +1,29 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import { goto } from '$app/navigation';
-  import { apiGet, apiPut } from '$lib/api/client';
+  import { enhance } from '$app/forms';
   import MapPicker from '$lib/components/MapPicker.svelte';
   
-  const { data } = $props();
+  const { data, form } = $props();
   const id = page.params.id;
 
-  let name = $state('');
-  let description = $state('');
-  let isLoading = $state(true);
+  // Use data from load function, form data for persistence on error
+  const place = data.place;
+  const loadError = data.error as string | undefined;
+
+  // Form state (initialized from load data, updated from form on error)
+  let name = $state(form?.name ?? place?.name ?? '');
+  let description = $state(form?.description ?? place?.description ?? '');
   let isSubmitting = $state(false);
-  let error = $state<string | null>(null);
-  let location = $state<{x: number, y: number} | null>(null);
-
-  $effect(() => {
-    if (!data.session?.access_token) return;
-    (async () => {
-       try {
-        const place = await apiGet<any>(`/places/${id}`, data.session.access_token);
-        name = place.name;
-        description = place.description || '';
-        if (place.location) {
-          if (Array.isArray(place.location)) {
-             location = { x: place.location[0], y: place.location[1] };
-          } else {
-             location = place.location;
-          }
-        }
-      } catch (e) {
-        console.error(e);
-        error = "場所の取得に失敗しました";
-      } finally {
-        isLoading = false;
-      }
-    })();
-  });
-
-  async function handleSubmit(e: Event) {
-    e.preventDefault();
-    if (!data.session?.access_token) return;
-    
-    isSubmitting = true;
-    error = null;
-
-    try {
-      await apiPut(`/places/${id}`, {
-        name,
-        description,
-        location
-      }, data.session.access_token);
-      goto('/places');
-    } catch (e) {
-      console.error(e);
-      error = "更新に失敗しました";
-    } finally {
-      isSubmitting = false;
+  
+  // Parse location from loaded place
+  const initialLocation = (() => {
+    if (!place?.location) return null;
+    if (Array.isArray(place.location)) {
+      return { x: place.location[0], y: place.location[1] };
     }
-  }
+    return place.location as { x: number; y: number };
+  })();
+  let location = $state<{x: number, y: number} | null>(initialLocation);
 </script>
 
 <div class="container mx-auto px-4 py-8 max-w-2xl">
@@ -72,22 +38,35 @@
   
   <h1 class="text-2xl font-bold mb-6">場所の編集</h1>
 
-  {#if isLoading}
-    <div class="flex justify-center p-8">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-    </div>
-  {:else if error}
+  {#if (form?.error || loadError) && !place}
     <div class="bg-destructive/10 text-destructive p-4 rounded-lg mb-6">
-      {error}
+      {form?.error || loadError}
     </div>
-  {:else}
-    <form onsubmit={handleSubmit} class="space-y-6">
+  {:else if place}
+    <form 
+      method="POST" 
+      class="space-y-6"
+      use:enhance={() => {
+        isSubmitting = true;
+        return async ({ update }) => {
+          await update();
+          isSubmitting = false;
+        };
+      }}
+    >
+      {#if form?.error}
+        <div class="bg-destructive/10 text-destructive p-4 rounded-lg mb-6">
+          {form.error}
+        </div>
+      {/if}
+
       <div class="space-y-2">
         <label for="name" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
           場所名 <span class="text-destructive">*</span>
         </label>
         <input
           id="name"
+          name="name"
           type="text"
           bind:value={name}
           required
@@ -101,11 +80,15 @@
         </label>
         <textarea
           id="description"
+          name="description"
           bind:value={description}
           rows="3"
           class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         ></textarea>
       </div>
+
+    <!-- Hidden input to pass location as JSON -->
+    <input type="hidden" name="location" value={location ? JSON.stringify(location) : ''} />
 
     <!-- Map Component -->
     <div class="space-y-2">
@@ -137,5 +120,9 @@
         </button>
       </div>
     </form>
+  {:else}
+    <div class="bg-destructive/10 text-destructive p-4 rounded-lg">
+      場所が見つかりませんでした
+    </div>
   {/if}
 </div>

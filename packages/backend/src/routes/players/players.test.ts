@@ -1,6 +1,5 @@
 import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import * as dbModule from "../../db/index.js";
 import { playersRoute } from "./players.js";
 
 // Mock the db module
@@ -20,81 +19,65 @@ vi.mock("../../middleware/auth.js", () => ({
   },
 }));
 
+const mockCreateWithTag = vi.fn();
+const mockFindById = vi.fn();
+const mockUpdate = vi.fn();
+const mockUpdateTags = vi.fn();
+const mockFindAll = vi.fn();
+const mockFindBySupabaseId = vi.fn();
+
+// Mock PlayerRepository
+vi.mock("../../db/repositories/PlayerRepository.js", () => ({
+  PlayerRepository: class {
+    createWithTag = mockCreateWithTag;
+    findById = mockFindById;
+    update = mockUpdate;
+    updateTags = mockUpdateTags;
+    findAll = mockFindAll;
+  },
+}));
+
+// Mock UserRepository
+vi.mock("../../db/repositories/UserRepository.js", () => ({
+  UserRepository: class {
+    findBySupabaseId = mockFindBySupabaseId;
+  },
+}));
+
 describe("POST /players", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+
+    // Default mock for finding current user
+    mockFindBySupabaseId.mockResolvedValue({
+      id: "user_123",
+      teamId: "team_123",
+      roleId: 0, // OWNER
+      supabaseUserId: "supabase_user_123",
+    });
   });
 
   it("should create a player successfully", async () => {
-    const mockTx = {
-      insert: vi.fn().mockReturnThis(),
-      values: vi.fn().mockReturnThis(),
-      returning: vi.fn().mockResolvedValue([
-        {
-          id: "player_123",
-          lastName: "山田",
-          firstName: "太郎",
-          nickName: "たろう",
-          imageUrl: null,
-          teamId: "team_123",
-          parentUserId: "user_123",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      ]),
-      select: vi.fn().mockReturnThis(),
-      from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue([
-        {
-          id: "user_123",
-          teamId: "team_123",
-          roleId: 0, // OWNER
-          supabaseUserId: "supabase_user_123",
-        },
-      ]),
-      transaction: vi
-        .fn()
-        .mockImplementation(
-          async (callback: (tx: unknown) => Promise<unknown>) => {
-            const tx = {
-              insert: vi.fn().mockReturnThis(),
-              values: vi.fn().mockReturnThis(),
-              returning: vi
-                .fn()
-                .mockResolvedValueOnce([
-                  {
-                    id: "player_123",
-                    lastName: "山田",
-                    firstName: "太郎",
-                    nickName: "たろう",
-                    imageUrl: null,
-                    teamId: "team_123",
-                    parentUserId: "user_123",
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                  },
-                ])
-                .mockResolvedValue([]),
-            };
-            return callback(tx);
-          },
-        ),
+    const mockPlayer = {
+      id: "player_123",
+      lastName: "山田",
+      firstName: "太郎",
+      nickName: "たろう",
+      imageUrl: null,
+      teamId: "team_123",
+      parentUserId: "user_123",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
-    const mockDb = {
-      ...mockTx,
-    };
-
-    // @ts-expect-error Mocking context
-    dbModule.createDb.mockReturnValue(mockDb);
+    mockCreateWithTag.mockResolvedValue(mockPlayer);
 
     const app = new Hono();
 
     // Inject mock DB
     app.use("*", async (c, next) => {
       // @ts-expect-error Mocking context
-      c.set("db", mockDb);
+      c.set("db", {});
       await next();
     });
 
@@ -118,29 +101,22 @@ describe("POST /players", () => {
   });
 
   it("should get a player by id", async () => {
-    const mockDb = {
-      select: vi.fn().mockReturnThis(),
-      from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockResolvedValue([
-        {
-          id: "player_123",
-          lastName: "山田",
-          firstName: "太郎",
-          nickName: "たろう",
-          imageUrl: null,
-          teamId: "team_123",
-        },
-      ]),
+    const mockPlayer = {
+      id: "player_123",
+      lastName: "山田",
+      firstName: "太郎",
+      nickName: "たろう",
+      imageUrl: null,
+      teamId: "team_123",
     };
 
-    // @ts-expect-error Mocking context
-    dbModule.createDb.mockReturnValue(mockDb);
+    mockFindById.mockResolvedValue(mockPlayer);
 
     const app = new Hono();
 
     app.use("*", async (c, next) => {
       // @ts-expect-error Mocking context
-      c.set("db", mockDb);
+      c.set("db", {});
       await next();
     });
 
@@ -153,37 +129,26 @@ describe("POST /players", () => {
   });
 
   it("should list players with tag filter", async () => {
-    const mockDb = {
-      select: vi.fn().mockReturnThis(),
-      from: vi.fn().mockReturnThis(),
-      leftJoin: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis(),
-      innerJoin: vi.fn().mockReturnThis(),
-      orderBy: vi.fn().mockReturnThis(),
-      $dynamic: vi.fn().mockReturnThis(),
-      // biome-ignore lint/suspicious/noThenProperty: Mocking Promise behavior
-      then: (resolve: (arg: unknown) => unknown) =>
-        resolve([
-          {
-            player: {
-              id: "player_tagged",
-              lastName: "佐藤",
-              firstName: "花子",
-              nickName: null,
-              imageUrl: null,
-              teamId: "team_123",
-            },
-            tag: { id: "tag_123", name: "1年生" },
-          },
-        ]),
-    };
+    const mockPlayers = [
+      {
+        player: {
+          id: "player_tagged",
+          lastName: "佐藤",
+          firstName: "花子",
+          nickName: null,
+          imageUrl: null,
+          teamId: "team_123",
+        },
+        tag: { id: "tag_123", name: "1年生" },
+      },
+    ];
 
-    // @ts-expect-error Mocking context
-    dbModule.createDb.mockReturnValue(mockDb);
+    mockFindAll.mockResolvedValue(mockPlayers);
+
     const app = new Hono();
     app.use("*", async (c, next) => {
       // @ts-expect-error Mocking context
-      c.set("db", mockDb);
+      c.set("db", {});
       await next();
     });
     app.route("/players", playersRoute);
@@ -193,36 +158,26 @@ describe("POST /players", () => {
   });
 
   it("should search players by name", async () => {
-    const mockDb = {
-      select: vi.fn().mockReturnThis(),
-      from: vi.fn().mockReturnThis(),
-      leftJoin: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis(),
-      orderBy: vi.fn().mockReturnThis(),
-      $dynamic: vi.fn().mockReturnThis(),
-      // biome-ignore lint/suspicious/noThenProperty: Mocking Promise behavior
-      then: (resolve: (arg: unknown) => unknown) =>
-        resolve([
-          {
-            player: {
-              id: "player_searched",
-              lastName: "検索",
-              firstName: "結果",
-              nickName: null,
-              imageUrl: null,
-              teamId: "team_123",
-            },
-            tag: null,
-          },
-        ]),
-    };
+    const mockPlayers = [
+      {
+        player: {
+          id: "player_searched",
+          lastName: "検索",
+          firstName: "結果",
+          nickName: null,
+          imageUrl: null,
+          teamId: "team_123",
+        },
+        tag: null,
+      },
+    ];
 
-    // @ts-expect-error Mocking context
-    dbModule.createDb.mockReturnValue(mockDb);
+    mockFindAll.mockResolvedValue(mockPlayers);
+
     const app = new Hono();
     app.use("*", async (c, next) => {
       // @ts-expect-error Mocking context
-      c.set("db", mockDb);
+      c.set("db", {});
       await next();
     });
     app.route("/players", playersRoute);
@@ -232,28 +187,22 @@ describe("POST /players", () => {
   });
 
   it("should update a player successfully", async () => {
-    const mockDb = {
-      update: vi.fn().mockReturnThis(),
-      set: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis(),
-      returning: vi.fn().mockResolvedValue([
-        {
-          id: "player_123",
-          lastName: "更新後",
-          firstName: "太郎",
-          nickName: "たろちゃん",
-          imageUrl: null,
-          teamId: "team_123",
-        },
-      ]),
+    const mockUpdatedPlayer = {
+      id: "player_123",
+      lastName: "更新後",
+      firstName: "太郎",
+      nickName: "たろちゃん",
+      imageUrl: null,
+      teamId: "team_123",
     };
 
-    // @ts-expect-error Mocking context
-    dbModule.createDb.mockReturnValue(mockDb);
+    mockUpdate.mockResolvedValue(mockUpdatedPlayer);
+    mockFindById.mockResolvedValue(mockUpdatedPlayer);
+
     const app = new Hono();
     app.use("*", async (c, next) => {
       // @ts-expect-error Mocking context
-      c.set("db", mockDb);
+      c.set("db", {});
       await next();
     });
     app.route("/players", playersRoute);
@@ -271,6 +220,6 @@ describe("POST /players", () => {
     expect(res.status).toBe(200);
     const data = (await res.json()) as { lastName: string };
     expect(data.lastName).toBe("更新後");
-    expect(mockDb.update).toHaveBeenCalled();
+    expect(mockUpdate).toHaveBeenCalled();
   });
 });
