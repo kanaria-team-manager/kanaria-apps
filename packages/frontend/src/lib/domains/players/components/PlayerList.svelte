@@ -57,7 +57,7 @@ function getInitial(p: Player): string {
 
 onMount(async () => {
     try {
-        gradeTags = await fetchGradeTags(window.fetch);
+        gradeTags = await fetchGradeTags(window.fetch, session?.access_token);
     } catch (e) {
         console.error("Failed to fetch grade tags", e);
     }

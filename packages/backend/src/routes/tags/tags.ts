@@ -39,7 +39,7 @@ tagsRoute.get("/", authMiddleware, async (c) => {
 });
 
 // 学年タグ取得
-tagsRoute.get("/grade", async (c) => {
+tagsRoute.get("/grade", authMiddleware, async (c) => {
   const db = c.get("db");
   const repository = new TagRepository(db);
   const tags = await repository.findGradeTags();

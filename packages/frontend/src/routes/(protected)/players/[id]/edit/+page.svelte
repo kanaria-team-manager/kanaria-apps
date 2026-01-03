@@ -41,7 +41,7 @@
       try {
         const [playerData, tags] = await Promise.all([
           apiGet<Player>(`/players/${playerId}`, data.session.access_token),
-          fetchGradeTags(window.fetch),
+          fetchGradeTags(window.fetch, data.session.access_token),
         ]);
         player = playerData;
         gradeTags = tags;

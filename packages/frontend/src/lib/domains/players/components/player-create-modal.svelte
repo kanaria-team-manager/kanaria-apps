@@ -48,7 +48,7 @@ async function loadData() {
   error = "";
   try {
     const [tagsData, usersData] = await Promise.all([
-      fetchGradeTags(window.fetch),
+      fetchGradeTags(window.fetch, session.access_token),
       fetchUsers(session.access_token),
     ]);
     tags = tagsData;

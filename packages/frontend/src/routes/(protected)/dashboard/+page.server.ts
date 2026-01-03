@@ -6,7 +6,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
   const accessToken = session?.access_token || "";
 
   const [tags, labels] = await Promise.all([
-    fetchGradeTags(fetch),
+    fetchGradeTags(fetch, accessToken),
     fetchLabels(fetch, accessToken, "event"),
   ]);
 

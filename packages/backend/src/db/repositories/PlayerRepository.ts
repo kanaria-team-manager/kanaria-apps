@@ -62,7 +62,7 @@ export class PlayerRepository {
     // Aggregate tags
     const tags: { id: string; name: string }[] = [];
     for (const row of rows) {
-      if (row.tag && !tags.find((t) => t.id === row.tag!.id)) {
+      if (row.tag && !tags.find((t) => t.id === row.tag?.id)) {
         tags.push({ id: row.tag.id, name: row.tag.name });
       }
     }

@@ -10,11 +10,43 @@
 ---
 
 ## Phase 1: Authentication Logic Consolidation (現在実施中)
-**目標**: フロントエンドのAPIリクエスト処理を `client.ts` に集約し、独自実装を排除する。
+**目標**: フロントエンドのAPIリクエスト処理を `client.ts` に集約し、独自実装を排除する。バックエンドの認証要件を統一する。
 
-- [ ] **`client.ts` の拡張**: SvelteKit標準の `fetch` を注入可能にする（SSR/Load関数対応）。
-- [ ] **`master.ts` のリファクタリング**: `fetchTags` などの独自fetch実装を廃止し、`client.ts` のヘルパー関数を利用するように書き換える。
-- [ ] **呼び出し元の修正**: 各Page/Componentでの呼び出し時に `fetch` と `accessToken` を正しく渡すように修正する。
+### 1.1 フロントエンド修正 (完了)
+- [x] **`client.ts` の拡張**: SvelteKit標準の `fetch` を注入可能にする（SSR/Load関数対応）。
+- [x] **`master.ts` のリファクタリング**: `fetchTags` などの独自fetch実装を廃止し、`client.ts` のヘルパー関数を利用するように書き換える。
+
+### 1.2 呼び出し元の修正 (完了)
+- [x] `user/+page.svelte` - `fetchTags` に `accessToken` を渡すよう修正
+- [x] `event/[eventNo]/edit/+page.svelte` - `fetchGradeTags` に `accessToken` を渡すよう修正
+- [x] `events/create/+page.svelte` - `fetchGradeTags` に `accessToken` を渡すよう修正
+- [x] `dashboard/+page.server.ts` - `fetchGradeTags` に `accessToken` を渡すよう修正
+- [x] `players/[id]/edit/+page.svelte` - `fetchGradeTags` に `accessToken` を渡すよう修正
+- [x] `lib/domains/players/components/PlayerList.svelte` - `fetchGradeTags` に `accessToken` を渡すよう修正
+- [x] `lib/domains/players/components/player-create-modal.svelte` - `fetchGradeTags` に `accessToken` を渡すよう修正
+
+### 1.3 バックエンド認証強化 (完了)
+認証済みページ (`(protected)`) 配下から呼び出されるAPIは全て `authMiddleware` を必須とする。
+
+**対象エンドポイント (現在公開、要保護化):**
+
+| ファイル | エンドポイント | 対応 |
+|---------|---------------|------|
+| `tags/tags.ts` | `GET /tags/grade` | [x] authMiddleware追加 |
+| `labels/labels.ts` | `GET /labels` | [x] 既にauthMiddleware適用済 |
+| `attendance-statuses/attendance-statuses.ts` | `GET /attendance-statuses` | [x] 既にauthMiddleware適用済 |
+| `events/events.ts` | `GET /events` | [x] 既にauthMiddleware適用済 |
+| `events/events.ts` | `GET /events/:eventNo` | [x] 既にauthMiddleware適用済 |
+| `places/places.ts` | `GET /places` | [x] 既にauthMiddleware適用済 |
+| `places/places.ts` | `GET /places/:id` | [x] 既にauthMiddleware適用済 |
+| `players/players.ts` | `GET /players` | [x] 既にauthMiddleware適用済 |
+| `players/players.ts` | `GET /players/:id` | [x] 既にauthMiddleware適用済 |
+
+**除外 (公開のまま維持):**
+- `teams/verify.ts` - `GET /teams/verify/:code` (チームコード検証、未認証ユーザー向け)
+- `teams/activate.ts` - `GET /teams/activate` (アカウント有効化、未認証ユーザー向け)
+
+---
 
 ## Phase 2: Data Fetching Optimization (Load Functions)
 **目標**: データ取得（GET）を「コンポーネント内での非同期取得」から「Load関数による事前取得」に移行する。
