@@ -20,6 +20,7 @@
             pnpm
             playwright-driver.browsers
             supabase-cli
+            gh
           ];
 
           shellHook = ''

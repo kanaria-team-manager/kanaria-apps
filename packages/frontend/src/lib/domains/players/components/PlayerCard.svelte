@@ -26,12 +26,6 @@ function getInitial(p: Player): string {
   return p.lastName.charAt(0);
 }
 
-function handleCardClick() {
-  if (!isMenuOpen) {
-    goto(`/players/${player.id}`);
-  }
-}
-
 function toggleMenu(e: Event) {
   e.stopPropagation();
   isMenuOpen = !isMenuOpen;
@@ -49,11 +43,7 @@ function navigateTo(e: Event, path: string) {
 </script>
 
 <div 
-  class="group relative flex flex-col items-center bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-gray-200 transition-all duration-300 ease-out cursor-pointer"
-  onclick={handleCardClick}
-  role="button"
-  tabindex="0"
-  onkeydown={(e) => e.key === 'Enter' && handleCardClick()}
+  class="group relative flex flex-col items-center bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-gray-200 transition-all duration-300 ease-out"
 >
   <!-- Avatar -->
   <div class="relative mb-4">
@@ -73,7 +63,7 @@ function navigateTo(e: Event, path: string) {
   </div>
 
   <!-- Info -->
-  <h3 class="text-lg font-bold text-gray-900 mb-1 group-hover:text-indigo-600 transition-colors">{getDisplayName(player)}</h3>
+  <a href="/players/{player.id}" class="text-lg font-bold text-gray-900 mb-1 hover:text-indigo-600 transition-colors hover:underline">{getDisplayName(player)}</a>
   <p class="text-sm text-gray-400 mb-4">Player</p>
 
   <!-- Tags (Mock or Real) -->

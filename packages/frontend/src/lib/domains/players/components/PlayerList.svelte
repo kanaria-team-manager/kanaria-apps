@@ -210,7 +210,7 @@ function toggleViewMode() {
           </thead>
           <tbody class="divide-y divide-gray-50">
             {#each players as player (player.id)}
-              <tr class="hover:bg-gray-50 transition-colors cursor-pointer" onclick={() => window.location.href = `/players/${player.id}`}>
+              <tr class="hover:bg-gray-50 transition-colors">
                 <td class="py-3 px-4">
                   <div class="flex items-center gap-3">
                     {#if player.imageUrl}
@@ -225,7 +225,7 @@ function toggleViewMode() {
                       </div>
                     {/if}
                     <div>
-                      <p class="font-medium text-gray-900">{getDisplayName(player)}</p>
+                      <a href="/players/{player.id}" class="font-medium text-gray-900 hover:underline hover:text-indigo-600">{getDisplayName(player)}</a>
                       {#if player.nickName}
                         <p class="text-xs text-gray-400">{player.lastName} {player.firstName}</p>
                       {/if}
