@@ -48,7 +48,6 @@ export const authMiddleware = async (
       const { payload: verifiedPayload } = await jwtVerify(token, JWKS);
       const payload = verifiedPayload as unknown as SupabaseJwtPayload;
 
-
       c.set("user", {
         id: payload.sub,
         email: payload.email,
@@ -107,8 +106,6 @@ export const authMiddleware = async (
     user_metadata: data.claims.user_metadata || {},
     role: data.claims.role || "",
   };
-
-
 
   // Map Supabase User to our Context User format
   c.set("user", userData);

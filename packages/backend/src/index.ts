@@ -1,6 +1,8 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { secureHeaders } from "hono/secure-headers";
 import { dbMiddleware } from "./middleware/db.js";
+import { rateLimitMiddleware } from "./middleware/rate-limiter.js";
 import { attendanceStatusesRoute } from "./routes/attendance-statuses/attendance-statuses.js";
 import { attendancesRoute } from "./routes/attendances/attendances.js";
 import login from "./routes/auth/login.js";
@@ -17,13 +19,42 @@ import usersRoute from "./routes/users/users.js";
 
 import type { Bindings, Variables } from "./types.js";
 
+// Validate required environment variables
+function validateEnv(env: Bindings) {
+  const required: (keyof Bindings)[] = [
+    "DATABASE_URL",
+    "SUPABASE_URL",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "FRONTEND_URL",
+  ];
+  for (const key of required) {
+    if (!env[key]) {
+      throw new Error(`Missing required environment variable: ${key}`);
+    }
+  }
+}
+
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
-// middleware
+// Environment validation middleware
+app.use("*", async (c, next) => {
+  validateEnv(c.env);
+  await next();
+});
+
+// Security headers
+app.use("*", secureHeaders());
+
+// CORS middleware
 app.use(
   "/*",
   cors({
-    origin: "*",
+    origin: (origin) => {
+      // Allow requests from configured frontend URL
+      const allowedOrigins = [process.env.FRONTEND_URL];
+      // Check environment variable
+      return origin || allowedOrigins[0]; // Fallback to first allowed origin
+    },
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
     exposeHeaders: ["Content-Length"],
@@ -31,6 +62,9 @@ app.use(
     credentials: true,
   }),
 );
+
+// Rate limiting for auth endpoints
+app.use("/auth/*", rateLimitMiddleware);
 
 app.use("*", dbMiddleware);
 

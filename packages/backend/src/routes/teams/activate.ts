@@ -16,8 +16,6 @@ app.get("/activate", async (c) => {
   const teamRepo = new TeamRepository(db);
 
   try {
-
-
     if (!user || !user.id) {
       console.error("User context missing or invalid");
       return c.json({ error: "Invalid user context" }, 401);

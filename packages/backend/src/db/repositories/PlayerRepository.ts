@@ -75,6 +75,9 @@ export class PlayerRepository {
   }
 
   async findAll(teamId: string, options?: { tagIds?: string[]; q?: string }) {
+    // Sanitize search query to prevent wildcard abuse
+    const sanitizedQ = options?.q?.replace(/[%_]/g, "\\$&");
+
     const rows = await this.db
       .select({
         player: schema.players,
@@ -92,10 +95,10 @@ export class PlayerRepository {
       .where(
         and(
           eq(schema.players.teamId, teamId),
-          options?.q
+          sanitizedQ
             ? or(
-                ilike(schema.players.lastName, `%${options.q}%`),
-                ilike(schema.players.firstName, `%${options.q}%`),
+                ilike(schema.players.lastName, `%${sanitizedQ}%`),
+                ilike(schema.players.firstName, `%${sanitizedQ}%`),
               )
             : undefined,
           options?.tagIds?.length

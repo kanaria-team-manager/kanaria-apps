@@ -68,12 +68,16 @@ playersRoute.post("/", zValidator("json", createPlayerSchema), async (c) => {
 
 playersRoute.get("/:id", async (c) => {
   const db = c.get("db");
+  const user = c.get("user");
   const repo = new PlayerRepository(db);
   const id = c.req.param("id");
 
   const player = await repo.findById(id);
-  if (!player) {
-    return c.json({ message: "Player not found" }, 404);
+
+  // Authorization: Check team ownership
+  const teamId = user.app_metadata?.teamId as string | undefined;
+  if (!player || player.teamId !== teamId) {
+    return c.json({ error: "Not found" }, 404);
   }
 
   return c.json(player);
@@ -81,15 +85,23 @@ playersRoute.get("/:id", async (c) => {
 
 playersRoute.put("/:id", zValidator("json", updatePlayerSchema), async (c) => {
   const db = c.get("db");
+  const user = c.get("user");
   const repo = new PlayerRepository(db);
   const id = c.req.param("id");
   const { tagIds, ...playerData } = c.req.valid("json");
+
+  // Authorization: Check team ownership before update
+  const existingPlayer = await repo.findById(id);
+  const teamId = user.app_metadata?.teamId as string | undefined;
+  if (!existingPlayer || existingPlayer.teamId !== teamId) {
+    return c.json({ error: "Not found" }, 404);
+  }
 
   // Update player data if any fields provided
   if (Object.keys(playerData).length > 0) {
     const player = await repo.update(id, playerData);
     if (!player) {
-      return c.json({ message: "Player not found" }, 404);
+      return c.json({ error: "Update failed" }, 500);
     }
   }
 
