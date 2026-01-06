@@ -1,31 +1,147 @@
-# Kanaria workspace
+# Kanaria Workspace
 
-This workspace contains two packages under `packages/`:
+This is a monorepo workspace for the Kanaria application, containing:
+- **Frontend**: React + Vite + TypeScript (`packages/frontend`)
+- **Backend**: Hono + TypeScript (`packages/backend`)
 
-- `packages/frontend` — React + Vite + TypeScript
-- `packages/backend`  — Hono + TypeScript
+## Getting Started
 
-Quick start:
+### Prerequisites
+- **Linux Users**: This project uses `flake.nix` to manage the development environment. Install Nix and run `direnv allow` or `nix develop` to set up the environment with Node.js, pnpm, and system dependencies for Playwright.
+- **Node.js & pnpm**: Ensure you have Node.js 22+ and pnpm installed if not using Nix.
 
-1. Install dependencies from the workspace root:
+### Installation
+
+Install dependencies from the workspace root:
 
 ```bash
 pnpm install
 ```
 
-2. Start frontend (in one terminal):
+### Running the Application
+
+You can start both the frontend and backend simultaneously:
 
 ```bash
-pnpm --filter @kanaria/frontend dev
+pnpm dev
 ```
 
-3. Start backend (in another terminal):
+Alternatively, run them in separate terminals:
 
 ```bash
-pnpm --filter @kanaria/backend dev
+# Terminal 1: Frontend (http://localhost:5173)
+pnpm --filter frontend dev
+
+# Terminal 2: Backend (http://localhost:8787)
+pnpm --filter backend dev
 ```
 
-Notes:
+## Testing with Playwright
 
-- These are minimal skeletons. Add or pin dependency versions as needed.
-- You can run `pnpm -w install` from the repo root to install all workspace dependencies.
+Playwright is used for End-to-End (E2E) testing. The configuration automatically spins up the frontend and backend servers, so you don't need to start them manually before running tests.
+
+### Setup Playwright
+
+Install the required browser binaries:
+
+```bash
+pnpm playwright:install
+```
+
+### Run Tests
+
+Run all E2E tests:
+
+```bash
+pnpm test:e2e
+```
+
+### Other Test Commands
+
+- **UI Mode** (Interactive test runner):
+  ```bash
+  pnpm test:e2e:ui
+  ```
+- **Headed Mode** (Watch the browser run):
+  ```bash
+  pnpm test:e2e:headed
+  ```
+- **Debug Mode**:
+  ```bash
+  pnpm test:e2e:debug
+  ```
+
+---
+
+# Kanaria ワークスペース
+
+Kanariaアプリケーションのモノレポワークスペースです。以下のパッケージが含まれています：
+- **フロントエンド (Frontend)**: React + Vite + TypeScript (`packages/frontend`)
+- **バックエンド (Backend)**: Hono + TypeScript (`packages/backend`)
+
+## はじめに (Getting Started)
+
+### 前提条件 (Prerequisites)
+- **Linuxユーザー**: このプロジェクトは `flake.nix` を使用して開発環境を管理しています。Nixをインストールし、`direnv allow` または `nix develop` を実行して、Node.js、pnpm、およびPlaywright用のシステム依存関係を含む環境をセットアップしてください。
+- **Node.js & pnpm**: Nixを使用しない場合は、Node.js 22以上とpnpmがインストールされていることを確認してください。
+
+### インストール (Installation)
+
+ワークスペースのルートで依存関係をインストールします：
+
+```bash
+pnpm install
+```
+
+### アプリケーションの起動 (Running the Application)
+
+フロントエンドとバックエンドを同時に起動できます：
+
+```bash
+pnpm dev
+```
+
+または、それぞれ別のターミナルで実行することも可能です：
+
+```bash
+# ターミナル 1: フロントエンド (http://localhost:5173)
+pnpm --filter frontend dev
+
+# ターミナル 2: バックエンド (http://localhost:8787)
+pnpm --filter backend dev
+```
+
+## Playwrightによるテスト (Testing with Playwright)
+
+E2EテストにはPlaywrightを使用しています。設定により、テスト実行時にフロントエンドとバックエンドのサーバーが自動的に起動するため、事前に手動でサーバーを立ち上げる必要はありません。
+
+### Playwrightのセットアップ
+
+必要なブラウザバイナリをインストールします：
+
+```bash
+pnpm playwright:install
+```
+
+### テストの実行
+
+すべてのE2Eテストを実行します：
+
+```bash
+pnpm test:e2e
+```
+
+### その他のテストコマンド
+
+- **UIモード** (インタラクティブなテストランナー):
+  ```bash
+  pnpm test:e2e:ui
+  ```
+- **Headedモード** (ブラウザの動作を目視確認):
+  ```bash
+  pnpm test:e2e:headed
+  ```
+- **デバッグモード**:
+  ```bash
+  pnpm test:e2e:debug
+  ```

@@ -159,3 +159,12 @@ thumb
 sketch
 
 # End of https://www.toptal.com/developers/gitignore/api/node,react
+
+# Ignore Playwright test results and reports
+/test-results/
+/playwright-report/
+/blob-report/
+
+# Ignore Playwright cache and installed browsers
+/playwright/.cache/
+/.local-browsers

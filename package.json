@@ -3,13 +3,22 @@
   "version": "0.0.1",
   "description": "",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "pnpm --parallel --filter \"./packages/*\" dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "dev:backend": "pnpm --filter backend dev",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "playwright:install": "playwright install chromium"
   },
   "packageManager": "pnpm@10.20.0",
   "keywords": [],
   "author": "jakelizzi",
   "license": "MIT",
   "devDependencies": {
-    "@biomejs/biome": "2.3.7"
+    "@biomejs/biome": "2.3.7",
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^25.0.3"
   }
 }
