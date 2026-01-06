@@ -1,38 +1,73 @@
-# sv
+# @kanaria/frontend
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+This package contains the frontend web application for Kanaria, built with SvelteKit, Vite, and TailwindCSS.
 
-## Creating a project
+## Getting Started
 
-If you're seeing this, you've probably already done this step. Congrats!
+### Prerequisites
 
-```sh
-# create a new project in the current directory
-npx sv create
+- Node.js 22+
+- pnpm
 
-# create a new project in my-app
-npx sv create my-app
+### Development
+
+To start the development server:
+
+```bash
+pnpm dev
 ```
 
-## Developing
+The application will be available at `http://localhost:5173` by default.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+### Scripts
 
-```sh
-npm run dev
+- **`pnpm dev`**: Starts the local development server.
+- **`pnpm build`**: Builds the application for production.
+- **`pnpm preview`**: Previews the production build locally.
+- **`pnpm check`**: Runs Svelte check for type safety.
+- **`pnpm lint`**: Runs Biome linting.
+- **`pnpm test`**: Runs unit tests (Vitest).
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+## Project Structure
+
+- `src/routes`: SvelteKit file-based routing.
+- `src/lib`: Shared components and logic.
+- `src/lib/domains`: Domain-driven design structure for components and logic.
+
+---
+
+# @kanaria/frontend
+
+KanariaのフロントエンドWebアプリケーションパッケージです。SvelteKit, Vite, TailwindCSSを使用して構築されています。
+
+## はじめに (Getting Started)
+
+### 前提条件 (Prerequisites)
+
+- Node.js 22以上
+- pnpm
+
+### 開発 (Development)
+
+開発サーバーを起動します以：
+
+```bash
+pnpm dev
 ```
 
-## Building
+デフォルトで `http://localhost:5173` でアプリケーションが起動します。
 
-To create a production version of your app:
+### スクリプト (Scripts)
 
-```sh
-npm run build
-```
+- **`pnpm dev`**: ローカル開発サーバーを起動します。
+- **`pnpm build`**: 本番用にアプリケーションをビルドします。
+- **`pnpm preview`**: ビルドされたアプリケーションをローカルでプレビューします。
+- **`pnpm check`**: Svelte checkを実行して型安全性を確認します。
+- **`pnpm lint`**: Biomeによるリンターを実行します。
+- **`pnpm test`**: ユニットテスト (Vitest) を実行します。
 
-You can preview the production build with `npm run preview`.
+## プロジェクト構造 (Project Structure)
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+- `src/routes`: SvelteKitのファイルベースルーティング。
+- `src/lib`: 共有コンポーネントとロジック。
+- `src/lib/domains`: ドメイン駆動設計に基づいたコンポーネントとロジックの構造。
