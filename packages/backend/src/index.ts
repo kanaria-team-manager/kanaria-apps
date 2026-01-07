@@ -49,11 +49,11 @@ app.use("*", secureHeaders());
 app.use(
   "/*",
   cors({
-    origin: (origin) => {
+    origin: (origin, c) => {
       // Allow requests from configured frontend URL
-      const allowedOrigins = [process.env.FRONTEND_URL];
+      const allowed = c.env.FRONTEND_URL ? [c.env.FRONTEND_URL, "http://localhost:5173"] : ["http://localhost:5173"];
       // Check environment variable
-      return origin || allowedOrigins[0]; // Fallback to first allowed origin
+      return allowed.includes(origin) ? origin : allowed[0];
     },
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
