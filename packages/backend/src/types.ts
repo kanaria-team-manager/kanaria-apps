@@ -25,5 +25,12 @@ export interface AuthUser {
 
 export type Variables = {
   user: AuthUser;
+  verifiedUser: {
+    id: string;
+    email: string;
+    app_metadata: Record<string, unknown>;
+    user_metadata: Record<string, unknown>;
+  };
+  requestBody: Record<string, unknown>;
   db: PostgresJsDatabase<typeof schema>;
 };

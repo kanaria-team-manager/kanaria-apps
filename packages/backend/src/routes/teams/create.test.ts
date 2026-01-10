@@ -32,6 +32,17 @@ vi.mock("@supabase/supabase-js", () => ({
   createClient: () => ({
     auth: {
       admin: {
+        getUserById: async (id: string) => ({
+          data: {
+            user: {
+              id,
+              email: "test@example.com",
+              app_metadata: {},
+              user_metadata: {},
+            },
+          },
+          error: null,
+        }),
         updateUserById: async () => ({ error: null }),
       },
     },
@@ -61,15 +72,19 @@ describe("POST /teams", () => {
 
     app.route("/teams", createTeam);
 
-    const req = new Request("http://localhost/teams", {
+    const req = new Request("http://localhost/teams/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
+      body: JSON.stringify({
+        supabaseUserId: "user_123",
+        email: "test@example.com",
+      }),
     });
     const res = await app.fetch(req, {
       DATABASE_URL: "mock-url",
       SUPABASE_URL: "http://mock.supabase.io",
       SUPABASE_SERVICE_ROLE_KEY: "mock-service-role-key",
+      FRONTEND_URL: "http://localhost:5173",
     });
 
     expect(res.status).toBe(400);
@@ -93,7 +108,7 @@ describe("POST /teams", () => {
 
     app.route("/teams", createTeam);
 
-    const req = new Request("http://localhost/teams", {
+    const req = new Request("http://localhost/teams/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -108,6 +123,7 @@ describe("POST /teams", () => {
       DATABASE_URL: "mock-url",
       SUPABASE_URL: "http://mock.supabase.io",
       SUPABASE_SERVICE_ROLE_KEY: "mock-service-role-key",
+      FRONTEND_URL: "http://localhost:5173",
     });
 
     expect(res.status).toBe(200);

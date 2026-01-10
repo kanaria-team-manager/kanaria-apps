@@ -43,7 +43,7 @@ function handleTeamVerified(team: Team) {
               チーム: {verifiedTeam?.name}
             </p>
           </div>
-          <SignupForm teamId={verifiedTeam?.id} teamName={verifiedTeam?.name} teamCode={verifiedTeam?.code} />
+          <SignupForm teamId={verifiedTeam?.id} teamCode={verifiedTeam?.code} />
         {/if}
 
         <!-- Login Link -->

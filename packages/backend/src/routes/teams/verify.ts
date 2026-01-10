@@ -1,9 +1,13 @@
 import { Hono } from "hono";
 import { TeamRepository } from "../../db/repositories/TeamRepository.js";
 import { TEAM_STATUS } from "../../db/schema.js";
+import { rateLimitMiddleware } from "../../middleware/rate-limiter.js";
 import type { Bindings, Variables } from "../../types.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
+
+// Add rate limiting to prevent brute force attacks
+app.use("/verify/*", rateLimitMiddleware);
 
 app.get("/verify/:code", async (c) => {
   const code = c.req.param("code");
@@ -22,8 +26,7 @@ app.get("/verify/:code", async (c) => {
       name: team.name,
       code: team.code,
     });
-  } catch (e) {
-    console.error(e);
+  } catch {
     return c.json({ error: "Internal Server Error" }, 500);
   }
 });

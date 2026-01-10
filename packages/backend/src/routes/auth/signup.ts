@@ -3,17 +3,26 @@ import { Hono } from "hono";
 import { ulid } from "ulid";
 import { UserRepository } from "../../db/repositories/UserRepository.js";
 import { USER_STATUS } from "../../db/schema.js";
+import { verifySupabaseUser } from "../../middleware/verify-supabase-user.js";
 import type { Bindings, Variables } from "../../types.js";
 
 const ROLE_MEMBER = 2;
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
+// メール未確認ユーザー用の検証ミドルウェア
+app.use("*", verifySupabaseUser);
+
 // 既存チームに参加するユーザーを作成
 app.post("/", async (c) => {
-  const { supabaseUserId, teamId, name, email } = await c.req.json();
+  const verifiedUser = c.get("verifiedUser");
+  const body = c.get("requestBody") as {
+    teamId: string;
+    name: string;
+  };
+  const { teamId, name } = body;
 
-  if (!supabaseUserId || !teamId || !name || !email) {
+  if (!teamId || !name) {
     return c.json({ error: "Missing required fields" }, 400);
   }
 
@@ -26,12 +35,12 @@ app.post("/", async (c) => {
     // ユーザーを作成（role=2: member, status=0: TEMPORARY）
     await userRepo.create({
       id: userRecordId,
-      supabaseUserId: supabaseUserId,
+      supabaseUserId: verifiedUser.id,
       teamId: teamId,
       roleId: ROLE_MEMBER,
       status: USER_STATUS.TEMPORARY,
       name,
-      email,
+      email: verifiedUser.email,
     });
 
     // Supabase User Metadata に teamId を設定
@@ -41,15 +50,14 @@ app.post("/", async (c) => {
     );
 
     const { error: updateError } = await supabase.auth.admin.updateUserById(
-      supabaseUserId,
+      verifiedUser.id,
       {
         app_metadata: { teamId },
       },
     );
 
     if (updateError) {
-      console.error("Failed to update app_metadata", updateError);
-      // ログに残すがリクエストは失敗させない
+      // Failed to update app_metadata, but request succeeds
     }
 
     return c.json({
@@ -61,7 +69,6 @@ app.post("/", async (c) => {
     if (e.code === "23505") {
       return c.json({ error: "User already exists" }, 409);
     }
-    console.error(err);
     return c.json({ error: "Failed to create user" }, 500);
   }
 });

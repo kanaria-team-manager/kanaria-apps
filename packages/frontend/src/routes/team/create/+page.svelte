@@ -1,5 +1,6 @@
 <script lang="ts">
 import SignupForm from "$lib/domains/auth/components/signup-form.svelte";
+import TeamOwnerSignupForm from "$lib/domains/auth/components/team-owner-signup-form.svelte";
 import TeamCreationForm from "$lib/domains/auth/components/team-creation-form.svelte";
 
 let isTeamInfoVerified = $state(false);
@@ -40,7 +41,7 @@ function handleTeamVerified(
                 <h2 class="text-lg font-semibold">管理者アカウント作成</h2>
                 <p class="text-xs text-muted-foreground">チーム管理者のアカウントを作成します</p>
             </div>
-			<SignupForm teamName={verifiedInfo?.teamName} teamCode={verifiedInfo?.teamCode} />
+			<TeamOwnerSignupForm teamName={verifiedInfo?.teamName} teamCode={verifiedInfo?.teamCode} />
 		  {/if}
   
 		  <!-- Login Link -->

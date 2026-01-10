@@ -9,10 +9,7 @@ import {
 } from "$lib/domains/auth/validators";
 import { supabase } from "$lib/supabase";
 
-let { teamId, teamCode } = $props<{
-  teamId?: string;
-  teamCode?: string;
-}>();
+let { teamName, teamCode } = $props<{ teamName: string | undefined; teamCode: string | undefined }>();
 
 let name = $state("");
 let email = $state("");
@@ -49,11 +46,6 @@ async function handleRegister(e: Event) {
     return;
   }
 
-  if (!teamId) {
-    error = "チーム情報が不足しています。最初からやり直してください。";
-    return;
-  }
-
   isLoading = true;
 
   try {
@@ -72,15 +64,16 @@ async function handleRegister(e: Event) {
     if (authError) throw authError;
     if (!authData.user) throw new Error("ユーザー作成に失敗しました");
 
-    // 2. Backend User Creation (既存チームに参加)
-    const response = await fetch(`${PUBLIC_BACKEND_URL}/auth/signup`, {
+    // 2. Backend Team Creation
+    const response = await fetch(`${PUBLIC_BACKEND_URL}/teams/create`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         supabaseUserId: authData.user.id,
-        teamId,
+        teamName,
+        teamCode,
         name,
         email: authData.user.email,
       }),
@@ -88,9 +81,9 @@ async function handleRegister(e: Event) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("User creation failed:", errorText);
+      console.error("Team creation failed:", errorText);
       throw new Error(
-        "ユーザーの作成に失敗しました。時間をおいて再試行してください。",
+        "チームの作成に失敗しました。時間をおいて再試行してください。",
       );
     }
 
@@ -102,9 +95,6 @@ async function handleRegister(e: Event) {
     isLoading = false;
   }
 }
-
-// teamCode は表示用（未使用警告抑制）
-void teamCode;
 </script>
   
   <form onsubmit={handleRegister} class="space-y-4">
@@ -145,13 +135,6 @@ void teamCode;
 		class="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
 	  />
 	</div>
-  
-	<!-- Role Selection -->
-	<fieldset class="space-y-2">
-	  <legend class="block text-sm font-medium text-foreground">
-		ご利用目的
-	  </legend>
-	</fieldset>
   
 	<!-- Password Input -->
 	<div class="space-y-2">
@@ -209,4 +192,3 @@ void teamCode;
 	  登録することで、<a href="/terms" class="text-primary hover:underline">利用規約</a>と<a href="/privacy" class="text-primary hover:underline">プライバシーポリシー</a>に同意したものとみなされます。
 	</p>
   </form>
-  

@@ -51,7 +51,9 @@ app.use(
   cors({
     origin: (origin, c) => {
       // Allow requests from configured frontend URL
-      const allowed = c.env.FRONTEND_URL ? [c.env.FRONTEND_URL, "http://localhost:5173"] : ["http://localhost:5173"];
+      const allowed = c.env.FRONTEND_URL
+        ? [c.env.FRONTEND_URL, "http://localhost:5173"]
+        : ["http://localhost:5173"];
       // Check environment variable
       return allowed.includes(origin) ? origin : allowed[0];
     },

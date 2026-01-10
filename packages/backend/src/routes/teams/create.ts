@@ -4,19 +4,24 @@ import { ulid } from "ulid";
 import { TeamRepository } from "../../db/repositories/TeamRepository.js";
 import { UserRepository } from "../../db/repositories/UserRepository.js";
 import { USER_STATUS } from "../../db/schema.js";
+import { verifySupabaseUser } from "../../middleware/verify-supabase-user.js";
 import type { Bindings, Variables } from "../../types.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
-// Note: This endpoint is public to allow team creation during signup (before email verification)
-// app.use("*", authMiddleware);
+// メール未確認ユーザー用の検証ミドルウェア
+app.use("/create", verifySupabaseUser);
 
-app.post("/", async (c) => {
-  // const user = c.get("user");
-  const { supabaseUserId, teamName, teamCode, name, email } =
-    await c.req.json();
+app.post("/create", async (c) => {
+  const verifiedUser = c.get("verifiedUser");
+  const body = c.get("requestBody") as {
+    teamName: string;
+    teamCode: string;
+    name: string;
+  };
+  const { teamName, teamCode, name } = body;
 
-  if (!teamName || !teamCode || !name || !email) {
+  if (!teamName || !teamCode || !name) {
     return c.json({ error: "Missing required fields" }, 400);
   }
 
@@ -43,12 +48,12 @@ app.post("/", async (c) => {
       await userRepo.create(
         {
           id: userRecordId,
-          supabaseUserId: supabaseUserId,
+          supabaseUserId: verifiedUser.id,
           teamId: teamId,
           roleId: 0, // 0: owner defaultvalue
           status: USER_STATUS.TEMPORARY,
           name,
-          email,
+          email: verifiedUser.email,
         },
         tx,
       );
@@ -62,15 +67,14 @@ app.post("/", async (c) => {
 
     // Note: We use Admin Client (Service Role) to update user metadata
     const { error: updateError } = await supabase.auth.admin.updateUserById(
-      supabaseUserId,
+      verifiedUser.id,
       {
         app_metadata: { teamId },
       },
     );
 
     if (updateError) {
-      console.error("Failed to update app_metadata", updateError);
-      // We don't fail the request here, but we log it. User is created in DB.
+      // Failed to update app_metadata, but user is created in DB
     }
 
     return c.json({ message: "Team created successfully", teamId });
@@ -80,7 +84,6 @@ app.post("/", async (c) => {
       // Postgres unique violation code
       return c.json({ error: "Team code already taken" }, 409);
     }
-    console.error(err);
     return c.json({ error: "Failed to create team" }, 500);
   }
 });
