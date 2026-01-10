@@ -164,10 +164,11 @@ eventsRoute.put(
     }
 
     const repo = new EventRepository(db);
+    
+    // 所有権チェック
     const event = await repo.findByEventNo(currentUser.teamId, eventNo);
-
     if (!event) {
-      return c.json({ error: "Event not found" }, 404);
+      return c.json({ error: "Not found" }, 404);
     }
 
     // Permission Check
@@ -206,9 +207,32 @@ eventsRoute.put(
       );
 
       return c.json(updatedEvent);
-    } catch (e) {
-      console.error("Failed to update event:", e);
+    } catch {
       return c.json({ error: "Failed to update event" }, 500);
     }
   },
 );
+
+eventsRoute.delete("/:eventNo", async (c) => {
+  const db = c.get("db");
+  const user = c.get("user");
+  const eventNo = c.req.param("eventNo");
+
+  const userRepo = new UserRepository(db);
+  const currentUser = await userRepo.findBySupabaseId(user.id);
+
+  if (!currentUser?.teamId) {
+    return c.json({ error: "Team ID not found" }, 403);
+  }
+
+  const repo = new EventRepository(db);
+  
+  // 所有権チェック
+  const event = await repo.findByEventNo(currentUser.teamId, eventNo);
+  if (!event) {
+    return c.json({ error: "Not found" }, 404);
+  }
+
+  await repo.delete(eventNo, currentUser.teamId);
+  return c.json({ message: "Deleted" });
+});

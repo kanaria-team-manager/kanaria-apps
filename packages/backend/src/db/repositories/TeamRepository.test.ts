@@ -1,91 +1,76 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { teams } from "../schema.js";
-import { TeamRepository } from "./TeamRepository";
+import { beforeEach, describe, expect, it } from "vitest";
+import { TeamRepository } from "./TeamRepository.js";
+import { useTestDb } from "../test-helper.js";
+import { ulid } from "ulid";
 
 describe("TeamRepository", () => {
+  const getDb = useTestDb();
   let repository: TeamRepository;
-  // biome-ignore lint/suspicious/noExplicitAny: Mock DB
-  let mockDb: any;
 
   beforeEach(() => {
-    mockDb = {
-      select: vi.fn().mockReturnThis(),
-      from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockReturnThis(),
-    };
-    repository = new TeamRepository(mockDb);
-  });
-
-  describe("findByCode", () => {
-    it("should return team if found", async () => {
-      const mockTeam = {
-        id: "team_1",
-        name: "Test Team",
-        code: "test-code",
-        status: 1,
-      };
-
-      mockDb.limit.mockResolvedValue([mockTeam]);
-
-      const result = await repository.findByCode("test-code");
-      expect(result).toEqual(mockTeam);
-      expect(mockDb.select).toHaveBeenCalled();
-      expect(mockDb.from).toHaveBeenCalledWith(teams);
-      expect(mockDb.where).toHaveBeenCalled();
-    });
-
-    it("should return null if not found", async () => {
-      mockDb.limit.mockResolvedValue([]);
-
-      const result = await repository.findByCode("unknown");
-      expect(result).toBeNull();
-    });
+    repository = new TeamRepository(getDb());
   });
 
   describe("create", () => {
-    it("should create a team", async () => {
-      const mockTeam = {
-        id: "team_1",
+    it("should create a new team", async () => {
+      const teamData = {
+        id: ulid(),
         name: "Test Team",
-        code: "test-code",
+        code: `test-${Date.now()}`,
+        status: 0,
+        eventSequence: 0,
       };
 
-      // Mock transaction or insert
-      // Since we might pass a transaction object to the repository method, or the repository handles it.
-      // For simplicity, let's assume repository methods can accept a transaction object (Unit of Work pattern)
-      // OR the repository is instantiated with a transaction.
+      await repository.create(teamData);
 
-      // Let's assume we pass the db/tx to the method if needed, or the repo is just a wrapper.
-      // In `create.ts`, we use `db.transaction(async (tx) => { ... })`.
-      // So we might want `teamRepo.create(teamData, tx)`.
+      const found = await repository.findByCode(teamData.code);
+      expect(found).toBeDefined();
+      expect(found?.name).toBe("Test Team");
+      expect(found?.code).toBe(teamData.code);
+    });
+  });
 
-      const mockTx = {
-        insert: vi.fn().mockReturnThis(),
-        values: vi.fn().mockResolvedValue(undefined),
-      };
+  describe("findByCode", () => {
+    it("should find a team by code", async () => {
+      const code = `find-test-${Date.now()}`;
+      await repository.create({
+        id: ulid(),
+        name: "Find Test Team",
+        code,
+        status: 0,
+        eventSequence: 0,
+      });
 
-      // biome-ignore lint/suspicious/noExplicitAny: Mock Tx
-      await repository.create(mockTeam, mockTx as any);
+      const found = await repository.findByCode(code);
 
-      expect(mockTx.insert).toHaveBeenCalledWith(teams);
-      expect(mockTx.values).toHaveBeenCalledWith(mockTeam);
+      expect(found).toBeDefined();
+      expect(found?.code).toBe(code);
+      expect(found?.name).toBe("Find Test Team");
+    });
+
+    it("should return null for non-existent code", async () => {
+      const found = await repository.findByCode("non-existent-code-12345");
+      expect(found).toBeNull();
     });
   });
 
   describe("updateStatus", () => {
     it("should update team status", async () => {
-      const mockTx = {
-        update: vi.fn().mockReturnThis(),
-        set: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue(undefined),
-      };
+      const code = `status-test-${Date.now()}`;
+      const teamId = ulid();
 
-      // biome-ignore lint/suspicious/noExplicitAny: Mock Tx
-      await repository.updateStatus("team_1", 1, mockTx as any);
+      await repository.create({
+        id: teamId,
+        name: "Status Test Team",
+        code,
+        status: 0,
+        eventSequence: 0,
+      });
 
-      expect(mockTx.update).toHaveBeenCalledWith(teams);
-      expect(mockTx.set).toHaveBeenCalledWith({ status: 1 });
+      await repository.updateStatus(teamId, 1);
+
+      const updated = await repository.findByCode(code);
+      expect(updated?.status).toBe(1);
     });
   });
 });

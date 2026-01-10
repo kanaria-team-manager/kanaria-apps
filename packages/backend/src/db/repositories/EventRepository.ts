@@ -414,4 +414,15 @@ export class EventRepository {
       return updatedEvent;
     });
   }
+
+  async delete(eventNo: string, teamId: string) {
+    await this.db
+      .delete(schema.events)
+      .where(
+        and(
+          eq(schema.events.eventNo, eventNo),
+          eq(schema.events.teamId, teamId),
+        ),
+      );
+  }
 }

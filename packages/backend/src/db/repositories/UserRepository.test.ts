@@ -1,76 +1,126 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { users } from "../schema.js";
+import { beforeEach, describe, expect, it } from "vitest";
 import { UserRepository } from "./UserRepository.js";
+import { useTestDb, TEST_TEAMS } from "../test-helper.js";
+import crypto from "crypto";
+import { ulid } from "ulid";
 
 describe("UserRepository", () => {
+  const getDb = useTestDb();
   let repository: UserRepository;
-  // biome-ignore lint/suspicious/noExplicitAny: Mock DB
-  let mockDb: any;
 
   beforeEach(() => {
-    mockDb = {
-      select: vi.fn().mockReturnThis(),
-      from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockReturnThis(),
-    };
-    repository = new UserRepository(mockDb);
+    repository = new UserRepository(getDb());
   });
 
   describe("create", () => {
-    it("should create a user", async () => {
-      const mockUser = {
-        id: "user_1",
-        supabaseUserId: "supa_1",
-        teamId: "team_1",
+    it("should create a new user", async () => {
+      const userData = {
+        id: ulid(), // User ID should be ULID (26 chars), not UUID (36 chars)
+        supabaseUserId: crypto.randomUUID(), // Supabase ID is UUID
+        teamId: TEST_TEAMS.MAIN,
         roleId: 0,
         status: 0,
         name: "Test User",
         email: "test@example.com",
       };
 
-      const mockTx = {
-        insert: vi.fn().mockReturnThis(),
-        values: vi.fn().mockResolvedValue(undefined),
-      };
+      await repository.create(userData);
 
-      // biome-ignore lint/suspicious/noExplicitAny: Mock Tx
-      await repository.create(mockUser, mockTx as any);
-
-      expect(mockTx.insert).toHaveBeenCalledWith(users);
-      expect(mockTx.values).toHaveBeenCalledWith(mockUser);
+      const found = await repository.findBySupabaseId(userData.supabaseUserId);
+      expect(found).toBeDefined();
+      expect(found?.name).toBe("Test User");
+      expect(found?.email).toBe("test@example.com");
     });
   });
 
   describe("findBySupabaseId", () => {
-    it("should return user if found", async () => {
-      const mockUser = { id: "user_1", supabaseUserId: "supa_1" };
-      mockDb.limit.mockResolvedValue([mockUser]);
+    it("should find a user by supabase ID", async () => {
+      const supabaseUserId = crypto.randomUUID();
 
-      const result = await repository.findBySupabaseId("supa_1");
-      expect(result).toEqual(mockUser);
+      await repository.create({
+        id: ulid(),
+        supabaseUserId,
+        teamId: TEST_TEAMS.ALPHA,
+        roleId: 2,
+        status: 1,
+        name: "Find Test User",
+        email: "find@example.com",
+      });
+
+      const found = await repository.findBySupabaseId(supabaseUserId);
+
+      expect(found).toBeDefined();
+      expect(found?.supabaseUserId).toBe(supabaseUserId);
+      expect(found?.name).toBe("Find Test User");
     });
 
-    it("should return null if not found", async () => {
-      mockDb.limit.mockResolvedValue([]);
-      const result = await repository.findBySupabaseId("unknown");
-      expect(result).toBeNull();
+    it("should return null for non-existent supabase ID", async () => {
+      const found = await repository.findBySupabaseId(crypto.randomUUID());
+      expect(found).toBeNull();
     });
   });
 
-  describe("updateStatus", () => {
-    it("should update user status", async () => {
-      const mockTx = {
-        update: vi.fn().mockReturnThis(),
-        set: vi.fn().mockReturnThis(),
-        where: vi.fn().mockResolvedValue(undefined),
-      };
+  describe("findAllByTeamId", () => {
+    it("should return all users for a team", async () => {
+      await repository.create({
+        id: ulid(),
+        supabaseUserId: crypto.randomUUID(),
+        teamId: TEST_TEAMS.ALPHA,
+        roleId: 0,
+        status: 1,
+        name: "User 1",
+        email: "user1@example.com",
+      });
 
-      // biome-ignore lint/suspicious/noExplicitAny: Mock Tx
-      await repository.updateStatus("user_1", 1, mockTx as any);
+      await repository.create({
+        id: ulid(),
+        supabaseUserId: crypto.randomUUID(),
+        teamId: TEST_TEAMS.ALPHA,
+        roleId: 1,
+        status: 1,
+        name: "User 2",
+        email: "user2@example.com",
+      });
 
-      expect(mockTx.update).toHaveBeenCalledWith(users);
-      expect(mockTx.set).toHaveBeenCalledWith({ status: 1 });
+      await repository.create({
+        id: ulid(),
+        supabaseUserId: crypto.randomUUID(),
+        teamId: TEST_TEAMS.BETA,
+        roleId: 2,
+        status: 1,
+        name: "Other User",
+        email: "other@example.com",
+      });
+
+      const teamUsers = await repository.findAllByTeamId(TEST_TEAMS.ALPHA);
+
+      // Use >= instead of === because data may accumulate from other tests
+      expect(teamUsers.length).toBeGreaterThanOrEqual(2);
+      expect(teamUsers.every((u) => u.teamId === TEST_TEAMS.ALPHA)).toBe(true);
+    });
+  });
+
+  describe("updateProfile", () => {
+    it("should update user profile", async () => {
+      const userId = ulid();
+      const supabaseUserId = crypto.randomUUID();
+
+      await repository.create({
+        id: userId,
+        supabaseUserId,
+        teamId: TEST_TEAMS.GAMMA,
+        roleId: 2,
+        status: 1,
+        name: "Original Name",
+        email: "original@example.com",
+      });
+
+      const updated = await repository.updateProfile(userId, {
+        name: "Updated Name",
+      });
+
+      expect(updated?.name).toBe("Updated Name");
+      expect(updated?.email).toBe("original@example.com");
     });
   });
 });
