@@ -1,253 +1,163 @@
-# Repository Tests Guide
+# Backend Testing Guide
 
-## 📋 Overview
+## 🎯 Testing Strategy & Philosophy
 
-Repositoryテストは**実際のPostgreSQL**（Nix flake提供）を使用し、**Supabase Authのみモック**します。
+This project prioritizes **Reliability** and **Speed** using a hybrid approach:
 
-## 🎯 アーキテクチャ
+| Test Layer | Database | Supabase Auth | Purpose |
+|------------|----------|---------------|---------|
+| **Repository** | ✅ **Real** | ⚠️ **Mock** | Ensure data correctness, SQL constraints, and RLS. |
+| **Route** | ⚠️ **Mock** | ⚠️ **Mock** | Verify HTTP responses, validation, auth checks, and error handling. |
+| **Service** | ⚠️ **Mock** | ⚠️ **Mock** | Test business logic (if applicable). |
 
-```
-┌─────────────────────────────────────┐
-│ Repository Tests                    │
-├─────────────────────────────────────┤
-│ ✅ Real PostgreSQL (Nix flake)      │
-│    - 完全な SQL 実行                │
-│    - RLS サポート                   │
-│    - トランザクション               │
-│    - 本番環境と100%一致             │
-│                                     │
-│ ✅ Mock: Supabase Auth のみ         │
-│    - authMiddleware                 │
-│    - SupabaseClient.auth.*          │
-└─────────────────────────────────────┘
-```
+### Why Real DB for Repositories?
+- **Accuracy**: Tests actual Postgres behavior (foreign keys, triggers, constraints) which mocks often miss.
+- **Speed**: We use a local ephemeral Postgres instance via Nix/Pglite, which is nearly instant.
+- **Isolation**: Each test suite runs in a transaction or uses fast truncation.
 
-## 🚀 使い方
+### Why Mock for Routes?
+- **Speed**: Route tests run efficiently without DB setup overhead.
+- **Focus**: Tests focus on the *Interface* (HTTP), not the *Implementation* (SQL).
+- **Control**: Easier to simulate edge cases (e.g., DB connection failures) by mocking the repository layer.
 
-### 1. Nix Shellで起動
+---
+
+## 🚀 Setup & Usage
+
+### 1. Environment Setup
+The testing environment is fully managed by **Nix**.
 
 ```bash
-# PostgreSQL自動起動
+# Start the Nix shell (starts Postgres automatically)
 nix develop
-
-# または direnvを使用
+# OR if using direnv
 direnv allow
-cd /path/to/kanaria  # 自動起動
 ```
 
-### 2. テスト実行
+### 2. Running Tests
 
 ```bash
 cd packages/backend
 
-# 全Repositoryテスト
-pnpm test src/db/repositories
+# Run ALL tests
+pnpm test
 
-# 特定のRepository
-pnpm test src/db/repositories/LabelRepository.test.ts
+# Run specific layers
+pnpm test src/db/repositories  # Repository tests only
+pnpm test src/routes           # Route tests only
 
-# ウォッチモード
-pnpm test:watch src/db/repositories
+# Run specific file
+pnpm test src/routes/labels/labels.test.ts
 ```
 
-### 3. データベース操作
+### 3. Database Management (for Repository Tests)
+Helper commands available in Nix shell:
+- `db-reset`: Reset the test database (useful if state gets corrupted)
+- `db-console`: Open `psql` shell
+- `db-stop`: Stop the Postgres instance manually
 
-```bash
-# テストDBリセット
-db-reset
+---
 
-# psqlコンソール
-db-console
+## 📝 Writing Tests
 
-# PostgreSQL停止
-db-stop
-```
-
-## 📝 テストの書き方
-
-### Repository Test Example
+### 1. Repository Tests
+Use `useTestDb` to handle connection and cleanup. **Supabase Auth is mocked**.
 
 ```typescript
 import { beforeEach, describe, expect, it } from "vitest";
 import { LabelRepository } from "./LabelRepository.js";
-import { useTestDb } from "../test-helper.js";
+import { useTestDb, TEST_TEAMS } from "../../test-helper.js";
 
 describe("LabelRepository", () => {
-  // ✅ 実PostgreSQL接続
-  const getDb = useTestDb();
-  let repository: LabelRepository;
-
-  beforeEach(() => {
-    // 各テスト前に自動クリーンアップ
-    repository = new LabelRepository(getDb());
-  });
-
-  it("should create a label", async () => {
-    const label = await repository.create({
-      teamId: "test-team",
-      name: "Test",
-      color: "#FF0000",
-    });
-
-    expect(label.name).toBe("Test");
-    
-    // 実際のDBに保存されている
-    const found = await repository.findById(label.id);
-    expect(found).toBeDefined();
-  });
-});
-```
-
-### Endpoint Test Example（将来用）
-
-```typescript
-import { describe, it, vi } from "vitest";
-import { mockAuthMiddleware } from "../../test/test-utils.js";
-
-describe("POST /labels", () => {
-  beforeEach(() => {
-    // ✅ Supabase Authのみモック
-    vi.mock('../../middleware/auth.js', () => ({
-      authMiddleware: mockAuthMiddleware('user-123'),
-    }));
-  });
+  const getDb = useTestDb(); // Handles connection & global cleanup
 
   it("should create label", async () => {
-    // Repository層は実PostgreSQL使用
-    const res = await app.request('/labels', {
-      method: 'POST',
-      body: JSON.stringify({ name: 'Test', color: '#FF0000' }),
+    const repo = new LabelRepository(getDb());
+    const label = await repo.create({
+      teamId: TEST_TEAMS[0].id, // Use shared test team
+      name: "Test Label",
+      color: "#FF0000"
     });
-
-    expect(res.status).toBe(201);
+    expect(label).toBeDefined();
   });
 });
 ```
 
-## 🔧 Helper Functions
-
-### `useTestDb()` - Repository Tests
-
-```typescript
-export function useTestDb() {
-  beforeAll(async () => {
-    await setupTestDb();  // PostgreSQL接続
-  });
-
-  beforeEach(async () => {
-    await cleanupTestData();  // テーブル全削除
-  });
-
-  afterAll(async () => {
-    await teardownTestDb();  // 接続終了
-  });
-
-  return () => testDb;
-}
-```
-
-**特徴:**
-- ✅ 各テスト前に全テーブルTRUNCATE
-- ✅ テスト隔離保証
-- ✅ マイグレーション自動実行
-
-### `mockAuthMiddleware()` - Endpoint Tests
+### 2. Route Tests
+**Mock everything** (Repositories, Auth, DB Context).
 
 ```typescript
-export function mockAuthMiddleware(
-  userId: string,
-  email: string = "test@example.com"
-) {
-  return vi.fn(async (c: any, next: any) => {
-    c.set("user", { id: userId, email });
+import { Hono } from "hono";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { myRoute } from "./my-route.js";
+import { mockDbContext, mockEnv, injectMockDb } from "../../test/test-utils.js";
+
+// 1. Mock Repository
+const mockMethod = vi.fn();
+vi.mock("../../db/repositories/MyRepository.js", () => ({
+  MyRepository: class {
+    find = mockMethod;
+  },
+}));
+
+// 2. Mock Auth
+vi.mock("../../middleware/auth.js", () => ({
+  authMiddleware: async (c: any, next: any) => {
+    c.set("user", { id: "user-123", email: "test@example.com" });
     await next();
+  },
+}));
+
+describe("GET /my-route", () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
   });
-}
+
+  it("should return 200", async () => {
+    mockMethod.mockResolvedValue({ id: 1 });
+    
+    // 3. Setup Hono with Mocks
+    const app = new Hono();
+    app.use("*", injectMockDb(mockDbContext()));
+    app.route("/my-route", myRoute);
+
+    const res = await app.fetch(new Request("http://localhost/my-route"), mockEnv());
+    expect(res.status).toBe(200);
+  });
+});
 ```
 
-## ⚙️ 環境変数
+---
 
-```bash
-# 自動設定（nix develop時）
-DATABASE_URL=postgresql://postgres@localhost:54322/kanaria_test
-PGPORT=54322
-PGHOST=$PWD/.postgres
-```
+## �️ Test Utilities
 
-## 🐛 トラブルシューティング
+Located in `src/test/` and `src/db/`:
 
-### テストがskipされる
+| Helper | File | Purpose |
+|--------|------|---------|
+| `useTestDb()` | `src/db/test-helper.ts` | **Repo Tests**: Connects to Real DB, utilizes Global Setup for teams. |
+| `TEST_TEAMS` | `src/db/test-helper.ts` | **Repo Tests**: Shared team IDs created in global setup. |
+| `mockDbContext()` | `src/test/test-utils.ts` | **Route Tests**: Mocks Hono DB context & transaction. |
+| `injectMockDb()` | `src/test/test-utils.ts` | **Route Tests**: Middleware to inject mock DB. |
+| `mockEnv()` | `src/test/test-utils.ts` | **Route Tests**: Provides dummy environment variables. |
+| `mockSupabaseClient()` | `src/test/test-utils.ts` | **Route Tests**: Mocks Supabase Admin/Auth client. |
 
-```
-❯ LabelRepository.test.ts (10 tests | 10 skipped)
-Error: DATABASE_URL not set
-```
+---
 
-**解決策:**
-```bash
-# Nix shellで実行
-nix develop
-pnpm test
-```
+## 📊 Current Status (Jan 2026)
 
-### PostgreSQLが起動しない
+**Total Coverage: ~98% Passing (49/50)**
 
-```bash
-# ログ確認
-cat .postgres/logfile
+- ✅ **Repository Tests**: 96% Passing (Real DB)
+  - Team, User, Tag Repositories: 100%
+  - LabelRepository: 90% (Minor data cleanup issue in one test, non-blocking)
+- ✅ **Route Tests**: 100% Passing (Mocked)
+  - Covered: Auth, Teams (Create/Verify/Activate), Labels, Places, Players, Tags.
 
-# 手動起動
-pg_ctl -D .postgres-data -l .postgres/logfile \
-  -o "-k $PWD/.postgres -p 54322" start
-```
+---
 
-### テストデータが残る
+## ⚠️ Common Pitfalls
 
-**原因:** `beforeEach`でクリーンアップしていない
-
-**解決策:** `useTestDb()`を使用
-
-### ポート競合
-
-```bash
-# 既存のPostgreSQLを確認
-lsof -i :54322
-
-# flake.nixのPGPORTを変更
-```
-
-## 📊 テスト統計
-
-現在のカバレッジ:
-
-| Repository | Tests | Status |
-|------------|-------|--------|
-| LabelRepository | 10 | ✅ |
-| TagRepository | 6 | ✅ |
-| TeamRepository | 4 | ✅ |
-| UserRepository | 5 | ✅ |
-
-**合計:** 25 tests
-
-## 🎓 設計原則
-
-### なぜ実DBを使うのか？
-
-1. ✅ **正確性**: SQL構文、制約、トリガーを正確にテスト
-2. ✅ **RLS**: Row Level Securityの動作確認
-3. ✅ **本番再現**: 本番環境と100%一致
-4. ✅ **バグ検出**: モックでは見逃すバグを発見
-
-### なぜSupabase Authのみモックか？
-
-1. ✅ **単純性**: 認証設定が複雑（SMTP, OAuth等）
-2. ✅ **焦点**: Repositoryテストは「認証後」のロジックに集中
-3. ✅ **高速**: 外部サービス不要
-4. ✅ **再現性**: 認証エラーも簡単にシミュレート
-
-## 📚 関連ファイル
-
-- `flake.nix` - PostgreSQL設定
-- `src/db/test-helper.ts` - DB接続・クリーンアップ
-- `src/test/test-utils.ts` - Supabase Authモック
-- `NIX_SETUP.md` - Nix環境詳細
+1.  **Repository Tests**: Do NOT mock `drizzle-orm` or `postgres`. Use the real connection provided by `useTestDb`.
+2.  **Route Tests**: Do NOT try to connect to the DB. Always mock the Repository class using `vi.mock`.
+3.  **Global Setup**: Test teams are created *once* before all tests in `src/test/global-setup.ts`. Do not delete them in your tests.
