@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import createTeam from "./create.js";
+import { mockDbContext, mockEnv, injectMockDb } from "../../test/test-utils.js";
 
 // Mock the db module
 vi.mock("../../db/index.js", () => ({
@@ -27,7 +28,7 @@ vi.mock("../../db/repositories/UserRepository.js", () => ({
   },
 }));
 
-// Mock Supabase client - must return a proper nested structure
+// Mock Supabase client
 vi.mock("@supabase/supabase-js", () => ({
   createClient: () => ({
     auth: {
@@ -49,88 +50,115 @@ vi.mock("@supabase/supabase-js", () => ({
   }),
 }));
 
-describe("POST /teams", () => {
+// Mock verify-supabase-user middleware
+vi.mock("../../middleware/verify-supabase-user.js", () => ({
+  verifySupabaseUser: async (c: any, next: any) => {
+    c.set("verifiedUser", {
+      id: "user-123",
+      email: "test@example.com",
+    });
+    c.set("requestBody", await c.req.json());
+    await next();
+  },
+}));
+
+describe("POST /teams/create", () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
     mockTeamCreate.mockResolvedValue(undefined);
     mockUserCreate.mockResolvedValue(undefined);
   });
 
-  it("should return 400 if fields are missing", async () => {
+  it("should return 400 if required fields are missing", async () => {
     const app = new Hono();
-
-    // Inject mock DB with transaction
-    app.use("*", async (c, next) => {
-      // @ts-expect-error Mocking context
-      c.set("db", {
-        transaction: vi.fn(async (callback: (tx: unknown) => Promise<void>) => {
-          await callback({});
-        }),
-      });
-      await next();
-    });
-
+    app.use("*", injectMockDb(mockDbContext()));
     app.route("/teams", createTeam);
 
     const req = new Request("http://localhost/teams/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        supabaseUserId: "user_123",
+        // Missing teamName, teamCode, name
         email: "test@example.com",
       }),
     });
-    const res = await app.fetch(req, {
-      DATABASE_URL: "mock-url",
-      SUPABASE_URL: "http://mock.supabase.io",
-      SUPABASE_SERVICE_ROLE_KEY: "mock-service-role-key",
-      FRONTEND_URL: "http://localhost:5173",
-    });
+    
+    const res = await app.fetch(req, mockEnv());
 
     expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data).toHaveProperty("error");
   });
 
   it("should create team and user successfully", async () => {
-    const mockDb = {
-      transaction: vi.fn(async (callback: (tx: unknown) => Promise<void>) => {
-        await callback({});
-      }),
-    };
-
+    const mockDb = mockDbContext();
     const app = new Hono();
-
-    // Inject mock DB
-    app.use("*", async (c, next) => {
-      // @ts-expect-error Mocking context
-      c.set("db", mockDb);
-      await next();
-    });
-
+    
+    app.use("*", injectMockDb(mockDb));
     app.route("/teams", createTeam);
 
     const req = new Request("http://localhost/teams/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        supabaseUserId: "user_123",
         teamName: "Test Team",
         teamCode: "test-code",
         name: "Test User",
-        email: "test@example.com",
       }),
     });
-    const res = await app.fetch(req, {
-      DATABASE_URL: "mock-url",
-      SUPABASE_URL: "http://mock.supabase.io",
-      SUPABASE_SERVICE_ROLE_KEY: "mock-service-role-key",
-      FRONTEND_URL: "http://localhost:5173",
-    });
+    
+    const res = await app.fetch(req, mockEnv());
 
     expect(res.status).toBe(200);
     const data = await res.json();
-    expect(data).toHaveProperty("message", "Team created successfully");
+    expect(data).toHaveProperty("message");
+    
+    // Verify repository methods were called
     expect(mockDb.transaction).toHaveBeenCalled();
     expect(mockTeamCreate).toHaveBeenCalled();
     expect(mockUserCreate).toHaveBeenCalled();
+    
+    // Verify team data
+    const teamCreateCall = mockTeamCreate.mock.calls[0][0];
+    expect(teamCreateCall).toMatchObject({
+      name: "Test Team",
+      code: "test-code",
+    });
+    expect(teamCreateCall.id).toBeDefined();
+    
+    // Verify user data
+    const userCreateCall = mockUserCreate.mock.calls[0][0];
+    expect(userCreateCall).toMatchObject({
+      supabaseUserId: "user-123",
+      name: "Test User",
+      status: 0, // USER_STATUS.PENDING - waiting for email verification
+      roleId: 0, // Will be updated to OWNER after activation
+    });
+    expect(userCreateCall.id).toBeDefined();
+    expect(userCreateCall.teamId).toBeDefined();
+  });
+
+  it("should handle database errors gracefully", async () => {
+    mockTeamCreate.mockRejectedValue(new Error("Database error"));
+    
+    const mockDb = mockDbContext();
+    const app = new Hono();
+    
+    app.use("*", injectMockDb(mockDb));
+    app.route("/teams", createTeam);
+
+    const req = new Request("http://localhost/teams/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        teamName: "Test Team",
+        teamCode: "test-code",
+        name: "Test User",
+      }),
+    });
+    
+    const res = await app.fetch(req, mockEnv());
+
+    expect(res.status).toBe(500);
   });
 });

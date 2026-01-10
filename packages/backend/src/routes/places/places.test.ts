@@ -1,27 +1,34 @@
+import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { placesRoute } from "./places.js";
+import { mockDbContext, mockEnv, injectMockDb } from "../../test/test-utils.js";
+
+// Mock repositories
+const mockFindAllByTeamId = vi.fn();
+const mockFindById = vi.fn();
+const mockCreate = vi.fn();
+const mockUpdate = vi.fn();
+const mockDelete = vi.fn();
 
 vi.mock("../../db/repositories/PlaceRepository.js", () => ({
   PlaceRepository: class {
-    findAllByTeamId = vi.fn().mockResolvedValue([
-      { id: "1", name: "Place 1", teamId: "team-123" },
-    ]);
-    findById = vi.fn().mockResolvedValue(null);
-    create = vi.fn();
-    update = vi.fn();
-    delete = vi.fn();
+    findAllByTeamId = mockFindAllByTeamId;
+    findById = mockFindById;
+    create = mockCreate;
+    update = mockUpdate;
+    delete = mockDelete;
   },
 }));
+
+const mockFindBySupabaseId = vi.fn();
 
 vi.mock("../../db/repositories/UserRepository.js", () => ({
   UserRepository: class {
-    findBySupabaseId = vi.fn().mockResolvedValue({
-      id: "user-123",
-      teamId: "team-123",
-    });
+    findBySupabaseId = mockFindBySupabaseId;
   },
 }));
 
+// Mock auth middleware
 vi.mock("../../middleware/auth.js", () => ({
   authMiddleware: async (c: any, next: any) => {
     c.set("user", {
@@ -34,23 +41,55 @@ vi.mock("../../middleware/auth.js", () => ({
 
 describe("Places Route", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
+    // Default: user exists with team
+    mockFindBySupabaseId.mockResolvedValue({
+      id: "user-123",
+      teamId: "team-123",
+      supabaseUserId: "user-123",
+      roleId: 0,
+    });
   });
 
   describe("GET /places", () => {
     it("should return places for team", async () => {
+      const mockPlaces = [
+        { id: "place-1", name: "Place 1", teamId: "team-123" },
+        { id: "place-2", name: "Place 2", teamId: "team-123" },
+      ];
+      mockFindAllByTeamId.mockResolvedValue(mockPlaces);
+
+      const app = new Hono();
+      app.use("*", injectMockDb(mockDbContext()));
+      app.route("/places", placesRoute);
+
       const req = new Request("http://localhost/places", {
         headers: { "Content-Type": "application/json" },
       });
 
-      const res = await placesRoute.fetch(req, {
-        DATABASE_URL: "mock",
-        SUPABASE_URL: "mock",
-        SUPABASE_SERVICE_ROLE_KEY: "mock",
-        FRONTEND_URL: "mock",
-      });
+      const res = await app.fetch(req, mockEnv());
 
       expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data).toEqual(mockPlaces);
+      expect(mockFindBySupabaseId).toHaveBeenCalledWith("user-123");
+      expect(mockFindAllByTeamId).toHaveBeenCalledWith("team-123");
+    });
+
+    it("should return 403 if user has no team", async () => {
+      mockFindBySupabaseId.mockResolvedValue({
+        id: "user-123",
+        teamId: null,
+      });
+
+      const app = new Hono();
+      app.use("*", injectMockDb(mockDbContext()));
+      app.route("/places", placesRoute);
+
+      const req = new Request("http://localhost/places");
+      const res = await app.fetch(req, mockEnv());
+
+      expect(res.status).toBe(403);
     });
   });
 });
