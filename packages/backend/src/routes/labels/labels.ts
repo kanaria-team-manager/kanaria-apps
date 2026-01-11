@@ -16,13 +16,18 @@ labelsRoute.use("*", authMiddleware);
 
 const createLabelSchema = z.object({
   name: z.string().min(1, "名前は必須です"),
-  color: z.string().regex(/^#[0-9a-fA-F]{6}$/, "色は#FFFFFFの形式で指定してください"),
+  color: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/, "色は#FFFFFFの形式で指定してください"),
   type: z.string().optional(),
 });
 
 const updateLabelSchema = z.object({
   name: z.string().min(1).optional(),
-  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  color: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .optional(),
 });
 
 labelsRoute.get("/", async (c) => {
@@ -78,7 +83,7 @@ labelsRoute.put("/:id", zValidator("json", updateLabelSchema), async (c) => {
   }
 
   const repository = new LabelRepository(db);
-  
+
   // 所有権チェック
   const label = await repository.findById(id);
   if (!label || label.teamId !== currentUser.teamId) {
@@ -107,7 +112,7 @@ labelsRoute.delete("/:id", async (c) => {
   }
 
   const repository = new LabelRepository(db);
-  
+
   // 所有権チェック
   const label = await repository.findById(id);
   if (!label || label.teamId !== currentUser.teamId) {

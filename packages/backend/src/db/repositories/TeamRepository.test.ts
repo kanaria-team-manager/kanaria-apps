@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { TeamRepository } from "./TeamRepository.js";
-import { useTestDb } from "../test-helper.js";
 import { ulid } from "ulid";
+import { beforeEach, describe, expect, it } from "vitest";
+import { useTestDb } from "../test-helper.js";
+import { TeamRepository } from "./TeamRepository.js";
 
 describe("TeamRepository", () => {
   const getDb = useTestDb();

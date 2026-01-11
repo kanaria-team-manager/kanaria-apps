@@ -44,7 +44,7 @@ placesRoute.get("/:id", async (c) => {
   const db = c.get("db");
   const user = c.get("user");
   const id = c.req.param("id");
-  
+
   const userRepo = new UserRepository(db);
   const currentUser = await userRepo.findBySupabaseId(user.id);
 
@@ -59,7 +59,7 @@ placesRoute.get("/:id", async (c) => {
   if (!place || place.teamId !== currentUser.teamId) {
     return c.json({ error: "Not found" }, 404);
   }
-  
+
   return c.json(place);
 });
 
@@ -104,7 +104,7 @@ placesRoute.put("/:id", zValidator("json", placeSchema), async (c) => {
   }
 
   const repo = new PlaceRepository(db);
-  
+
   // 所有権チェック
   const place = await repo.findById(id);
   if (!place || place.teamId !== currentUser.teamId) {
@@ -127,7 +127,7 @@ placesRoute.delete("/:id", async (c) => {
   const db = c.get("db");
   const user = c.get("user");
   const id = c.req.param("id");
-  
+
   const userRepo = new UserRepository(db);
   const currentUser = await userRepo.findBySupabaseId(user.id);
 
@@ -136,7 +136,7 @@ placesRoute.delete("/:id", async (c) => {
   }
 
   const repo = new PlaceRepository(db);
-  
+
   // 所有権チェック
   const place = await repo.findById(id);
   if (!place || place.teamId !== currentUser.teamId) {

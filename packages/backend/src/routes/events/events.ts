@@ -164,7 +164,7 @@ eventsRoute.put(
     }
 
     const repo = new EventRepository(db);
-    
+
     // 所有権チェック
     const event = await repo.findByEventNo(currentUser.teamId, eventNo);
     if (!event) {
@@ -226,7 +226,7 @@ eventsRoute.delete("/:eventNo", async (c) => {
   }
 
   const repo = new EventRepository(db);
-  
+
   // 所有権チェック
   const event = await repo.findByEventNo(currentUser.teamId, eventNo);
   if (!event) {

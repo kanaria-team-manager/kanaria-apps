@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { LabelRepository } from "./LabelRepository.js";
-import { useTestDb, TEST_TEAMS } from "../test-helper.js";
 import { SYSTEM_FLAG } from "../schemas/utils.js";
+import { TEST_TEAMS, useTestDb } from "../test-helper.js";
+import { LabelRepository } from "./LabelRepository.js";
 
 describe("LabelRepository", () => {
   const getDb = useTestDb();
@@ -75,7 +75,9 @@ describe("LabelRepository", () => {
 
       const alphaLabels = await repository.findByTeamAndType(TEST_TEAMS.ALPHA);
 
-      const teamAlphaOnly = alphaLabels.filter((l) => l.teamId === TEST_TEAMS.ALPHA);
+      const teamAlphaOnly = alphaLabels.filter(
+        (l) => l.teamId === TEST_TEAMS.ALPHA,
+      );
       // Use >= instead of === because data may accumulate from other tests
       expect(teamAlphaOnly.length).toBeGreaterThanOrEqual(2);
     });
@@ -97,10 +99,10 @@ describe("LabelRepository", () => {
 
       const eventLabels = await repository.findByTeamAndType(
         TEST_TEAMS.GAMMA,
-        "event"
+        "event",
       );
       const teamEventLabels = eventLabels.filter(
-        (l) => l.type === "event" && l.teamId === TEST_TEAMS.GAMMA
+        (l) => l.type === "event" && l.teamId === TEST_TEAMS.GAMMA,
       );
 
       expect(teamEventLabels.length).toBe(1);
@@ -133,9 +135,13 @@ describe("LabelRepository", () => {
         color: "#123456",
       });
 
-      const updated = await repository.update(created.id, TEST_TEAMS.DIFFERENT, {
-        name: "Should Not Update",
-      });
+      const updated = await repository.update(
+        created.id,
+        TEST_TEAMS.DIFFERENT,
+        {
+          name: "Should Not Update",
+        },
+      );
 
       expect(updated).toBeUndefined();
 

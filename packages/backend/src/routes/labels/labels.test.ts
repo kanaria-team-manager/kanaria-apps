@@ -1,7 +1,8 @@
+import type { Context, Next } from "hono";
 import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { injectMockDb, mockDbContext, mockEnv } from "../../test/test-utils.js";
 import { labelsRoute } from "./labels.js";
-import { mockDbContext, mockEnv, injectMockDb } from "../../test/test-utils.js";
 
 // Mock repositories
 const mockFindByTeamAndType = vi.fn();
@@ -30,7 +31,7 @@ vi.mock("../../db/repositories/UserRepository.js", () => ({
 
 // Mock auth middleware
 vi.mock("../../middleware/auth.js", () => ({
-  authMiddleware: async (c: any, next: any) => {
+  authMiddleware: async (c: Context, next: Next) => {
     c.set("user", {
       id: "user-123",
       email: "test@example.com",
@@ -59,8 +60,18 @@ describe("Labels Route", () => {
   describe("GET /labels", () => {
     it("should return labels for team", async () => {
       const mockLabels = [
-        { id: "label-1", name: "Label 1", color: "#FF0000", teamId: "team-123" },
-        { id: "label-2", name: "Label 2", color: "#00FF00", teamId: "team-123" },
+        {
+          id: "label-1",
+          name: "Label 1",
+          color: "#FF0000",
+          teamId: "team-123",
+        },
+        {
+          id: "label-2",
+          name: "Label 2",
+          color: "#00FF00",
+          teamId: "team-123",
+        },
       ];
       mockFindByTeamAndType.mockResolvedValue(mockLabels);
 
@@ -208,14 +219,14 @@ describe("Labels Route", () => {
         teamId: "team-123",
         systemFlag: 0,
       };
-      
+
       const updatedLabel = {
         id: "label-1",
         name: "Updated Label",
         color: "#FF0000",
         teamId: "team-123",
       };
-      
+
       mockFindById.mockResolvedValue(existingLabel);
       mockUpdateLabel.mockResolvedValue(updatedLabel);
 
@@ -272,9 +283,9 @@ describe("Labels Route", () => {
         teamId: "team-123",
         systemFlag: 0,
       };
-      
+
       mockFindById.mockResolvedValue(existingLabel);
-      
+
       const app = new Hono();
       app.use("*", injectMockDb(mockDbContext()));
       app.route("/labels", labelsRoute);

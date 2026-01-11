@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { UserRepository } from "./UserRepository.js";
-import { useTestDb, TEST_TEAMS } from "../test-helper.js";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { ulid } from "ulid";
+import { beforeEach, describe, expect, it } from "vitest";
+import { TEST_TEAMS, useTestDb } from "../test-helper.js";
+import { UserRepository } from "./UserRepository.js";
 
 describe("UserRepository", () => {
   const getDb = useTestDb();

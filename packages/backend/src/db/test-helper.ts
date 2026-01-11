@@ -1,10 +1,10 @@
-import { afterAll, beforeAll, beforeEach } from "vitest";
-import postgres from "postgres";
-import { drizzle } from "drizzle-orm/postgres-js";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
-import * as schema from "./schemas/index.js";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
+import postgres from "postgres";
+import { afterAll, beforeAll } from "vitest";
+import * as schema from "./schemas/index.js";
 
 export let testDb: PostgresJsDatabase<typeof schema>;
 let testClient: postgres.Sql;
@@ -39,7 +39,7 @@ export async function setupTestDb() {
       "❌ DATABASE_URL not set.\n" +
         "Make sure you're running tests in nix shell:\n" +
         "  nix develop\n" +
-        "  pnpm test"
+        "  pnpm test",
     );
   }
 
@@ -116,8 +116,9 @@ export async function createTestTeams() {
       await testDb.insert(schema.teams).values(team);
     } catch (error: unknown) {
       // Ignore duplicate key errors (happens when multiple test files run in parallel)
-      const isPostgresError = error && typeof error === 'object' && 'code' in error;
-      if (!isPostgresError || (error as {code?: string}).code !== '23505') {
+      const isPostgresError =
+        error && typeof error === "object" && "code" in error;
+      if (!isPostgresError || (error as { code?: string }).code !== "23505") {
         throw error;
       }
       // Silently ignore duplicate key constraint violations

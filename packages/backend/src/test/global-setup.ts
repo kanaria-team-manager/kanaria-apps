@@ -3,10 +3,11 @@
  * Runs once before all test files
  * Creates shared test teams that all repository tests depend on
  */
-import postgres from "postgres";
+
+import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
-import { sql } from "drizzle-orm";
+import postgres from "postgres";
 import * as schema from "../db/schemas/index.js";
 
 // Import TEST_TEAMS constant
@@ -24,7 +25,7 @@ const TEST_TEAMS = {
 } as const;
 
 export async function setup() {
-  console.log('🔧 Global Setup: Initializing test database...');
+  console.log("🔧 Global Setup: Initializing test database...");
 
   const connectionString = process.env.DATABASE_URL;
 
@@ -33,7 +34,7 @@ export async function setup() {
       "❌ DATABASE_URL not set.\n" +
         "Make sure you're running tests in nix shell:\n" +
         "  nix develop\n" +
-        "  pnpm test"
+        "  pnpm test",
     );
   }
 
@@ -51,7 +52,7 @@ export async function setup() {
   });
 
   // Clean all existing data
-  console.log('🧹 Cleaning test database...');
+  console.log("🧹 Cleaning test database...");
   await db.execute(sql`
     TRUNCATE TABLE 
       attendances,
@@ -68,7 +69,7 @@ export async function setup() {
   `);
 
   // Create test teams
-  console.log('👥 Creating shared test teams...');
+  console.log("👥 Creating shared test teams...");
   const teamData = Object.entries(TEST_TEAMS).map(([key, id]) => ({
     id,
     name: key,
@@ -86,10 +87,10 @@ export async function setup() {
   // Close connection
   await client.end();
 
-  console.log('✅ Global Setup complete\n');
+  console.log("✅ Global Setup complete\n");
 }
 
 export async function teardown() {
-  console.log('🧹 Global Teardown: Cleaning up...');
+  console.log("🧹 Global Teardown: Cleaning up...");
   // Optional: Add any global cleanup here
 }

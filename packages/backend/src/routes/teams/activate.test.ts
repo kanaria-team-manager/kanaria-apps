@@ -1,3 +1,4 @@
+import type { Context, Next } from "hono";
 import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import activateTeam from "./activate.js";
@@ -9,9 +10,11 @@ vi.mock("../../db/index.js", () => ({
 
 // Mock auth middleware
 vi.mock("../../middleware/auth.js", () => ({
-  // biome-ignore lint/suspicious/noExplicitAny: Mock Middleware
-  authMiddleware: async (c: any, next: any) => {
-    c.set("user", { id: "user_123" });
+  authMiddleware: async (c: Context, next: Next) => {
+    c.set("user", {
+      id: "test-user-123",
+      email: "test@example.com",
+    });
     await next();
   },
 }));

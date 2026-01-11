@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { TEST_TEAMS, useTestDb } from "../test-helper.js";
 import { TagRepository } from "./TagRepository.js";
-import { useTestDb, TEST_TEAMS } from "../test-helper.js";
 
 describe("TagRepository", () => {
   const getDb = useTestDb();
@@ -48,9 +48,13 @@ describe("TagRepository", () => {
         color: "#0000FF",
       });
 
-      const alphaTags = await repository.findByTeamIdWithSystem(TEST_TEAMS.ALPHA);
+      const alphaTags = await repository.findByTeamIdWithSystem(
+        TEST_TEAMS.ALPHA,
+      );
 
-      const teamAlphaOnly = alphaTags.filter((t) => t.teamId === TEST_TEAMS.ALPHA);
+      const teamAlphaOnly = alphaTags.filter(
+        (t) => t.teamId === TEST_TEAMS.ALPHA,
+      );
       expect(teamAlphaOnly.length).toBe(2);
     });
   });
@@ -116,7 +120,9 @@ describe("TagRepository", () => {
 
       await repository.delete(created.id, TEST_TEAMS.WRONG);
 
-      const tags = await repository.findByTeamIdWithSystem(TEST_TEAMS.PROTECTED);
+      const tags = await repository.findByTeamIdWithSystem(
+        TEST_TEAMS.PROTECTED,
+      );
       const stillExists = tags.find((t) => t.id === created.id);
       expect(stillExists).toBeDefined();
       expect(stillExists?.name).toBe("Protected Tag");

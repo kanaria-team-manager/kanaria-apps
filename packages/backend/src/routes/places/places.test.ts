@@ -1,7 +1,8 @@
+import type { Context, Next } from "hono";
 import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { injectMockDb, mockDbContext, mockEnv } from "../../test/test-utils.js";
 import { placesRoute } from "./places.js";
-import { mockDbContext, mockEnv, injectMockDb } from "../../test/test-utils.js";
 
 // Mock repositories
 const mockFindAllByTeamId = vi.fn();
@@ -30,7 +31,7 @@ vi.mock("../../db/repositories/UserRepository.js", () => ({
 
 // Mock auth middleware
 vi.mock("../../middleware/auth.js", () => ({
-  authMiddleware: async (c: any, next: any) => {
+  authMiddleware: async (c: Context, next: Next) => {
     c.set("user", {
       id: "user-123",
       email: "test@example.com",
