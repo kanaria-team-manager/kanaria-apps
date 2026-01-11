@@ -17,11 +17,12 @@ if [ -z "$STATUS" ]; then
 fi
 
 # ステータスから必要な値を抽出
-API_URL=$(echo "$STATUS" | grep "API_URL" | awk '{print $NF}' | sed -e 's/,$//')
-DB_URL=$(echo "$STATUS" | grep "DB_URL" | awk '{print $NF}' | sed -e 's/,$//')
-ANON_KEY=$(echo "$STATUS" | grep "ANON_KEY" | awk '{print $NF}' | sed -e 's/,$//')
-SERVICE_ROLE_KEY=$(echo "$STATUS" | grep "SERVICE_ROLE_KEY" | awk '{print $NF}' | sed -e 's/,$//')
-JWT_SECRET=$(echo "$STATUS" | grep "JWT_SECRET" | awk '{print $NF}' | sed -e 's/,$//')
+API_URL=$(echo "$STATUS" | grep "API_URL" | awk '{print $NF}' | sed -e 's/,$//g')
+DB_URL=$(echo "$STATUS" | grep "DB_URL" | awk '{print $NF}' | sed -e 's/,$//g')
+TEST_DB_URL=$(echo "$DB_URL" | sed 's/postgres"/kanaria_test"/g')
+ANON_KEY=$(echo "$STATUS" | grep "ANON_KEY" | awk '{print $NF}' | sed -e 's/,$//g')
+SERVICE_ROLE_KEY=$(echo "$STATUS" | grep "SERVICE_ROLE_KEY" | awk '{print $NF}' | sed -e 's/,$//g')
+JWT_SECRET=$(echo "$STATUS" | grep "JWT_SECRET" | awk '{print $NF}' | sed -e 's/,$//g')
 
 # .dev.vars ファイルを生成
 cat > "$DEV_VARS_FILE" << EOF
@@ -31,6 +32,7 @@ cat > "$DEV_VARS_FILE" << EOF
 
 # Database URL
 DATABASE_URL=$DB_URL
+TEST_DATABASE_URL=$TEST_DB_URL
 
 # Supabase Local API
 SUPABASE_URL=$API_URL

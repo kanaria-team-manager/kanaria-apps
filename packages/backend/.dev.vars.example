@@ -10,3 +10,6 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 # "Shared Secret" for HS256 verification (Default)
 SUPABASE_JWT_SECRET=your-jwt-secret-here
 FRONTEND_URL="http://localhost:5173"
+
+# Test Database Configuration
+# TEST_DATABASE_URLは vitest.config.tsで設定する
