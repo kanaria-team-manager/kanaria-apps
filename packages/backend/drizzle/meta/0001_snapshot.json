@@ -1,94 +1,9 @@
 {
-  "id": "56093d8a-8bdb-44a8-a8a3-9b94d582cdd7",
-  "prevId": "df30da8c-0f02-4784-aedc-d5fbf90c308f",
+  "id": "4f20e108-4ede-495d-9ef4-6333f1762d3d",
+  "prevId": "8ba76c9d-ca41-4d4d-8fad-5d139e1dc693",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.attendances": {
-      "name": "attendances",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "varchar(26)",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "team_id": {
-          "name": "team_id",
-          "type": "varchar(26)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "event_id": {
-          "name": "event_id",
-          "type": "varchar(26)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "player_id": {
-          "name": "player_id",
-          "type": "varchar(26)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "attendance_status_ids": {
-          "name": "attendance_status_ids",
-          "type": "varchar(26)[]",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "attendances_team_id_teams_id_fk": {
-          "name": "attendances_team_id_teams_id_fk",
-          "tableFrom": "attendances",
-          "columnsFrom": ["team_id"],
-          "tableTo": "teams",
-          "columnsTo": ["id"],
-          "onUpdate": "no action",
-          "onDelete": "no action"
-        },
-        "attendances_event_id_events_id_fk": {
-          "name": "attendances_event_id_events_id_fk",
-          "tableFrom": "attendances",
-          "columnsFrom": ["event_id"],
-          "tableTo": "events",
-          "columnsTo": ["id"],
-          "onUpdate": "no action",
-          "onDelete": "no action"
-        },
-        "attendances_player_id_players_id_fk": {
-          "name": "attendances_player_id_players_id_fk",
-          "tableFrom": "attendances",
-          "columnsFrom": ["player_id"],
-          "tableTo": "players",
-          "columnsTo": ["id"],
-          "onUpdate": "no action",
-          "onDelete": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": true
-    },
     "public.attendance_statuses": {
       "name": "attendance_statuses",
       "schema": "",
@@ -144,9 +59,110 @@
         "attendance_statuses_team_id_teams_id_fk": {
           "name": "attendance_statuses_team_id_teams_id_fk",
           "tableFrom": "attendance_statuses",
-          "columnsFrom": ["team_id"],
+          "columnsFrom": [
+            "team_id"
+          ],
           "tableTo": "teams",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.attendances": {
+      "name": "attendances",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(26)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "varchar(26)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "varchar(26)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "player_id": {
+          "name": "player_id",
+          "type": "varchar(26)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "attendance_status_ids": {
+          "name": "attendance_status_ids",
+          "type": "varchar(26)[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "attendances_team_id_teams_id_fk": {
+          "name": "attendances_team_id_teams_id_fk",
+          "tableFrom": "attendances",
+          "columnsFrom": [
+            "team_id"
+          ],
+          "tableTo": "teams",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "attendances_event_id_events_id_fk": {
+          "name": "attendances_event_id_events_id_fk",
+          "tableFrom": "attendances",
+          "columnsFrom": [
+            "event_id"
+          ],
+          "tableTo": "events",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "attendances_player_id_players_id_fk": {
+          "name": "attendances_player_id_players_id_fk",
+          "tableFrom": "attendances",
+          "columnsFrom": [
+            "player_id"
+          ],
+          "tableTo": "players",
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -167,11 +183,23 @@
           "primaryKey": true,
           "notNull": true
         },
+        "owner_id": {
+          "name": "owner_id",
+          "type": "varchar(26)",
+          "primaryKey": false,
+          "notNull": true
+        },
         "team_id": {
           "name": "team_id",
           "type": "varchar(26)",
           "primaryKey": false,
           "notNull": true
+        },
+        "place_id": {
+          "name": "place_id",
+          "type": "varchar(26)",
+          "primaryKey": false,
+          "notNull": false
         },
         "title": {
           "name": "title",
@@ -197,6 +225,18 @@
           "primaryKey": false,
           "notNull": true
         },
+        "event_no": {
+          "name": "event_no",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label_id": {
+          "name": "label_id",
+          "type": "varchar(26)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -214,18 +254,77 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "events_owner_id_users_id_fk": {
+          "name": "events_owner_id_users_id_fk",
+          "tableFrom": "events",
+          "columnsFrom": [
+            "owner_id"
+          ],
+          "tableTo": "users",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
         "events_team_id_teams_id_fk": {
           "name": "events_team_id_teams_id_fk",
           "tableFrom": "events",
-          "columnsFrom": ["team_id"],
+          "columnsFrom": [
+            "team_id"
+          ],
           "tableTo": "teams",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "events_place_id_places_id_fk": {
+          "name": "events_place_id_places_id_fk",
+          "tableFrom": "events",
+          "columnsFrom": [
+            "place_id"
+          ],
+          "tableTo": "places",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "events_label_id_labels_id_fk": {
+          "name": "events_label_id_labels_id_fk",
+          "tableFrom": "events",
+          "columnsFrom": [
+            "label_id"
+          ],
+          "tableTo": "labels",
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "events_event_no_unique": {
+          "name": "events_event_no_unique",
+          "columns": [
+            "event_no"
+          ],
+          "nullsNotDistinct": false
+        },
+        "events_team_id_event_no_unique": {
+          "name": "events_team_id_event_no_unique",
+          "columns": [
+            "team_id",
+            "event_no"
+          ],
+          "nullsNotDistinct": false
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": true
@@ -259,6 +358,13 @@
           "notNull": true,
           "default": "'#000000'"
         },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'event'"
+        },
         "system_flag": {
           "name": "system_flag",
           "type": "boolean",
@@ -286,9 +392,13 @@
         "labels_team_id_teams_id_fk": {
           "name": "labels_team_id_teams_id_fk",
           "tableFrom": "labels",
-          "columnsFrom": ["team_id"],
+          "columnsFrom": [
+            "team_id"
+          ],
           "tableTo": "teams",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -299,28 +409,39 @@
       "checkConstraints": {},
       "isRLSEnabled": true
     },
-    "public.labelables": {
-      "name": "labelables",
+    "public.places": {
+      "name": "places",
       "schema": "",
       "columns": {
-        "label_id": {
-          "name": "label_id",
+        "id": {
+          "name": "id",
+          "type": "varchar(26)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
           "type": "varchar(26)",
           "primaryKey": false,
           "notNull": true
         },
-        "labelable_type": {
-          "name": "labelable_type",
-          "type": "labelable_type",
-          "typeSchema": "public",
+        "name": {
+          "name": "name",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "labelable_id": {
-          "name": "labelable_id",
-          "type": "varchar(26)",
+        "description": {
+          "name": "description",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "location": {
+          "name": "location",
+          "type": "point",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -339,22 +460,21 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "labelables_label_id_labels_id_fk": {
-          "name": "labelables_label_id_labels_id_fk",
-          "tableFrom": "labelables",
-          "columnsFrom": ["label_id"],
-          "tableTo": "labels",
-          "columnsTo": ["id"],
+        "places_team_id_teams_id_fk": {
+          "name": "places_team_id_teams_id_fk",
+          "tableFrom": "places",
+          "columnsFrom": [
+            "team_id"
+          ],
+          "tableTo": "teams",
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
       },
-      "compositePrimaryKeys": {
-        "labelables_label_id_labelable_type_labelable_id_pk": {
-          "name": "labelables_label_id_labelable_type_labelable_id_pk",
-          "columns": ["label_id", "labelable_type", "labelable_id"]
-        }
-      },
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
@@ -382,11 +502,29 @@
           "primaryKey": false,
           "notNull": true
         },
-        "name": {
-          "name": "name",
+        "last_name": {
+          "name": "last_name",
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nick_name": {
+          "name": "nick_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "image_url": {
+          "name": "image_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -408,18 +546,26 @@
         "players_team_id_teams_id_fk": {
           "name": "players_team_id_teams_id_fk",
           "tableFrom": "players",
-          "columnsFrom": ["team_id"],
+          "columnsFrom": [
+            "team_id"
+          ],
           "tableTo": "teams",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "players_parent_user_id_users_id_fk": {
           "name": "players_parent_user_id_users_id_fk",
           "tableFrom": "players",
-          "columnsFrom": ["parent_user_id"],
+          "columnsFrom": [
+            "parent_user_id"
+          ],
           "tableTo": "users",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -469,74 +615,6 @@
       "checkConstraints": {},
       "isRLSEnabled": true
     },
-    "public.tags": {
-      "name": "tags",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "varchar(26)",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "team_id": {
-          "name": "team_id",
-          "type": "varchar(26)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "color": {
-          "name": "color",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "system_flag": {
-          "name": "system_flag",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "tags_team_id_teams_id_fk": {
-          "name": "tags_team_id_teams_id_fk",
-          "tableFrom": "tags",
-          "columnsFrom": ["team_id"],
-          "tableTo": "teams",
-          "columnsTo": ["id"],
-          "onUpdate": "no action",
-          "onDelete": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": true
-    },
     "public.taggables": {
       "name": "taggables",
       "schema": "",
@@ -580,9 +658,13 @@
         "taggables_tag_id_tags_id_fk": {
           "name": "taggables_tag_id_tags_id_fk",
           "tableFrom": "taggables",
-          "columnsFrom": ["tag_id"],
+          "columnsFrom": [
+            "tag_id"
+          ],
           "tableTo": "tags",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -590,9 +672,104 @@
       "compositePrimaryKeys": {
         "taggables_tag_id_taggable_type_taggable_id_pk": {
           "name": "taggables_tag_id_taggable_type_taggable_id_pk",
-          "columns": ["tag_id", "taggable_type", "taggable_id"]
+          "columns": [
+            "tag_id",
+            "taggable_type",
+            "taggable_id"
+          ]
         }
       },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.tags": {
+      "name": "tags",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(26)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "varchar(26)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "color": {
+          "name": "color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "system_flag": {
+          "name": "system_flag",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "label_id": {
+          "name": "label_id",
+          "type": "varchar(26)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "tags_team_id_teams_id_fk": {
+          "name": "tags_team_id_teams_id_fk",
+          "tableFrom": "tags",
+          "columnsFrom": [
+            "team_id"
+          ],
+          "tableTo": "teams",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        },
+        "tags_label_id_labels_id_fk": {
+          "name": "tags_label_id_labels_id_fk",
+          "tableFrom": "tags",
+          "columnsFrom": [
+            "label_id"
+          ],
+          "tableTo": "labels",
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
@@ -619,6 +796,13 @@
           "type": "varchar(32)",
           "primaryKey": false,
           "notNull": true
+        },
+        "event_sequence": {
+          "name": "event_sequence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         },
         "description": {
           "name": "description",
@@ -654,7 +838,9 @@
       "uniqueConstraints": {
         "teams_code_unique": {
           "name": "teams_code_unique",
-          "columns": ["code"],
+          "columns": [
+            "code"
+          ],
           "nullsNotDistinct": false
         }
       },
@@ -729,18 +915,26 @@
         "users_team_id_teams_id_fk": {
           "name": "users_team_id_teams_id_fk",
           "tableFrom": "users",
-          "columnsFrom": ["team_id"],
+          "columnsFrom": [
+            "team_id"
+          ],
           "tableTo": "teams",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "users_role_id_roles_id_fk": {
           "name": "users_role_id_roles_id_fk",
           "tableFrom": "users",
-          "columnsFrom": ["role_id"],
+          "columnsFrom": [
+            "role_id"
+          ],
           "tableTo": "roles",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -753,15 +947,15 @@
     }
   },
   "enums": {
-    "public.labelable_type": {
-      "name": "labelable_type",
-      "schema": "public",
-      "values": ["event", "player", "team", "tag"]
-    },
     "public.taggable_type": {
       "name": "taggable_type",
       "schema": "public",
-      "values": ["event", "player", "team"]
+      "values": [
+        "event",
+        "player",
+        "team",
+        "user"
+      ]
     }
   },
   "schemas": {},

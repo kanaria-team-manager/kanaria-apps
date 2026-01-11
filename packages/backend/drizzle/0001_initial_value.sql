@@ -1,0 +1,27 @@
+-- Custom SQL migration file, put your code below! --
+INSERT INTO "roles" ("id", "name") VALUES (0, 'owner'), (1, 'admin'), (2, 'member') ON CONFLICT ("id") DO NOTHING;
+
+-- Insert Labels
+INSERT INTO "labels" ("id", "name", "system_flag", "color") VALUES
+('01KC1QNE96ETTZ1D9022CJE6GR', '試合', true, '#FF0000'),
+('01KC1QNE9AV0KF8T26MTEJ880X', '練習', true, '#00FF00'),
+('01KC1QNE9A0R8D4GGQ9AEZ58T6', 'イベント', true, '#0000FF'),
+('01KC1QNE9A2MYRJKR6BBKC0D8F', 'デフォルト', true, '#000000'),
+('01KC1QNE9ASPYJEV0S3S6DW4CV', '学年', true, '#808080');
+
+-- Insert Tags (Linked to '学年' Label: 01KC1QNE9ASPYJEV0S3S6DW4CV)
+INSERT INTO "tags" ("id", "name", "system_flag", "color", "label_id") VALUES
+('01KC1QNE9A0VHG81X0RF0M0MXE', '1年生', true, '#808080', '01KC1QNE9ASPYJEV0S3S6DW4CV'),
+('01KC1QNE9AG7M7R62FJWHFDP8E', '2年生', true, '#808080', '01KC1QNE9ASPYJEV0S3S6DW4CV'),
+('01KC1QNE9ADTAX5J9JQBXPFANF', '3年生', true, '#808080', '01KC1QNE9ASPYJEV0S3S6DW4CV'),
+('01KC1QNE9A27AEVBRK8MX0DPBM', '4年生', true, '#808080', '01KC1QNE9ASPYJEV0S3S6DW4CV'),
+('01KC1QNE9BNYAYKA0BCMXW732N', '5年生', true, '#808080', '01KC1QNE9ASPYJEV0S3S6DW4CV'),
+('01KC1QNE9BMEVZS33Z127BA6S7', '6年生', true, '#808080', '01KC1QNE9ASPYJEV0S3S6DW4CV');
+
+-- Insert Attendance Statuses
+INSERT INTO attendance_statuses (id, team_id, name, color, system_flag) VALUES
+('01KDQ74JGR8N49PSPE09VKKZWV', NULL, '回答待ち', '#9CA3AF', true),
+('01KDQ78J5Q660TYS0T6NH0YGQF', NULL, '回答不要', '#9CA3AF', true),
+('01KDQ74JGWWWDKEBDDWRP50NTG', NULL, '欠席', '#EF4444', true),
+('01KDQ74JGWNHRSW1967115GN2D', NULL, '出席', '#22C55E', true),
+('01KDQ74JGW5YBH9XCR1TH67PAW', NULL, '遅刻', '#EAB308', true);

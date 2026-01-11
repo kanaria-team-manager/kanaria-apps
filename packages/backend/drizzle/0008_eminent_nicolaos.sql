@@ -1,1 +1,0 @@
-ALTER TYPE "public"."taggable_type" ADD VALUE 'user';

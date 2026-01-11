@@ -5,71 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1765715637978,
-      "tag": "0000_nifty_shadow_king",
+      "when": 1768131112047,
+      "tag": "0000_fixed_lady_mastermind",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1765715648059,
-      "tag": "0001_initialize_data",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1767084351054,
-      "tag": "0002_initialize-attendance-status",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1767090196329,
-      "tag": "0003_dizzy_princess_powerful",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1767100094668,
-      "tag": "0004_dry_shooting_star",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1767101882830,
-      "tag": "0005_low_daredevil",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1767102570647,
-      "tag": "0006_married_luckman",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1767143861978,
-      "tag": "0007_crazy_morlun",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1767148232683,
-      "tag": "0008_eminent_nicolaos",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1767341770799,
-      "tag": "0009_warm_celestials",
+      "when": 1768131126553,
+      "tag": "0001_initial_value",
       "breakpoints": true
     }
   ]
