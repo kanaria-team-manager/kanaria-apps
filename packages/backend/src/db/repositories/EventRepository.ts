@@ -46,17 +46,11 @@ export class EventRepository {
           id: eventId,
           eventNo,
           ownerId,
+          labelId,
         })
         .returning();
 
-      // 2. Create Labelable (Label for Event)
-      await tx.insert(schema.labelables).values({
-        labelId,
-        labelableType: "event" as const,
-        labelableId: eventId,
-      });
-
-      // 3. Create Taggables (Tags for Event)
+      // 2. Create Taggables (Tags for Event)
       if (tagIds.length > 0) {
         await tx.insert(schema.taggables).values(
           tagIds.map((tagId) => ({
@@ -67,7 +61,7 @@ export class EventRepository {
         );
       }
 
-      // 4. Create Attendances (Initial records for players)
+      // 3. Create Attendances (Initial records for players)
       if (attendances.length > 0) {
         // Create attendance records for each player
         await tx.insert(schema.attendances).values(
@@ -102,14 +96,7 @@ export class EventRepository {
         tag: schema.tags,
       })
       .from(schema.events)
-      .leftJoin(
-        schema.labelables,
-        and(
-          eq(schema.labelables.labelableId, schema.events.id),
-          eq(schema.labelables.labelableType, "event"),
-        ),
-      )
-      .leftJoin(schema.labels, eq(schema.labels.id, schema.labelables.labelId))
+      .leftJoin(schema.labels, eq(schema.labels.id, schema.events.labelId))
       .leftJoin(
         schema.taggables,
         and(
@@ -154,14 +141,7 @@ export class EventRepository {
         place: schema.places,
       })
       .from(schema.events)
-      .leftJoin(
-        schema.labelables,
-        and(
-          eq(schema.labelables.labelableId, schema.events.id),
-          eq(schema.labelables.labelableType, "event"),
-        ),
-      )
-      .leftJoin(schema.labels, eq(schema.labels.id, schema.labelables.labelId))
+      .leftJoin(schema.labels, eq(schema.labels.id, schema.events.labelId))
       .leftJoin(schema.users, eq(schema.users.id, schema.events.ownerId))
       .leftJoin(schema.places, eq(schema.places.id, schema.events.placeId))
       .where(

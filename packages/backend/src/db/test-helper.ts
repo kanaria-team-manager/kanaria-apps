@@ -80,7 +80,6 @@ export async function cleanupTestData() {
   await testDb.execute(sql`
     TRUNCATE TABLE 
       attendances,
-      labelables,
       taggables,
       events,
       players,

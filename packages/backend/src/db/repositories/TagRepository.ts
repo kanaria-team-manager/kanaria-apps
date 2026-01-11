@@ -2,7 +2,6 @@ import { and, asc, eq, or } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { ulid } from "ulid";
 import type * as schema from "../schemas/index";
-import { labelables } from "../schemas/labelables";
 import { labels } from "../schemas/labels";
 import { tags } from "../schemas/tags";
 
@@ -25,38 +24,32 @@ export class TagRepository {
   async findByTeamIdWithSystemAndLabels(teamId: string) {
     // チームのタグとシステムタグを取得し、各タグに紐づくラベルも取得
     const tagsResult = await this.db
-      .select()
+      .select({
+        tag: tags,
+        label: labels,
+      })
       .from(tags)
+      .leftJoin(labels, eq(labels.id, tags.labelId))
       .where(or(eq(tags.teamId, teamId), eq(tags.systemFlag, true)))
       .orderBy(asc(tags.systemFlag), asc(tags.name));
 
-    // 各タグに紐づくラベルを取得
-    const tagsWithLabels = await Promise.all(
-      tagsResult.map(async (tag) => {
-        const tagLabels = await this.db
-          .select({
-            id: labels.id,
-            name: labels.name,
-            color: labels.color,
-          })
-          .from(labelables)
-          .innerJoin(labels, eq(labelables.labelId, labels.id))
-          .where(
-            and(
-              eq(labelables.labelableType, "tag"),
-              eq(labelables.labelableId, tag.id),
-            ),
-          );
-        return { ...tag, labels: tagLabels };
-      }),
-    );
+    // タグごとにラベルをグループ化
+    const tagsMap = new Map();
+    for (const row of tagsResult) {
+      if (!tagsMap.has(row.tag.id)) {
+        tagsMap.set(row.tag.id, {
+          ...row.tag,
+          labels: row.label ? [row.label] : [],
+        });
+      }
+    }
 
-    return tagsWithLabels;
+    return Array.from(tagsMap.values());
   }
 
   async findGradeTags() {
     // '学年'ラベルに紐付いているタグを取得
-    // labelables経由: labels(name='学年') -> labelables -> tags
+    // tags.labelId経由: tags -> labels(name='学年')
     const result = await this.db
       .select({
         id: tags.id,
@@ -64,14 +57,7 @@ export class TagRepository {
         color: tags.color,
       })
       .from(tags)
-      .innerJoin(
-        labelables,
-        and(
-          eq(labelables.labelableId, tags.id),
-          eq(labelables.labelableType, "tag"),
-        ),
-      )
-      .innerJoin(labels, eq(labelables.labelId, labels.id))
+      .innerJoin(labels, eq(labels.id, tags.labelId))
       .where(eq(labels.name, "学年"))
       .orderBy(asc(tags.name));
 
@@ -108,27 +94,5 @@ export class TagRepository {
     await this.db
       .delete(tags)
       .where(and(eq(tags.id, id), eq(tags.teamId, teamId)));
-  }
-
-  // タグにラベルを追加
-  async addLabel(tagId: string, labelId: string) {
-    await this.db.insert(labelables).values({
-      labelId,
-      labelableType: "tag",
-      labelableId: tagId,
-    });
-  }
-
-  // タグからラベルを削除
-  async removeLabel(tagId: string, labelId: string) {
-    await this.db
-      .delete(labelables)
-      .where(
-        and(
-          eq(labelables.labelId, labelId),
-          eq(labelables.labelableType, "tag"),
-          eq(labelables.labelableId, tagId),
-        ),
-      );
   }
 }
