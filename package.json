@@ -6,6 +6,7 @@
     "dev": "pnpm --parallel --filter \"./packages/*\" dev",
     "dev:frontend": "pnpm --filter frontend dev",
     "dev:backend": "pnpm --filter backend dev",
+    "env:generate": "./scripts/generate-dev-vars.sh",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",

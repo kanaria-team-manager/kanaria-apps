@@ -169,6 +169,13 @@ sketch
 /playwright/.cache/
 /.local-browsers
 
-# PostgreSQL local development data (Nix flake)
+# PostgreSQL local development data (Nix flake - deprecated)
 /.postgres-data/
 /.postgres/
+
+# Supabase Local
+/supabase/.branches/
+/supabase/.temp/
+
+# Environment files
+.dev.vars.production

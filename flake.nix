@@ -46,8 +46,9 @@
             nodejs_22
             pnpm
             supabase-cli
+            docker
             gh
-            # Database
+            # Database CLIs for debugging
             postgresql_16
             # playwright関係はpnpmで管理する
           ] ++ playwrightDeps;
@@ -58,73 +59,53 @@
             # 必要に応じて LD_LIBRARY_PATH を設定
             export LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath playwrightDeps}:$LD_LIBRARY_PATH
             
-            # PostgreSQL setup
-            export PGDATA="$PWD/.postgres-data"
-            export PGHOST="$PWD/.postgres"
-            export PGDATABASE="kanaria_test"
-            export PGPORT="54322"
-            export DATABASE_URL="postgresql://postgres@localhost:54322/kanaria_test"
-
-            # PostgreSQL initialization
-            if [ ! -d "$PGDATA" ]; then
-              echo "🔧 Initializing PostgreSQL..."
-              initdb -D "$PGDATA" --no-locale --encoding=UTF8 -U postgres
-              
-              mkdir -p "$PGHOST"
-              
-              # Start PostgreSQL
-              pg_ctl -D "$PGDATA" -l "$PGHOST/logfile" \
-                -o "-k $PGHOST -p $PGPORT" start
-              
-              # Wait for PostgreSQL to be ready
-              sleep 2
-              
-              # Create databases
-              createdb -h "$PGHOST" -p "$PGPORT" -U postgres kanaria_dev
-              createdb -h "$PGHOST" -p "$PGPORT" -U postgres kanaria_test
-              
-              echo "✅ PostgreSQL initialized"
-            else
-              # Start if not running
-              if ! pg_ctl -D "$PGDATA" status > /dev/null 2>&1; then
-                echo "🚀 Starting PostgreSQL..."
-                pg_ctl -D "$PGDATA" -l "$PGHOST/logfile" \
-                  -o "-k $PGHOST -p $PGPORT" start
-                sleep 1
-              fi
-            fi
-
+            # Supabase Local setup
+            export SUPABASE_DIR="$PWD/supabase"
+            
             # Helper functions
-            db-stop() {
-              echo "🛑 Stopping PostgreSQL..."
-              pg_ctl -D "$PGDATA" stop
+            supabase-start() {
+              echo "🚀 Starting Supabase Local..."
+              supabase start
+              echo ""
+              echo "✅ Supabase is ready!"
+              echo "   Studio: http://localhost:54323"
+              echo "   API URL: http://localhost:54321"
+              echo "   DB URL: postgresql://postgres:postgres@localhost:54322/postgres"
             }
 
-            db-reset() {
-              echo "🔄 Resetting test database..."
-              dropdb -h "$PGHOST" -p "$PGPORT" -U postgres --if-exists kanaria_test
-              createdb -h "$PGHOST" -p "$PGPORT" -U postgres kanaria_test
-              cd packages/backend && pnpm drizzle-kit push
+            supabase-stop() {
+              echo "🛑 Stopping Supabase..."
+              supabase stop
+            }
+
+            supabase-reset() {
+              echo "🔄 Resetting Supabase database..."
+              supabase db reset
               echo "✅ Database reset complete"
             }
 
-            db-console() {
-              psql -h "$PGHOST" -p "$PGPORT" -U postgres "$PGDATABASE"
+            supabase-status() {
+              supabase status
             }
 
-            # Auto-cleanup on exit
-            trap db-stop EXIT
+            db-console() {
+              echo "📊 Opening Supabase DB console..."
+              psql postgresql://postgres:postgres@localhost:54322/postgres
+            }
             
             echo ""
             echo "🚀 Kanaria Dev Environment"
             echo "   Node version: $(node --version)"
-            echo "   PostgreSQL: localhost:$PGPORT"
-            echo "   Database: $DATABASE_URL"
+            echo "   Supabase CLI: $(supabase --version)"
             echo ""
             echo "📝 Commands:"
-            echo "   db-stop     - Stop PostgreSQL"
-            echo "   db-reset    - Reset test database"
-            echo "   db-console  - Open psql console"
+            echo "   supabase-start  - Start Supabase (Auth, DB, Studio)"
+            echo "   supabase-stop   - Stop Supabase"
+            echo "   supabase-reset  - Reset database"
+            echo "   supabase-status - Show Supabase status"
+            echo "   db-console      - Open psql console"
+            echo ""
+            echo "💡 Run 'supabase-start' to begin local development"
             echo ""
           '';
         };
