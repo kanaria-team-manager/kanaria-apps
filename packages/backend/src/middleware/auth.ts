@@ -30,12 +30,39 @@ export const authMiddleware = async (
 
   const token = authHeader.replace("Bearer ", "");
 
-  // Strategy 1: Local Verification with JWKS (Fast, Asymmetric support)
-  // We use Supabase URL to construct the JWKS URL.
-  // Strategy 1: Local Verification with JWKS (Fast, Asymmetric support)
-  // We use Supabase URL to construct the JWKS URL.
   const supabaseUrl = c.env.SUPABASE_URL;
 
+  // Detect if running in local environment
+  const isLocal =
+    supabaseUrl?.includes("localhost") || supabaseUrl?.includes("127.0.0.1");
+
+  // Strategy 0: Local Development with HS256 (Symmetric key)
+  // Supabase local uses HS256 with JWT_SECRET instead of asymmetric keys
+  if (isLocal && c.env.SUPABASE_JWT_SECRET) {
+    try {
+      const secret = new TextEncoder().encode(c.env.SUPABASE_JWT_SECRET);
+      const { payload: verifiedPayload } = await jwtVerify(token, secret, {
+        algorithms: ["HS256"],
+      });
+      const payload = verifiedPayload as unknown as SupabaseJwtPayload;
+
+      c.set("user", {
+        id: payload.sub,
+        email: payload.email,
+        app_metadata: payload.app_metadata,
+        user_metadata: payload.user_metadata,
+        role: payload.role,
+      });
+
+      return next();
+    } catch (err) {
+      console.error("JWT Local Verification (HS256) failed:", err);
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+  }
+
+  // Strategy 1: Production Verification with JWKS (Asymmetric support)
+  // We use Supabase URL to construct the JWKS URL.
   if (supabaseUrl) {
     try {
       const jwksUrl = new URL(
@@ -58,7 +85,7 @@ export const authMiddleware = async (
 
       return next();
     } catch (err) {
-      console.error("JWT Local Verification (JWKS) failed:", err);
+      console.error("JWT Verification (JWKS) failed:", err);
       // If validation fails (likely invalid signature or expired), we should probably stop here
       // rather than falling back to remote verification which will likely also fail but slower.
       // However, if the failure is network related (can't fetch JWKS), fallback might work?

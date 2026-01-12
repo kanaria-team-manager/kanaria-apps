@@ -15,12 +15,13 @@ placesRoute.use("*", authMiddleware);
 
 const placeSchema = z.object({
   name: z.string().min(1, "名前は必須です"),
-  description: z.string().optional(),
+  description: z.string().nullable().optional(),
   location: z
     .object({
       x: z.number(), // latitude or longitude (postgres point is x,y)
       y: z.number(),
     })
+    .nullable()
     .optional(),
 });
 

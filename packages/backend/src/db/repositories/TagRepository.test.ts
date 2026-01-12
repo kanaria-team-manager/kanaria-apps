@@ -88,6 +88,27 @@ describe("TagRepository", () => {
     });
   });
 
+  describe("findGradeTags", () => {
+    it("should return tags with '学年' label", async () => {
+      const gradeTags = await repository.findGradeTags();
+
+      // Should contain system grade tags (1年生, 2年生, etc.)
+      expect(gradeTags.length).toBeGreaterThan(0);
+
+      // All tags should have the '学年' label
+      for (const tag of gradeTags) {
+        expect(tag.id).toBeDefined();
+        expect(tag.name).toBeDefined();
+        expect(tag.color).toBeDefined();
+      }
+
+      // Verify tags are ordered by name
+      const names = gradeTags.map((t) => t.name);
+      const sortedNames = [...names].sort();
+      expect(names).toEqual(sortedNames);
+    });
+  });
+
   describe("delete", () => {
     it("should delete a tag", async () => {
       await repository.create({

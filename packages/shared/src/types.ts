@@ -4,6 +4,8 @@ export interface Tag {
   teamId: string | null;
   color: string;
   systemFlag: boolean;
+  labelId?: string | null;
+  label?: Label | null;
   createdAt: string | Date;
   updatedAt: string | Date;
 }

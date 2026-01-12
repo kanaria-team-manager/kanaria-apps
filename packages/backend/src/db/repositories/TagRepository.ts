@@ -33,13 +33,13 @@ export class TagRepository {
       .where(or(eq(tags.teamId, teamId), eq(tags.systemFlag, true)))
       .orderBy(asc(tags.systemFlag), asc(tags.name));
 
-    // タグごとにラベルをグループ化
+    // タグごとにラベルを単一オブジェクトとして設定
     const tagsMap = new Map();
     for (const row of tagsResult) {
       if (!tagsMap.has(row.tag.id)) {
         tagsMap.set(row.tag.id, {
           ...row.tag,
-          labels: row.label ? [row.label] : [],
+          label: row.label || null, // 単一ラベルまたはnull
         });
       }
     }
@@ -72,9 +72,9 @@ export class TagRepository {
       name: data.name,
       color: data.color,
       systemFlag: false,
-      labelId: null, // No label association needed
+      labelId: null,
     });
-    return { id, ...data, systemFlag: false, labels: [] };
+    return { id, ...data, systemFlag: false, label: null };
   }
 
   async update(
@@ -98,5 +98,17 @@ export class TagRepository {
     await this.db
       .delete(tags)
       .where(and(eq(tags.id, id), eq(tags.teamId, teamId)));
+  }
+
+  async addLabel(tagId: string, labelId: string) {
+    await this.db.update(tags).set({ labelId }).where(eq(tags.id, tagId));
+  }
+
+  async removeLabel(tagId: string, labelId: string) {
+    // Only remove if the labelId matches
+    await this.db
+      .update(tags)
+      .set({ labelId: null })
+      .where(and(eq(tags.id, tagId), eq(tags.labelId, labelId)));
   }
 }

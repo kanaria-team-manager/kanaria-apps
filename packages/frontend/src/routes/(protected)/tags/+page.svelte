@@ -15,7 +15,7 @@ interface Tag {
   color: string;
   teamId: string | null;
   systemFlag: boolean;
-  labels: Label[];
+  label?: Label | null;
 }
 
 let { data } = $props();
@@ -26,12 +26,21 @@ let searchQuery = $state("");
 let isLoading = $state(true);
 
 // Preset colors for picker
-const PRESET_COLORS = ["#ef4444", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6", "#ec4899", "#06b6d4", "#64748b"];
+const PRESET_COLORS = [
+  "#ef4444",
+  "#f59e0b",
+  "#10b981",
+  "#3b82f6",
+  "#8b5cf6",
+  "#ec4899",
+  "#06b6d4",
+  "#64748b",
+];
 
 const filteredTags = $derived(
   tags.filter((tag) =>
-    tag.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+    tag.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  ),
 );
 
 async function fetchTags() {
@@ -60,17 +69,24 @@ async function fetchAllLabels() {
 async function handleAddTag() {
   if (!data.session?.access_token) return;
   try {
-    const newTag = await apiPost<Tag>("/tags", {
-      name: "新規タグ",
-      color: "#6366f1",
-    }, data.session.access_token);
+    const newTag = await apiPost<Tag>(
+      "/tags",
+      {
+        name: "新規タグ",
+        color: "#6366f1",
+      },
+      data.session.access_token,
+    );
     tags = [newTag, ...tags];
   } catch (e) {
     console.error("Failed to add tag", e);
   }
 }
 
-async function handleUpdateTag(id: string, updates: { name?: string; color?: string }) {
+async function handleUpdateTag(
+  id: string,
+  updates: { name?: string; color?: string },
+) {
   if (!data.session?.access_token) return;
   try {
     await apiPut(`/tags/${id}`, updates, data.session.access_token);
@@ -94,15 +110,15 @@ async function handleDeleteTag(id: string) {
 async function handleAddLabel(tagId: string, labelId: string) {
   if (!data.session?.access_token) return;
   try {
-    await apiPost(`/tags/${tagId}/labels/${labelId}`, {}, data.session.access_token);
-    // ローカルステートを更新
-    const label = allLabels.find(l => l.id === labelId);
+    await apiPost(
+      `/tags/${tagId}/labels/${labelId}`,
+      {},
+      data.session.access_token,
+    );
+    // ローカルステートを更新 - 単一ラベルに設定
+    const label = allLabels.find((l) => l.id === labelId);
     if (label) {
-      tags = tags.map((tag) => 
-        tag.id === tagId 
-          ? { ...tag, labels: [...tag.labels, label] } 
-          : tag
-      );
+      tags = tags.map((tag) => (tag.id === tagId ? { ...tag, label } : tag));
     }
   } catch (e) {
     console.error("Failed to add label", e);
@@ -112,12 +128,13 @@ async function handleAddLabel(tagId: string, labelId: string) {
 async function handleRemoveLabel(tagId: string, labelId: string) {
   if (!data.session?.access_token) return;
   try {
-    await apiDelete(`/tags/${tagId}/labels/${labelId}`, data.session.access_token);
-    // ローカルステートを更新
-    tags = tags.map((tag) => 
-      tag.id === tagId 
-        ? { ...tag, labels: tag.labels.filter(l => l.id !== labelId) } 
-        : tag
+    await apiDelete(
+      `/tags/${tagId}/labels/${labelId}`,
+      data.session.access_token,
+    );
+    // ローカルステートを更新 - ラベルをnullに設定
+    tags = tags.map((tag) =>
+      tag.id === tagId ? { ...tag, label: null } : tag,
     );
   } catch (e) {
     console.error("Failed to remove label", e);

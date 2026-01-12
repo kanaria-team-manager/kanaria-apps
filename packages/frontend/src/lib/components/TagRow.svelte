@@ -10,7 +10,7 @@ interface Tag {
   name: string;
   color: string;
   systemFlag?: boolean;
-  labels?: Label[];
+  label?: Label | null;
 }
 
 let {
@@ -32,9 +32,9 @@ let {
 } = $props();
 
 const isSystemTag = $derived(tag.systemFlag === true);
-const tagLabels = $derived(tag.labels || []);
+const tagLabel = $derived(tag.label || null);
 const availableLabels = $derived(
-  allLabels.filter(l => !tagLabels.some(tl => tl.id === l.id))
+  allLabels.filter(l => !tagLabel || l.id !== tagLabel.id)
 );
 
 let isEditingName = $state(false);
@@ -162,15 +162,15 @@ function handleLabelRemove(labelId: string) {
 
   <!-- Labels -->
   <div class="col-span-5 flex items-center gap-2 flex-wrap label-picker-container relative">
-    {#each tagLabels as label (label.id)}
+    {#if tagLabel}
       <span 
         class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border"
-        style="background-color: {label.color}20; border-color: {label.color}; color: {label.color}"
+        style="background-color: {tagLabel.color}20; border-color: {tagLabel.color}; color: {tagLabel.color}"
       >
-        {label.name}
+        {tagLabel.name}
         {#if !isSystemTag}
           <button
-            onclick={() => handleLabelRemove(label.id)}
+            onclick={() => handleLabelRemove(tagLabel.id)}
             class="hover:opacity-70 transition-opacity"
             aria-label="ラベルを削除"
           >
@@ -180,7 +180,7 @@ function handleLabelRemove(labelId: string) {
           </button>
         {/if}
       </span>
-    {/each}
+    {/if}
     
     {#if !isSystemTag}
       <button
@@ -190,7 +190,7 @@ function handleLabelRemove(labelId: string) {
         <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        追加
+        {tagLabel ? '変更' : '追加'}
       </button>
       
       {#if isLabelPickerOpen && availableLabels.length > 0}
