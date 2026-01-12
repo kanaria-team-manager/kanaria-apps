@@ -1,14 +1,12 @@
 /**
  * Vitest Global Setup
- * Runs ONCE before all test files
- * 
+ * Runs once before all tests across all workers
+ *
  * Responsibilities:
- * - Validate DATABASE_URL configuration
- * - Ensure test database exists (create if needed)
- * - Create DB connection
+ * - Ensure test database exists
  * - Run migrations
- * - Create shared test teams
- * - Clean up on teardown
+ * - Clean all tables
+ * - Create test teams (once for all tests)
  */
 
 import { sql } from "drizzle-orm";
@@ -18,12 +16,9 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import * as schema from "../db/schemas/index.js";
 
-// Shared DB connection (used across all tests)
-export let testDb: PostgresJsDatabase<typeof schema>;
-let testClient: postgres.Sql;
-
 /**
- * Common test team IDs used across all repository tests
+ * Common test team IDs
+ * These are created once in global setup and available to all tests
  */
 export const TEST_TEAMS = {
   MAIN: "test-team-main",
@@ -39,25 +34,21 @@ export const TEST_TEAMS = {
 } as const;
 
 /**
- * Ensure test database exists, create if needed
+ * Ensure test database exists
  */
 async function ensureTestDatabase(connectionString: string) {
-  // Parse database name from connection string
   const url = new URL(connectionString);
-  const dbName = url.pathname.slice(1); // Remove leading '/'
+  const dbName = url.pathname.slice(1);
 
   if (!dbName) {
     throw new Error("Database name not found in connection string");
   }
 
-  // Connect to 'postgres' database to check/create test database
   const adminUrl = new URL(connectionString);
   adminUrl.pathname = "/postgres";
-
   const adminClient = postgres(adminUrl.toString(), { max: 1 });
 
   try {
-    // Check if database exists
     const result = await adminClient<[{ exists: boolean }]>`
       SELECT EXISTS(
         SELECT FROM pg_database WHERE datname = ${dbName}
@@ -65,91 +56,48 @@ async function ensureTestDatabase(connectionString: string) {
     `;
 
     if (!result[0].exists) {
-      console.log(`📦 Creating test database: ${dbName}`);
       await adminClient.unsafe(`CREATE DATABASE "${dbName}"`);
-      console.log(`✅ Database created: ${dbName}`);
-    } else {
-      console.log(`✅ Database exists: ${dbName}`);
     }
   } finally {
     await adminClient.end();
   }
 }
 
-export async function setup() {
-  console.log("🔧 Global Setup: Initializing test environment...");
-
-  // Validate DATABASE_URL
+/**
+ * Global setup function
+ * Runs once before all tests
+ */
+export default async function setup() {
   const connectionString = process.env.TEST_DATABASE_URL;
 
   if (!connectionString) {
-    throw new Error(
-      "❌ TEST_DATABASE_URL not set.\n" +
-        "Make sure you're running tests with vitest:\n" +
-        "  pnpm test",
-    );
+    throw new Error("TEST_DATABASE_URL not set");
   }
 
-  console.log(`📊 Connecting to: ${connectionString}`);
+  console.log("🔧 Running global test setup...");
 
-  // Ensure test database exists
+  // Ensure database exists
   await ensureTestDatabase(connectionString);
 
-  // Create DB connection (shared across all tests)
-  testClient = postgres(connectionString, {
+  // Create connection for setup
+  const client = postgres(connectionString, {
     max: 1,
     idle_timeout: 20,
     connect_timeout: 10,
   });
 
-  testDb = drizzle(testClient, { schema });
+  const db: PostgresJsDatabase<typeof schema> = drizzle(client, { schema });
 
-  // Run migrations
-  console.log("📦 Running migrations...");
-  await migrate(testDb, {
-    migrationsFolder: "./drizzle",
-  });
+  try {
+    // Run migrations
+    console.log("📦 Running migrations...");
+    await migrate(db, {
+      migrationsFolder: "./drizzle",
+    });
 
-  // Clean all existing data
-  console.log("🧹 Cleaning test database...");
-  await testDb.execute(sql`
-    TRUNCATE TABLE 
-      attendances,
-      taggables,
-      events,
-      players,
-      labels,
-      tags,
-      places,
-      users,
-      teams
-    RESTART IDENTITY CASCADE
-  `);
-
-  // Create shared test teams
-  console.log("👥 Creating shared test teams...");
-  const teamData = Object.entries(TEST_TEAMS).map(([key, id]) => ({
-    id,
-    name: key,
-    code: id,
-    status: 1,
-    eventSequence: 0,
-  }));
-
-  for (const team of teamData) {
-    await testDb.insert(schema.teams).values(team);
-  }
-
-  console.log(`✅ Created ${teamData.length} test teams`);
-  console.log("✅ Global Setup complete\n");
-}
-
-export async function teardown() {
-  console.log("🧹 Global Teardown: Cleaning up...");
-
-  if (testDb) {
-    // Optional: Clean all data on teardown
-    await testDb.execute(sql`
+    // Clean all tables
+    console.log("🧹 Cleaning tables...");
+    await db.execute(sql`
       TRUNCATE TABLE 
         attendances,
         taggables,
@@ -162,11 +110,53 @@ export async function teardown() {
         teams
       RESTART IDENTITY CASCADE
     `);
+
+    // Create test teams
+    console.log("👥 Creating test teams...");
+    const teamData = Object.entries(TEST_TEAMS).map(([key, id]) => ({
+      id,
+      name: key,
+      code: id,
+      status: 1,
+      eventSequence: 0,
+    }));
+
+    for (const team of teamData) {
+      await db.insert(schema.teams).values(team);
+    }
+
+    console.log("✅ Global test setup complete");
+  } finally {
+    await client.end();
   }
 
-  if (testClient) {
-    await testClient.end();
-  }
+  // Return teardown function
+  return async () => {
+    console.log("🧹 Running global test teardown...");
+    const teardownClient = postgres(connectionString, { max: 1 });
+    const teardownDb: PostgresJsDatabase<typeof schema> = drizzle(
+      teardownClient,
+      { schema },
+    );
 
-  console.log("✅ Teardown complete");
+    try {
+      // Clean up after all tests
+      await teardownDb.execute(sql`
+        TRUNCATE TABLE 
+          attendances,
+          taggables,
+          events,
+          players,
+          labels,
+          tags,
+          places,
+          users,
+          teams
+        RESTART IDENTITY CASCADE
+      `);
+      console.log("✅ Global test teardown complete");
+    } finally {
+      await teardownClient.end();
+    }
+  };
 }

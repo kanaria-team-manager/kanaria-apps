@@ -72,6 +72,7 @@ export class TagRepository {
       name: data.name,
       color: data.color,
       systemFlag: false,
+      labelId: null, // No label association needed
     });
     return { id, ...data, systemFlag: false, labels: [] };
   }
@@ -81,13 +82,16 @@ export class TagRepository {
     teamId: string,
     data: { name?: string; color?: string },
   ) {
-    await this.db
+    const result = await this.db
       .update(tags)
       .set({
         ...(data.name !== undefined && { name: data.name }),
         ...(data.color !== undefined && { color: data.color }),
       })
-      .where(and(eq(tags.id, id), eq(tags.teamId, teamId)));
+      .where(and(eq(tags.id, id), eq(tags.teamId, teamId)))
+      .returning();
+
+    return result[0];
   }
 
   async delete(id: string, teamId: string) {

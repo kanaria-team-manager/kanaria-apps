@@ -1,14 +1,13 @@
 import { ulid } from "ulid";
 import { beforeEach, describe, expect, it } from "vitest";
-import { useTestDb } from "../test-helper.js";
+import { getTestDb } from "../../test/setup.js";
 import { TeamRepository } from "./TeamRepository.js";
 
 describe("TeamRepository", () => {
-  const getDb = useTestDb();
   let repository: TeamRepository;
 
   beforeEach(() => {
-    repository = new TeamRepository(getDb());
+    repository = new TeamRepository(getTestDb());
   });
 
   describe("create", () => {

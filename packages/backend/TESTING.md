@@ -129,18 +129,34 @@ describe("GET /my-route", () => {
 
 ---
 
-## �️ Test Utilities
+## 🛠️ Test Utilities
 
-Located in `src/test/` and `src/db/`:
+Located in `src/test/`:
 
 | Helper | File | Purpose |
 |--------|------|---------|
-| `useTestDb()` | `src/db/test-helper.ts` | **Repo Tests**: Connects to Real DB, utilizes Global Setup for teams. |
-| `TEST_TEAMS` | `src/db/test-helper.ts` | **Repo Tests**: Shared team IDs created in global setup. |
+| `getTestDb()` | `src/test/setup.ts` | **Repo Tests**: Returns DB connection for the test file. |
+| `TEST_TEAMS` | `src/test/global-setup.ts` | **Repo Tests**: Shared team IDs created once in global setup. |
 | `mockDbContext()` | `src/test/test-utils.ts` | **Route Tests**: Mocks Hono DB context & transaction. |
 | `injectMockDb()` | `src/test/test-utils.ts` | **Route Tests**: Middleware to inject mock DB. |
 | `mockEnv()` | `src/test/test-utils.ts` | **Route Tests**: Provides dummy environment variables. |
 | `mockSupabaseClient()` | `src/test/test-utils.ts` | **Route Tests**: Mocks Supabase Admin/Auth client. |
+
+### Test Setup Architecture
+
+Vitest uses a two-tier setup:
+
+1. **Global Setup** (`src/test/global-setup.ts`): Runs **once** before all tests
+   - Ensures test database exists
+   - Runs migrations
+   - Truncates all tables
+   - Creates test teams (shared across all tests)
+   - Returns teardown function to clean up after all tests
+
+2. **Setup Files** (`src/test/setup.ts`): Runs **before each test file**
+   - Establishes DB connection for that test file
+   - Exports `getTestDb()` and `TEST_TEAMS` for tests to use
+   - Closes connection after all tests in the file complete
 
 ---
 
@@ -158,6 +174,7 @@ Located in `src/test/` and `src/db/`:
 
 ## ⚠️ Common Pitfalls
 
-1.  **Repository Tests**: Do NOT mock `drizzle-orm` or `postgres`. Use the real connection provided by `useTestDb`.
+1.  **Repository Tests**: Do NOT mock `drizzle-orm` or `postgres`. Use the real connection provided by `getTestDb()`.
 2.  **Route Tests**: Do NOT try to connect to the DB. Always mock the Repository class using `vi.mock`.
-3.  **Global Setup**: Test teams are created *once* before all tests in `src/test/global-setup.ts`. Do not delete them in your tests.
+3.  **Global Setup**: Test teams are created *once* before all tests in `src/test/global-setup.ts`. Do not delete or modify them in your tests.
+4.  **Test Isolation**: Each test file gets its own DB connection, but shares the same database instance. Clean up test data within your tests if needed.

@@ -1,14 +1,13 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { getTestDb, TEST_TEAMS } from "../../test/setup.js";
 import { SYSTEM_FLAG } from "../schemas/utils.js";
-import { TEST_TEAMS, useTestDb } from "../test-helper.js";
 import { LabelRepository } from "./LabelRepository.js";
 
 describe("LabelRepository", () => {
-  const getDb = useTestDb();
   let repository: LabelRepository;
 
   beforeEach(() => {
-    repository = new LabelRepository(getDb());
+    repository = new LabelRepository(getTestDb());
   });
 
   describe("create", () => {

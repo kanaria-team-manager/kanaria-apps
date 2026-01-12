@@ -1,22 +1,21 @@
 import crypto from "node:crypto";
 import { ulid } from "ulid";
 import { beforeEach, describe, expect, it } from "vitest";
-import { TEST_TEAMS, useTestDb } from "../test-helper.js";
+import { getTestDb, TEST_TEAMS } from "../../test/setup.js";
 import { UserRepository } from "./UserRepository.js";
 
 describe("UserRepository", () => {
-  const getDb = useTestDb();
   let repository: UserRepository;
 
   beforeEach(() => {
-    repository = new UserRepository(getDb());
+    repository = new UserRepository(getTestDb());
   });
 
   describe("create", () => {
     it("should create a new user", async () => {
       const userData = {
-        id: ulid(), // User ID should be ULID (26 chars), not UUID (36 chars)
-        supabaseUserId: crypto.randomUUID(), // Supabase ID is UUID
+        id: ulid(),
+        supabaseUserId: crypto.randomUUID(),
         teamId: TEST_TEAMS.MAIN,
         roleId: 0,
         status: 0,
@@ -94,7 +93,6 @@ describe("UserRepository", () => {
 
       const teamUsers = await repository.findAllByTeamId(TEST_TEAMS.ALPHA);
 
-      // Use >= instead of === because data may accumulate from other tests
       expect(teamUsers.length).toBeGreaterThanOrEqual(2);
       expect(teamUsers.every((u) => u.teamId === TEST_TEAMS.ALPHA)).toBe(true);
     });
