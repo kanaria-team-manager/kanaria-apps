@@ -45,6 +45,7 @@ export interface UserWithTags {
   roleId: number;
   teamId: string;
   tags: TagSimple[];
+  players?: PlayerSimple[];
 }
 
 export interface CurrentUser {

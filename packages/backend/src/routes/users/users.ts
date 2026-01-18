@@ -1,6 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
+import { PlayerRepository } from "../../db/repositories/PlayerRepository.js";
 import { UserRepository } from "../../db/repositories/UserRepository.js";
 import { authMiddleware } from "../../middleware/auth.js";
 import type { Bindings, Variables } from "../../types.js";
@@ -120,7 +121,11 @@ app.get("/:id", async (c) => {
     return c.json({ error: "Forbidden" }, 403);
   }
 
-  return c.json(targetUser);
+  // Get players for this user
+  const playerRepo = new PlayerRepository(db);
+  const players = await playerRepo.findByParentUserId(userId);
+
+  return c.json({ ...targetUser, players });
 });
 
 // Update user role

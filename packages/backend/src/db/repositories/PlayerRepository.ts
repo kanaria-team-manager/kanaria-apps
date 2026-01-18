@@ -74,6 +74,58 @@ export class PlayerRepository {
     };
   }
 
+  async findByParentUserId(parentUserId: string) {
+    // Get all players for a parent user with tags
+    const rows = await this.db
+      .select({
+        player: schema.players,
+        tag: schema.tags,
+      })
+      .from(schema.players)
+      .leftJoin(
+        schema.taggables,
+        and(
+          eq(schema.taggables.taggableId, schema.players.id),
+          eq(schema.taggables.taggableType, "player"),
+        ),
+      )
+      .leftJoin(schema.tags, eq(schema.tags.id, schema.taggables.tagId))
+      .where(eq(schema.players.parentUserId, parentUserId));
+
+    // Group by player
+    const playersMap = new Map<
+      string,
+      {
+        id: string;
+        lastName: string;
+        firstName: string;
+        nickName: string | null;
+        tags: { id: string; name: string }[];
+      }
+    >();
+
+    for (const row of rows) {
+      if (!playersMap.has(row.player.id)) {
+        playersMap.set(row.player.id, {
+          id: row.player.id,
+          lastName: row.player.lastName,
+          firstName: row.player.firstName,
+          nickName: row.player.nickName,
+          tags: [],
+        });
+      }
+
+      if (row.tag) {
+        const player = playersMap.get(row.player.id);
+        if (player && !player.tags.find((t) => t.id === row.tag?.id)) {
+          player.tags.push({ id: row.tag.id, name: row.tag.name });
+        }
+      }
+    }
+
+    return Array.from(playersMap.values());
+  }
+
   async findAll(teamId: string, options?: { tagIds?: string[]; q?: string }) {
     // Sanitize search query to prevent wildcard abuse
     const sanitizedQ = options?.q?.replace(/[%_]/g, "\\$&");

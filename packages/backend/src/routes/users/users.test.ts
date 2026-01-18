@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { PlayerRepository } from "../../db/repositories/PlayerRepository.js";
 import { UserRepository } from "../../db/repositories/UserRepository.js";
 import usersApp from "./users.js";
 
@@ -27,10 +28,26 @@ describe("User Management API", () => {
         tags: [{ id: "tag_1", name: "Tag 1" }],
       };
 
+      const mockPlayers = [
+        {
+          id: "player_1",
+          lastName: "田中",
+          firstName: "太郎",
+          nickName: null,
+          tags: [],
+        },
+      ];
+
       // Mock UserRepository
       vi.spyOn(UserRepository.prototype, "findByIdWithTags").mockResolvedValue(
         mockUserWithTags,
       );
+
+      // Mock PlayerRepository
+      vi.spyOn(
+        PlayerRepository.prototype,
+        "findByParentUserId",
+      ).mockResolvedValue(mockPlayers);
 
       const app = new Hono();
 
@@ -55,6 +72,8 @@ describe("User Management API", () => {
       const data = await res.json();
       expect(data.id).toBe("user_123");
       expect(data.tags).toHaveLength(1);
+      expect(data.players).toBeDefined();
+      expect(Array.isArray(data.players)).toBe(true);
     });
 
     it("should return 403 for regular user", async () => {
