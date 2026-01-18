@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { enhance } from '$app/forms';
   import MapPicker from '$lib/components/MapPicker.svelte';
@@ -24,6 +25,13 @@
     return place.location as { x: number; y: number };
   })();
   let location = $state<{x: number, y: number} | null>(initialLocation);
+
+  // Handle successful update
+  $effect(() => {
+    if (form?.success) {
+      goto(`/places/${id}`);
+    }
+  });
 </script>
 
 <div class="container mx-auto px-4 py-8 max-w-2xl">

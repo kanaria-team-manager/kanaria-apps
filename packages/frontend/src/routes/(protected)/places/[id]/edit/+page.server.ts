@@ -1,4 +1,4 @@
-import { fail, redirect } from "@sveltejs/kit";
+import { fail } from "@sveltejs/kit";
 import { apiGet, apiPut } from "$lib/api/client";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -60,7 +60,7 @@ export const actions: Actions = {
         accessToken,
         { fetch },
       );
-      return redirect(303, "/places");
+      return { success: true };
     } catch (e) {
       console.error("Failed to update place:", e);
       return fail(500, { error: "更新に失敗しました", name, description });
