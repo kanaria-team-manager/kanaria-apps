@@ -119,4 +119,87 @@ export class UserRepository {
   async findAllByTeamId(teamId: string) {
     return await this.db.select().from(users).where(eq(users.teamId, teamId));
   }
+
+  async findAllByTeamIdWithTags(teamId: string) {
+    // Fetch all users with their tags using LEFT JOIN
+    const usersWithTagsRaw = await this.db
+      .select({
+        userId: users.id,
+        userName: users.name,
+        userEmail: users.email,
+        userRoleId: users.roleId,
+        userTeamId: users.teamId,
+        userStatus: users.status,
+        userCreatedAt: users.createdAt,
+        userUpdatedAt: users.updatedAt,
+        userSupabaseUserId: users.supabaseUserId,
+        tagId: tags.id,
+        tagName: tags.name,
+      })
+      .from(users)
+      .leftJoin(
+        taggables,
+        and(
+          eq(taggables.taggableType, "user"),
+          eq(taggables.taggableId, users.id),
+        ),
+      )
+      .leftJoin(tags, eq(tags.id, taggables.tagId))
+      .where(eq(users.teamId, teamId));
+
+    // Group users with their tags
+    interface UserWithTagsResult {
+      id: string;
+      name: string;
+      email: string;
+      roleId: number;
+      teamId: string;
+      status: number;
+      supabaseUserId: string;
+      createdAt: Date;
+      updatedAt: Date;
+      tags: Array<{ id: string; name: string }>;
+    }
+
+    const usersMap = new Map<string, UserWithTagsResult>();
+    for (const row of usersWithTagsRaw) {
+      if (!usersMap.has(row.userId)) {
+        usersMap.set(row.userId, {
+          id: row.userId,
+          name: row.userName,
+          email: row.userEmail,
+          roleId: row.userRoleId,
+          teamId: row.userTeamId,
+          status: row.userStatus,
+          supabaseUserId: row.userSupabaseUserId,
+          createdAt: row.userCreatedAt,
+          updatedAt: row.userUpdatedAt,
+          tags: [],
+        });
+      }
+      if (row.tagId && row.tagName) {
+        const user = usersMap.get(row.userId);
+        if (user && !user.tags.some((t) => t.id === row.tagId)) {
+          user.tags.push({ id: row.tagId, name: row.tagName });
+        }
+      }
+    }
+
+    return Array.from(usersMap.values());
+  }
+
+  async findAllByTeamIdWithPlayersAndTags(teamId: string) {
+    const { PlayerRepository } = await import("./PlayerRepository.js");
+    const { combineUsersAndPlayers } = await import("../mappers/UserMapper.js");
+
+    // Use repositories to fetch data
+    const playerRepo = new PlayerRepository(this.db);
+    const [usersWithTags, playersWithTags] = await Promise.all([
+      this.findAllByTeamIdWithTags(teamId),
+      playerRepo.findAllByTeamIdWithTags(teamId),
+    ]);
+
+    // Use mapper to combine
+    return combineUsersAndPlayers(usersWithTags, playersWithTags);
+  }
 }

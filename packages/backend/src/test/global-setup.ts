@@ -112,7 +112,7 @@ export default async function setup() {
     await db.execute(sql`
       DROP TYPE IF EXISTS "taggable_type";
     `);
-    
+
     console.log("🧹 Cleaning migrations...");
     await db.execute(sql`
       TRUNCATE TABLE drizzle.__drizzle_migrations;

@@ -151,4 +151,72 @@ export class PlayerRepository {
       );
     }
   }
+
+  async findAllByTeamIdWithTags(teamId: string) {
+    // Fetch all players with their tags using LEFT JOIN
+    const playersWithTagsRaw = await this.db
+      .select({
+        playerId: schema.players.id,
+        playerParentUserId: schema.players.parentUserId,
+        playerLastName: schema.players.lastName,
+        playerFirstName: schema.players.firstName,
+        playerNickName: schema.players.nickName,
+        playerImageUrl: schema.players.imageUrl,
+        playerTeamId: schema.players.teamId,
+        playerCreatedAt: schema.players.createdAt,
+        playerUpdatedAt: schema.players.updatedAt,
+        tagId: schema.tags.id,
+        tagName: schema.tags.name,
+      })
+      .from(schema.players)
+      .leftJoin(
+        schema.taggables,
+        and(
+          eq(schema.taggables.taggableType, "player"),
+          eq(schema.taggables.taggableId, schema.players.id),
+        ),
+      )
+      .leftJoin(schema.tags, eq(schema.tags.id, schema.taggables.tagId))
+      .where(eq(schema.players.teamId, teamId));
+
+    // Group players with their tags
+    interface PlayerWithTagsResult {
+      id: string;
+      parentUserId: string;
+      lastName: string;
+      firstName: string;
+      nickName: string | null;
+      imageUrl: string | null;
+      teamId: string;
+      createdAt: Date;
+      updatedAt: Date;
+      tags: Array<{ id: string; name: string }>;
+    }
+
+    const playersMap = new Map<string, PlayerWithTagsResult>();
+    for (const row of playersWithTagsRaw) {
+      if (!playersMap.has(row.playerId)) {
+        playersMap.set(row.playerId, {
+          id: row.playerId,
+          parentUserId: row.playerParentUserId,
+          lastName: row.playerLastName,
+          firstName: row.playerFirstName,
+          nickName: row.playerNickName,
+          imageUrl: row.playerImageUrl,
+          teamId: row.playerTeamId,
+          createdAt: row.playerCreatedAt,
+          updatedAt: row.playerUpdatedAt,
+          tags: [],
+        });
+      }
+      if (row.tagId && row.tagName) {
+        const player = playersMap.get(row.playerId);
+        if (player && !player.tags.some((t) => t.id === row.tagId)) {
+          player.tags.push({ id: row.tagId, name: row.tagName });
+        }
+      }
+    }
+
+    return Array.from(playersMap.values());
+  }
 }

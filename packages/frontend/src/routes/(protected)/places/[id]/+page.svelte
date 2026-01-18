@@ -34,29 +34,39 @@
       {error}
     </div>
   {:else if place}
-    <div class="flex justify-between items-start mb-6">
-        <div>
-            <h1 class="text-2xl font-bold">{place.name}</h1>
-            <p class="text-muted-foreground mt-1">{place.description || '説明なし'}</p>
-        </div>
-        <a 
-            href={`/places/${id}/edit`} 
-            class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
-        >
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <!-- Header -->
+      <div class="relative bg-gradient-to-br from-green-50 to-emerald-50 p-8">
+        <div class="absolute top-4 right-4">
+          <a 
+            href="/places/{id}/edit"
+            class="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
             編集
-        </a>
-    </div>
-
-    <!-- Map Component (Read-only) -->
-    <div class="space-y-2">
-      <span class="text-sm font-medium">地図</span>
-      <div class="h-80 border rounded-md overflow-hidden relative z-0">
-         {#if typeof window !== 'undefined'}
-            <MapPicker 
-              value={location} 
-              readonly={true}
-            />
-         {/if}
+          </a>
+        </div>
+        
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">{place.name}</h1>
+          <p class="text-gray-500 mt-1">{place.description || '説明なし'}</p>
+        </div>
+      </div>
+      
+      <!-- Content -->
+      <div class="p-6 space-y-6">
+        <!-- Map -->
+        <div>
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">地図</h3>
+          <div class="h-80 border border-gray-200 rounded-lg overflow-hidden relative z-0">
+            {#if typeof window !== 'undefined'}
+              <MapPicker 
+                value={location} 
+                readonly={true}
+              />
+            {/if}
+          </div>
+        </div>
       </div>
     </div>
   {:else}

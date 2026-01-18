@@ -69,7 +69,7 @@ app.put("/me/tags", zValidator("json", updateTagsSchema), async (c) => {
   return c.json(updatedTags);
 });
 
-// Get all team users
+// Get all team users with players and tags
 app.get("/", async (c) => {
   const db = c.get("db");
   const user = c.get("user");
@@ -81,7 +81,7 @@ app.get("/", async (c) => {
     return c.json({ error: "Team ID not found" }, 403);
   }
 
-  const users = await repo.findAllByTeamId(teamId);
+  const users = await repo.findAllByTeamIdWithPlayersAndTags(teamId);
   return c.json(users);
 });
 
