@@ -42,12 +42,13 @@ login.post("/", async (c) => {
 
   if (userRecord?.teamId) {
     const teamId = userRecord.teamId;
+    const roleId = userRecord.roleId;
 
     // 3. Update User Metadata (app_metadata)
     // Only if it's not already set or different? Supabase updates merge.
     // It's safer to always ensure it's set on login to repair missing claims.
     await supabase.auth.admin.updateUserById(user.id, {
-      app_metadata: { teamId },
+      app_metadata: { teamId, roleId },
     });
 
     // 4. Refresh Session to get new JWT with updated claims

@@ -59,7 +59,7 @@ app.post("/create", async (c) => {
       );
     });
 
-    // Update Supabase User Metadata with teamId
+    // Update Supabase User Metadata with teamId and roleId
     const supabase = createClient(
       c.env.SUPABASE_URL,
       c.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -69,7 +69,7 @@ app.post("/create", async (c) => {
     const { error: updateError } = await supabase.auth.admin.updateUserById(
       verifiedUser.id,
       {
-        app_metadata: { teamId },
+        app_metadata: { teamId, roleId: 0 }, // 0 = owner
       },
     );
 

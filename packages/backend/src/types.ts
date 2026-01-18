@@ -14,6 +14,7 @@ export interface AuthUser {
   email: string;
   app_metadata: {
     teamId?: string;
+    roleId?: number;
     provider?: string;
     [key: string]: unknown;
   };

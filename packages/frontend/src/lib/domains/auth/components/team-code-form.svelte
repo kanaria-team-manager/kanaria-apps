@@ -1,4 +1,6 @@
 <script lang="ts">
+import { PUBLIC_BACKEND_URL } from "$env/static/public";
+
 interface Team {
   id: string;
   name: string;
@@ -22,10 +24,8 @@ async function handleSubmit(e: Event) {
   error = "";
 
   try {
-    // Use absolute URL for now or configure proxy. Assuming backend is on port 8787.
-    // In a real app, this should be configured via env vars.
     const response = await fetch(
-      `http://localhost:8787/teams/verify/${teamCode}`,
+      `${PUBLIC_BACKEND_URL}/teams/verify/${teamCode}`,
     );
 
     if (response.ok) {

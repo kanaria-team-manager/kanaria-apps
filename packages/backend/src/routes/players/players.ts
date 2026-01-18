@@ -29,22 +29,24 @@ playersRoute.post("/", zValidator("json", createPlayerSchema), async (c) => {
   const { lastName, firstName, nickName, imageUrl, tagId, parentUserId } =
     c.req.valid("json");
 
-  // Get current user details from DB to check role
-  const currentUser = await userRepo.findBySupabaseId(user.id);
-  if (!currentUser) {
-    return c.json({ error: "User not found" }, 401);
-  }
-
-  const teamId = currentUser.teamId;
+  // Get roleId and teamId from app_metadata
+  const roleId = user.app_metadata?.roleId as number | undefined;
+  const teamId = user.app_metadata?.teamId as string | undefined;
 
   if (!teamId) {
     return c.json({ error: "Team ID not found" }, 403);
   }
 
-  // Decide parentUserId
+  // Get current user ID from DB
+  const currentUser = await userRepo.findBySupabaseId(user.id);
+  if (!currentUser) {
+    return c.json({ error: "User not found" }, 401);
+  }
+
+  // Decide parentUserId based on role from app_metadata
   let targetParentId = currentUser.id;
 
-  if (currentUser.roleId === ROLE_OWNER || currentUser.roleId === ROLE_ADMIN) {
+  if (roleId === ROLE_OWNER || roleId === ROLE_ADMIN) {
     if (parentUserId) {
       targetParentId = parentUserId;
     }

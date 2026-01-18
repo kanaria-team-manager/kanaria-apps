@@ -30,3 +30,40 @@ export interface AttendanceStatus {
   createdAt: string | Date;
   updatedAt: string | Date;
 }
+
+// Simplified Tag (for API responses without full details)
+export interface TagSimple {
+  id: string;
+  name: string;
+}
+
+// User types
+export interface UserWithTags {
+  id: string;
+  name: string;
+  email: string;
+  roleId: number;
+  teamId: string;
+  tags: TagSimple[];
+}
+
+export interface CurrentUser {
+  id: string;
+  name: string;
+  email: string;
+  roleId: number;
+  teamId: string;
+}
+
+// Player types
+export interface PlayerSimple {
+  id: string;
+  lastName: string;
+  firstName: string;
+  nickName?: string | null;
+  tags: TagSimple[];
+}
+
+export interface UserWithPlayersAndTags extends UserWithTags {
+  players: PlayerSimple[];
+}

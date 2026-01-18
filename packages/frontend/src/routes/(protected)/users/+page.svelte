@@ -37,10 +37,6 @@ let searchQuery = $state("");
 
 // UI state
 let expandedUsers = $state<Set<string>>(new Set());
-let editingUserId = $state<string | null>(null);
-let editName = $state("");
-let editRoleId = $state(0);
-let editTagIds = $state<string[]>([]);
 
 const ROLES: Record<number, string> = {
   0: "Owner",
@@ -106,60 +102,26 @@ function toggleUser(userId: string) {
   expandedUsers = new Set(expandedUsers);
 }
 
-function startEdit(user: User) {
-  if (!canEdit) return;
-  editingUserId = user.id;
-  editName = user.name;
-  editRoleId = user.roleId;
-  editTagIds = user.tags.map((t) => t.id);
-}
-
-function cancelEdit() {
-  editingUserId = null;
-  editName = "";
-  editRoleId = 0;
-  editTagIds = [];
-}
-
-async function saveEdit(userId: string) {
+async function updateUserRole(userId: string, newRoleId: number) {
   if (!data.session?.access_token) return;
-  if (!editName.trim()) {
-    alert("名前は必須です");
-    return;
-  }
+  if (!canEdit) return;
 
   try {
-    // Update user profile (name and roleId would need separate endpoint)
-    // For now, focusing on tags as per requirements
     await apiPut(
-      `/users/${userId}/tags`,
-      { tagIds: editTagIds },
+      `/users/${userId}/role`,
+      { roleId: newRoleId },
       data.session.access_token
     );
 
     // Update local state
     users = users.map((u) =>
-      u.id === userId
-        ? {
-            ...u,
-            name: editName,
-            roleId: editRoleId,
-            tags: allTags.filter((t) => editTagIds.includes(t.id)),
-          }
-        : u
+      u.id === userId ? { ...u, roleId: newRoleId } : u
     );
-    cancelEdit();
   } catch (e) {
-    console.error("Failed to update user", e);
-    alert("更新に失敗しました");
-  }
-}
-
-function toggleTag(tagId: string) {
-  if (editTagIds.includes(tagId)) {
-    editTagIds = editTagIds.filter((id) => id !== tagId);
-  } else {
-    editTagIds = [...editTagIds, tagId];
+    console.error("Failed to update role", e);
+    alert("ロール更新に失敗しました");
+    // Refresh to restore correct state
+    await fetchUsers();
   }
 }
 
@@ -270,76 +232,32 @@ $effect(() => {
               </svg>
             </button>
 
-            {#if editingUserId === user.id}
-              <!-- Editing Mode -->
-              <div class="flex-1 grid grid-cols-12 gap-4 items-center">
-                <!-- Name -->
-                <div class="col-span-3">
-                  <input
-                    type="text"
-                    bind:value={editName}
-                    class="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"
-                  />
-                </div>
-
-                <!-- Role -->
-                <div class="col-span-2">
-                  <select
-                    bind:value={editRoleId}
-                    class="w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"
-                  >
-                    {#each Object.entries(ROLES) as [value, label]}
-                      <option value={Number(value)}>{label}</option>
-                    {/each}
-                  </select>
-                </div>
-
-                <!-- Tags -->
-                <div class="col-span-5">
-                  <div class="flex flex-wrap gap-1">
-                    {#each allTags as tag}
-                      <button
-                        type="button"
-                        onclick={() => toggleTag(tag.id)}
-                        class="px-2 py-1 text-xs rounded {editTagIds.includes(
-                          tag.id
-                        )
-                          ? 'bg-indigo-100 text-indigo-700'
-                          : 'bg-gray-100 text-gray-600'}"
-                      >
-                        {tag.name}
-                      </button>
-                    {/each}
-                  </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="col-span-2 flex gap-2 justify-end">
-                  <button
-                    onclick={() => saveEdit(user.id)}
-                    class="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                  >
-                    保存
-                  </button>
-                  <button
-                    onclick={cancelEdit}
-                    class="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50"
-                  >
-                    キャンセル
-                  </button>
-                </div>
+            <div class="flex-1 grid grid-cols-12 gap-4 items-center">
+              <!-- Name & Email (Link to detail page) -->
+              <div class="col-span-4">
+                <a
+                  href="/users/{user.id}"
+                  class="font-medium text-indigo-600 hover:text-indigo-700 hover:underline"
+                >
+                  {user.name}
+                </a>
+                <div class="text-sm text-gray-500">{user.email}</div>
               </div>
-            {:else}
-              <!-- Display Mode -->
-              <div class="flex-1 grid grid-cols-12 gap-4 items-center">
-                <!-- Name & Email -->
-                <div class="col-span-3">
-                  <div class="font-medium text-gray-900">{user.name}</div>
-                  <div class="text-sm text-gray-500">{user.email}</div>
-                </div>
 
-                <!-- Role -->
-                <div class="col-span-2">
+              <!-- Role Selector (only for owner/admin) -->
+              <div class="col-span-2">
+                {#if canEdit && user.roleId !== 0}
+                  <select
+                    value={user.roleId}
+                    onchange={(e) =>
+                      updateUserRole(user.id, Number(e.currentTarget.value))}
+                    class="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    <!-- Owner role not selectable -->
+                    <option value={1}>Admin</option>
+                    <option value={2}>User</option>
+                  </select>
+                {:else}
                   <span
                     class="px-2 py-1 text-xs font-medium rounded {user.roleId ===
                     0
@@ -350,34 +268,22 @@ $effect(() => {
                   >
                     {ROLES[user.roleId]}
                   </span>
-                </div>
+                {/if}
+              </div>
 
-                <!-- Tags -->
-                <div class="col-span-5">
-                  <div class="flex flex-wrap gap-1">
-                    {#each user.tags as tag}
-                      <span
-                        class="px-2 py-1 text-xs bg-indigo-50 text-indigo-700 rounded"
-                      >
-                        {tag.name}
-                      </span>
-                    {/each}
-                  </div>
-                </div>
-
-                <!-- Edit Button -->
-                <div class="col-span-2 flex justify-end">
-                  {#if canEdit}
-                    <button
-                      onclick={() => startEdit(user)}
-                      class="px-3 py-1.5 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+              <!-- Tags (display only) -->
+              <div class="col-span-6">
+                <div class="flex flex-wrap gap-1">
+                  {#each user.tags as tag}
+                    <span
+                      class="px-2 py-1 text-xs bg-indigo-50 text-indigo-700 rounded"
                     >
-                      編集
-                    </button>
-                  {/if}
+                      {tag.name}
+                    </span>
+                  {/each}
                 </div>
               </div>
-            {/if}
+            </div>
           </div>
 
           <!-- Players (Expanded) -->

@@ -43,7 +43,7 @@ app.post("/", async (c) => {
       email: verifiedUser.email,
     });
 
-    // Supabase User Metadata に teamId を設定
+    // Supabase User Metadata に teamId と roleId を設定
     const supabase = createClient(
       c.env.SUPABASE_URL,
       c.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -52,7 +52,7 @@ app.post("/", async (c) => {
     const { error: updateError } = await supabase.auth.admin.updateUserById(
       verifiedUser.id,
       {
-        app_metadata: { teamId },
+        app_metadata: { teamId, roleId: ROLE_MEMBER },
       },
     );
 

@@ -110,6 +110,15 @@ export class UserRepository {
     return userTags;
   }
 
+  async updateRole(userId: string, roleId: number) {
+    const result = await this.db
+      .update(users)
+      .set({ roleId, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return result[0];
+  }
+
   // biome-ignore lint/suspicious/noExplicitAny: Transaction type is complex
   async updateStatus(id: string, status: number, tx?: any) {
     const executor = tx || this.db;
