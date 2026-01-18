@@ -36,6 +36,12 @@ import UserMenu from "$lib/components/UserMenu.svelte";
         >
           タグ
         </a>
+        <a 
+          href="/labels"
+          class="transition-colors hover:text-foreground/80 {page.url.pathname.startsWith('/labels') ? 'text-foreground' : 'text-foreground/60'}"
+        >
+          ラベル
+        </a>
       </nav>
     </div>
 
@@ -75,6 +81,12 @@ import UserMenu from "$lib/components/UserMenu.svelte";
             class="p-2 {page.url.pathname.startsWith('/tags') ? 'text-primary' : 'text-muted-foreground'}"
           >
             タグ
+          </a>
+          <a 
+            href="/labels"
+            class="p-2 {page.url.pathname.startsWith('/labels') ? 'text-primary' : 'text-muted-foreground'}"
+          >
+            ラベル
           </a>
         </nav>
         <UserMenu />
