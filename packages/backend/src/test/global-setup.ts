@@ -75,6 +75,7 @@ export default async function setup() {
   }
 
   console.log("🔧 Running global test setup...");
+  console.log("Connection string:", connectionString);
 
   // Ensure database exists
   await ensureTestDatabase(connectionString);
@@ -89,17 +90,12 @@ export default async function setup() {
   const db: PostgresJsDatabase<typeof schema> = drizzle(client, { schema });
 
   try {
-    // Run migrations
-    console.log("📦 Running migrations...");
-    await migrate(db, {
-      migrationsFolder: "./drizzle",
-    });
-
-    // Clean all tables
+    // Clean all tables first
     console.log("🧹 Cleaning tables...");
     await db.execute(sql`
-      TRUNCATE TABLE 
+      DROP TABLE IF EXISTS 
         attendances,
+        attendance_statuses,
         taggables,
         events,
         players,
@@ -107,9 +103,26 @@ export default async function setup() {
         tags,
         places,
         users,
-        teams
-      RESTART IDENTITY CASCADE
+        teams,
+        roles
+      CASCADE;
     `);
+
+    console.log("🧹 Dropping types...");
+    await db.execute(sql`
+      DROP TYPE IF EXISTS "taggable_type";
+    `);
+    
+    console.log("🧹 Cleaning migrations...");
+    await db.execute(sql`
+      TRUNCATE TABLE drizzle.__drizzle_migrations;
+    `);
+
+    // Run migrations (will insert system data)
+    console.log("📦 Running migrations...");
+    await migrate(db, {
+      migrationsFolder: "./drizzle",
+    });
 
     // Create test teams
     console.log("👥 Creating test teams...");
