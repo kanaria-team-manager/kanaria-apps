@@ -192,22 +192,42 @@ function goToPage(page: number) {
     </div>
   </div>
 
-  <!-- Filters (Tabs) -->
-  <div class="flex items-center gap-2 border-b border-gray-100 pb-1 overflow-x-auto">
-    <button 
-      onclick={() => handleFilter("")}
-      class="px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap {activeFilterId === "" ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}"
-    >
-      全て
-    </button>
-    {#each gradeTags as tag}
+  <!-- Filters (Tabs) with Items Per Page Selector -->
+  <div class="flex items-center justify-between gap-4 border-b border-gray-100 pb-1">
+    <div class="flex items-center gap-2 overflow-x-auto">
       <button 
-        onclick={() => handleFilter(tag.id)}
-        class="px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap {activeFilterId === tag.id ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}"
+        onclick={() => handleFilter("")}
+        class="px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap {activeFilterId === "" ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}"
       >
-        {tag.name}
+        全て
       </button>
-    {/each}
+      {#each gradeTags as tag}
+        <button 
+          onclick={() => handleFilter(tag.id)}
+          class="px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap {activeFilterId === tag.id ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}"
+        >
+          {tag.name}
+        </button>
+      {/each}
+    </div>
+
+    <!-- Items Per Page Selector -->
+    <div class="flex items-center gap-2 flex-shrink-0">
+      <label for="items-per-page" class="text-sm text-gray-500 whitespace-nowrap">表示件数:</label>
+      <select
+        id="items-per-page"
+        bind:value={itemsPerPage}
+        onchange={() => {
+          currentPage = 1;
+          fetchPlayers();
+        }}
+        class="pl-3 pr-8 py-1.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+      >
+        <option value={10}>10件</option>
+        <option value={50}>50件</option>
+        <option value={100}>100件</option>
+      </select>
+    </div>
   </div>
 
   <!-- Content -->
