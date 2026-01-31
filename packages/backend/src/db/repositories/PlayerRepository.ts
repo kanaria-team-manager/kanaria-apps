@@ -1,4 +1,4 @@
-import { and, eq, ilike, inArray, or } from "drizzle-orm";
+import { and, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import * as schema from "../schemas/index.js";
 
@@ -170,6 +170,98 @@ export class PlayerRepository {
     }
 
     return Array.from(map.values());
+  }
+
+  async findAllWithPagination(
+    teamId: string,
+    options?: {
+      tagIds?: string[];
+      q?: string;
+      page?: number;
+      limit?: number;
+    },
+  ) {
+    const page = options?.page || 1;
+    const limit = options?.limit || 50;
+    const offset = (page - 1) * limit;
+
+    // Sanitize search query to prevent wildcard abuse
+    const sanitizedQ = options?.q?.replace(/[%_]/g, "\\$&");
+
+    // Build where conditions
+    const whereConditions = and(
+      eq(schema.players.teamId, teamId),
+      sanitizedQ
+        ? or(
+            ilike(schema.players.lastName, `%${sanitizedQ}%`),
+            ilike(schema.players.firstName, `%${sanitizedQ}%`),
+          )
+        : undefined,
+      options?.tagIds?.length
+        ? inArray(schema.taggables.tagId, options.tagIds)
+        : undefined,
+    );
+
+    // Get total count
+    const countSubquery = this.db
+      .select({ id: schema.players.id })
+      .from(schema.players)
+      .leftJoin(
+        schema.taggables,
+        and(
+          eq(schema.taggables.taggableId, schema.players.id),
+          eq(schema.taggables.taggableType, "player"),
+        ),
+      )
+      .where(whereConditions)
+      .as("count_subquery");
+
+    const [{ count }] = await this.db
+      .select({ count: sql<number>`count(distinct ${countSubquery.id})` })
+      .from(countSubquery);
+
+    // Get paginated data
+    const rows = await this.db
+      .select({
+        player: schema.players,
+        tag: schema.tags,
+      })
+      .from(schema.players)
+      .leftJoin(
+        schema.taggables,
+        and(
+          eq(schema.taggables.taggableId, schema.players.id),
+          eq(schema.taggables.taggableType, "player"),
+        ),
+      )
+      .leftJoin(schema.tags, eq(schema.tags.id, schema.taggables.tagId))
+      .where(whereConditions)
+      .limit(limit)
+      .offset(offset);
+
+    // Aggregate players with tags
+    const map = new Map();
+    for (const row of rows) {
+      if (!map.has(row.player.id)) {
+        map.set(row.player.id, { ...row.player, tags: [] });
+      }
+      if (row.tag) {
+        map.get(row.player.id).tags.push(row.tag.name);
+      }
+    }
+
+    const data = Array.from(map.values());
+    const totalPages = Math.ceil(count / limit);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total: count,
+        totalPages,
+      },
+    };
   }
 
   async update(id: string, player: Partial<NewPlayer>) {

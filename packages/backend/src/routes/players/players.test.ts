@@ -24,6 +24,7 @@ const mockFindById = vi.fn();
 const mockUpdate = vi.fn();
 const mockUpdateTags = vi.fn();
 const mockFindAll = vi.fn();
+const mockFindAllWithPagination = vi.fn();
 const mockFindBySupabaseId = vi.fn();
 
 // Mock PlayerRepository
@@ -34,6 +35,7 @@ vi.mock("../../db/repositories/PlayerRepository.js", () => ({
     update = mockUpdate;
     updateTags = mockUpdateTags;
     findAll = mockFindAll;
+    findAllWithPagination = mockFindAllWithPagination;
   },
 }));
 
@@ -131,19 +133,25 @@ describe("POST /players", () => {
   it("should list players with tag filter", async () => {
     const mockPlayers = [
       {
-        player: {
-          id: "player_tagged",
-          lastName: "佐藤",
-          firstName: "花子",
-          nickName: null,
-          imageUrl: null,
-          teamId: "team_123",
-        },
-        tag: { id: "tag_123", name: "1年生" },
+        id: "player_tagged",
+        lastName: "佐藤",
+        firstName: "花子",
+        nickName: null,
+        imageUrl: null,
+        teamId: "team_123",
+        tags: ["1年生"],
       },
     ];
 
-    mockFindAll.mockResolvedValue(mockPlayers);
+    mockFindAllWithPagination.mockResolvedValue({
+      data: mockPlayers,
+      pagination: {
+        page: 1,
+        limit: 50,
+        total: 1,
+        totalPages: 1,
+      },
+    });
 
     const app = new Hono();
     app.use("*", async (c, next) => {
@@ -155,24 +163,34 @@ describe("POST /players", () => {
 
     const res = await app.request("/players?tagIds=tag_123");
     expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data).toHaveProperty("data");
+    expect(data).toHaveProperty("pagination");
+    expect(data.data).toHaveLength(1);
   });
 
   it("should search players by name", async () => {
     const mockPlayers = [
       {
-        player: {
-          id: "player_searched",
-          lastName: "検索",
-          firstName: "結果",
-          nickName: null,
-          imageUrl: null,
-          teamId: "team_123",
-        },
-        tag: null,
+        id: "player_searched",
+        lastName: "検索",
+        firstName: "結果",
+        nickName: null,
+        imageUrl: null,
+        teamId: "team_123",
+        tags: [],
       },
     ];
 
-    mockFindAll.mockResolvedValue(mockPlayers);
+    mockFindAllWithPagination.mockResolvedValue({
+      data: mockPlayers,
+      pagination: {
+        page: 1,
+        limit: 50,
+        total: 1,
+        totalPages: 1,
+      },
+    });
 
     const app = new Hono();
     app.use("*", async (c, next) => {
@@ -184,6 +202,9 @@ describe("POST /players", () => {
 
     const res = await app.request("/players?q=検索");
     expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data).toHaveProperty("data");
+    expect(data).toHaveProperty("pagination");
   });
 
   it("should update a player successfully", async () => {

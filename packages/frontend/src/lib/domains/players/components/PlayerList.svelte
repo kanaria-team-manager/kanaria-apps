@@ -2,6 +2,7 @@
 import { apiGet } from "$lib/api/client";
 import { fetchGradeTags } from "$lib/api/master";
 import type { Tag } from "@kanaria/shared";
+import type { UserConfig } from "@kanaria/shared";
 import type { Session } from "@supabase/supabase-js";
 import { onMount } from "svelte";
 import PlayerCard from "./PlayerCard.svelte";
@@ -20,7 +21,17 @@ interface Player {
 type ViewMode = 'card' | 'list';
 
 // Props
-let { initialPlayers = [], session }: { initialPlayers?: Player[], session: Session } = $props();
+let {
+  initialPlayers = [],
+  session,
+  userConfig,
+  initialPagination,
+}: {
+  initialPlayers?: Player[];
+  session: Session;
+  userConfig?: UserConfig;
+  initialPagination?: { page: number; limit: number; total: number; totalPages: number };
+} = $props();
 
 // State
 let players = $state(initialPlayers);
@@ -28,7 +39,11 @@ let searchQuery = $state("");
 let isLoading = $state(false);
 let activeFilterId = $state(""); // Empty string means "All"
 let gradeTags = $state<Tag[]>([]);
-let viewMode = $state<ViewMode>('card');
+let viewMode = $state<ViewMode>(userConfig?.players?.viewMode || 'card');
+let itemsPerPage = $state(userConfig?.players?.itemsPerPage || 50);
+let currentPage = $state(initialPagination?.page || 1);
+let totalPages = $state(initialPagination?.totalPages || 1);
+let total = $state(initialPagination?.total || 0);
 let openMenuId = $state<string | null>(null);
 
 function toggleListMenu(e: Event, playerId: string) {
@@ -67,10 +82,20 @@ async function fetchPlayers() {
   isLoading = true;
   try {
     const params = new URLSearchParams();
+    params.append("page", String(currentPage));
+    params.append("limit", String(itemsPerPage));
     if (searchQuery) params.append("q", searchQuery);
     if (activeFilterId) params.append("tagIds", activeFilterId);
 
-    players = await apiGet<Player[]>(`/players?${params.toString()}`, session?.access_token);
+    const response = await apiGet<{
+      data: Player[];
+      pagination: { page: number; limit: number; total: number; totalPages: number };
+    }>(`/players?${params.toString()}`, session?.access_token);
+
+    players = response.data;
+    totalPages = response.pagination.totalPages;
+    total = response.pagination.total;
+    currentPage = response.pagination.page;
   } catch (err) {
     console.error("Failed to fetch players", err);
   } finally {
@@ -81,6 +106,7 @@ async function fetchPlayers() {
 function handleSearch(e: Event) {
   const target = e.target as HTMLInputElement;
   searchQuery = target.value;
+  currentPage = 1; // Reset to first page
 
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(fetchPlayers, 300);
@@ -88,6 +114,7 @@ function handleSearch(e: Event) {
 
 function handleFilter(tagId: string) {
     activeFilterId = tagId;
+    currentPage = 1; // Reset to first page
     fetchPlayers();
 }
 
@@ -97,6 +124,11 @@ function handleRefresh() {
 
 function toggleViewMode() {
   viewMode = viewMode === 'card' ? 'list' : 'card';
+}
+
+function goToPage(page: number) {
+  currentPage = page;
+  fetchPlayers();
 }
 </script>
 
@@ -311,6 +343,52 @@ function toggleViewMode() {
           検索をクリアする
         </button>
       {/if}
+    </div>
+  {/if}
+
+  <!-- Pagination Controls -->
+  {#if total > 0 && totalPages > 1}
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-6 border-t border-gray-100">
+      <div class="text-sm text-gray-500">
+        全{total}件中 
+        {(currentPage - 1) * itemsPerPage + 1}〜{Math.min(currentPage * itemsPerPage, total)}件を表示
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <button
+          onclick={() => goToPage(Math.max(1, currentPage - 1))}
+          disabled={currentPage === 1}
+          class="px-3 py-1.5 text-sm border border-gray-200 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          前へ
+        </button>
+        
+        <div class="flex gap-1">
+          {#each Array.from({ length: totalPages }, (_, i) => i + 1) as page}
+            {#if page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)}
+              <button
+                onclick={() => goToPage(page)}
+                class="px-3 py-1.5 text-sm rounded-md transition-colors min-w-[2.5rem]
+                  {currentPage === page 
+                    ? 'bg-indigo-600 text-white' 
+                    : 'border border-gray-200 hover:bg-gray-50'}"
+              >
+                {page}
+              </button>
+            {:else if page === currentPage - 2 || page === currentPage + 2}
+              <span class="px-2 py-1.5 text-sm text-gray-400">...</span>
+            {/if}
+          {/each}
+        </div>
+        
+        <button
+          onclick={() => goToPage(Math.min(totalPages, currentPage + 1))}
+          disabled={currentPage === totalPages}
+          class="px-3 py-1.5 text-sm border border-gray-200 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          次へ
+        </button>
+      </div>
     </div>
   {/if}
 
