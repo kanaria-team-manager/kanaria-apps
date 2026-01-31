@@ -72,8 +72,11 @@ const getLabelId = (name: string) =>
 async function fetchEvents() {
     if (!data.session?.access_token) return;
     
-    const start = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-    const end = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
+    // Fetch events from previous month to next month for calendar display
+    // Start: first day of previous month
+    const start = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
+    // End: last day of next month
+    const end = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 2, 0);
     
     const params = new URLSearchParams({
         startDate: start.toISOString(),
