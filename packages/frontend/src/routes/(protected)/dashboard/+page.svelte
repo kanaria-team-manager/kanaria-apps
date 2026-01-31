@@ -5,16 +5,23 @@ import FilterPanel from "$lib/domains/dashboard/components/filter-panel.svelte";
 import ListView from "$lib/domains/dashboard/components/list-view.svelte";
 import Sidebar from "$lib/domains/dashboard/components/sidebar.svelte";
 
-let currentView = $state("calendar");
-let selectedGrades = $state<string[]>([]);
-let selectedTypes = $state<string[]>([]);
+let { data } = $props();
+
+let currentView = $state<"calendar" | "list">(
+  (data.config?.events?.viewMode) ?? "calendar"
+);
+let selectedGrades = $state<string[]>(
+  (data.config?.events?.filterGrades) ?? []
+);
+let selectedTypes = $state<string[]>(
+  (data.config?.events?.filterLabelIds) ?? []
+);
 let selectedDate = $state<Date | null>(null);
 let currentMonth = $state<Date>(new Date());
 let sidebarOpen = $state<boolean>(false);
 let username = $state<string>("");
 
-let { data } = $props();
-let { tags, labels } = data;
+let { tags, labels, config } = data;
 
 // claims から email を取得（user_metadata がない場合のフォールバック）
 $effect(() => {
