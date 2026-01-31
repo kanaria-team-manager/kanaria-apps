@@ -39,8 +39,12 @@ let searchQuery = $state("");
 let isLoading = $state(false);
 let activeFilterId = $state(""); // Empty string means "All"
 let gradeTags = $state<Tag[]>([]);
-let viewMode = $state<ViewMode>(userConfig?.players?.viewMode || 'card');
-let itemsPerPage = $state(userConfig?.players?.itemsPerPage || 50);
+let viewMode = $state<ViewMode>(
+  (userConfig?.players?.viewMode) ?? 'card'
+);
+let itemsPerPage = $state(
+  (userConfig?.players?.itemsPerPage) ?? 50
+);
 let currentPage = $state(initialPagination?.page || 1);
 let totalPages = $state(initialPagination?.totalPages || 1);
 let total = $state(initialPagination?.total || 0);

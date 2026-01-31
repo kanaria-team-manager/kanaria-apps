@@ -45,10 +45,28 @@ export const load: PageServerLoad = async ({ parent, url }) => {
       console.error("Failed to fetch players:", response.status, response.statusText);
     }
 
+    // Merge user config with defaults to ensure all fields are populated
+    const mergedConfig: UserConfig = {
+      events: {
+        ...DEFAULT_USER_CONFIG.events,
+        ...config?.events,
+      },
+      players: {
+        ...DEFAULT_USER_CONFIG.players,
+        ...config?.players,
+      },
+      notifications: {
+        emailTimeRange: {
+          ...DEFAULT_USER_CONFIG.notifications?.emailTimeRange,
+          ...config?.notifications?.emailTimeRange,
+        },
+      },
+    };
+
     return {
       players: playersData.data,
       pagination: playersData.pagination,
-      config: config || DEFAULT_USER_CONFIG,
+      config: mergedConfig,
     };
   } catch (err) {
     console.error("Failed to fetch data:", err);
