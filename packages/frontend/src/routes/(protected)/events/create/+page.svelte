@@ -127,17 +127,23 @@ async function fetchFilteredPlayers() {
     
     // Build query params for multiple tagIds
     const params = new URLSearchParams();
-    selectedTagIds.forEach(id => params.append("tagIds", id));
+    params.append("limit", "1000");
+    for (const id of selectedTagIds) {
+        params.append("tagIds", id);
+    }
     
     try {
-        const players = await apiGet<Player[]>(`/players?${params.toString()}`, session?.access_token);
-        allPlayers = players;
+        const response = await apiGet<{
+            data: Player[];
+            pagination: { page: number; limit: number; total: number; totalPages: number };
+        }>(`/players?${params.toString()}`, session?.access_token);
+        allPlayers = response.data;
         
         // Auto-select newly fetched players with default status
         if (defaultStatusId) {
             const newMap = new Map(selectedAttendances);
             let changed = false;
-            for (const p of players) {
+            for (const p of response.data) {
                 if (!newMap.has(p.id)) {
                     newMap.set(p.id, defaultStatusId);
                     changed = true;
