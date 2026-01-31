@@ -1,4 +1,4 @@
-import { pgTable, smallint, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { jsonb, pgTable, smallint, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { roles } from "./roles";
 import { teams } from "./teams";
 import { USER_STATUS, ulid } from "./utils";
@@ -15,6 +15,7 @@ export const users = pgTable("users", {
   status: smallint("status").default(USER_STATUS.TEMPORARY).notNull(),
   name: text("name").notNull(),
   email: text("email").notNull(),
+  config: jsonb("config"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

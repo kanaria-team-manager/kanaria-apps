@@ -121,4 +121,88 @@ describe("UserRepository", () => {
       expect(updated?.email).toBe("original@example.com");
     });
   });
+
+  describe("updateConfig", () => {
+    it("should update user config", async () => {
+      const userId = ulid();
+      const supabaseUserId = crypto.randomUUID();
+
+      await repository.create({
+        id: userId,
+        supabaseUserId,
+        teamId: TEST_TEAMS.MAIN,
+        roleId: 2,
+        status: 1,
+        name: "Config Test User",
+        email: "config@example.com",
+      });
+
+      const newConfig = {
+        display: {
+          playerSortOrder: "name_asc" as const,
+          calendarViewMode: "list" as const,
+          itemsPerPage: 50,
+          defaultListView: "list" as const,
+        },
+        notifications: {
+          eventNotification: false,
+          emailFrequency: "weekly" as const,
+        },
+      };
+
+      await repository.updateConfig(userId, newConfig);
+
+      const found = await repository.findByIdWithTags(userId);
+      expect(found?.config).toEqual(newConfig);
+    });
+
+    it("should partially update user config", async () => {
+      const userId = ulid();
+      const supabaseUserId = crypto.randomUUID();
+
+      await repository.create({
+        id: userId,
+        supabaseUserId,
+        teamId: TEST_TEAMS.MAIN,
+        roleId: 2,
+        status: 1,
+        name: "Partial Config User",
+        email: "partial@example.com",
+        config: {
+          display: {
+            playerSortOrder: "grade_asc",
+            calendarViewMode: "calendar",
+            itemsPerPage: 20,
+            defaultListView: "card",
+          },
+          notifications: {
+            eventNotification: true,
+            emailFrequency: "daily",
+          },
+        },
+      });
+
+      const partialConfig = {
+        display: {
+          itemsPerPage: 100,
+        },
+      };
+
+      await repository.updateConfig(userId, partialConfig);
+
+      const found = await repository.findByIdWithTags(userId);
+      expect(found?.config).toMatchObject({
+        display: {
+          playerSortOrder: "grade_asc",
+          calendarViewMode: "calendar",
+          itemsPerPage: 100,
+          defaultListView: "card",
+        },
+        notifications: {
+          eventNotification: true,
+          emailFrequency: "daily",
+        },
+      });
+    });
+  });
 });

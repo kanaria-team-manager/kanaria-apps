@@ -1,5 +1,5 @@
 {
-  "id": "8ba76c9d-ca41-4d4d-8fad-5d139e1dc693",
+  "id": "80b1dbdd-1d43-496b-933f-a3e09b27626e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -60,8 +60,12 @@
           "name": "attendance_statuses_team_id_teams_id_fk",
           "tableFrom": "attendance_statuses",
           "tableTo": "teams",
-          "columnsFrom": ["team_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -127,8 +131,12 @@
           "name": "attendances_team_id_teams_id_fk",
           "tableFrom": "attendances",
           "tableTo": "teams",
-          "columnsFrom": ["team_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -136,8 +144,12 @@
           "name": "attendances_event_id_events_id_fk",
           "tableFrom": "attendances",
           "tableTo": "events",
-          "columnsFrom": ["event_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -145,8 +157,12 @@
           "name": "attendances_player_id_players_id_fk",
           "tableFrom": "attendances",
           "tableTo": "players",
-          "columnsFrom": ["player_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "player_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -242,8 +258,12 @@
           "name": "events_owner_id_users_id_fk",
           "tableFrom": "events",
           "tableTo": "users",
-          "columnsFrom": ["owner_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "owner_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -251,8 +271,12 @@
           "name": "events_team_id_teams_id_fk",
           "tableFrom": "events",
           "tableTo": "teams",
-          "columnsFrom": ["team_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -260,8 +284,12 @@
           "name": "events_place_id_places_id_fk",
           "tableFrom": "events",
           "tableTo": "places",
-          "columnsFrom": ["place_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "place_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -269,8 +297,12 @@
           "name": "events_label_id_labels_id_fk",
           "tableFrom": "events",
           "tableTo": "labels",
-          "columnsFrom": ["label_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "label_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -280,12 +312,17 @@
         "events_event_no_unique": {
           "name": "events_event_no_unique",
           "nullsNotDistinct": false,
-          "columns": ["event_no"]
+          "columns": [
+            "event_no"
+          ]
         },
         "events_team_id_event_no_unique": {
           "name": "events_team_id_event_no_unique",
           "nullsNotDistinct": false,
-          "columns": ["team_id", "event_no"]
+          "columns": [
+            "team_id",
+            "event_no"
+          ]
         }
       },
       "policies": {},
@@ -356,8 +393,12 @@
           "name": "labels_team_id_teams_id_fk",
           "tableFrom": "labels",
           "tableTo": "teams",
-          "columnsFrom": ["team_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -423,8 +464,12 @@
           "name": "places_team_id_teams_id_fk",
           "tableFrom": "places",
           "tableTo": "teams",
-          "columnsFrom": ["team_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -502,8 +547,12 @@
           "name": "players_team_id_teams_id_fk",
           "tableFrom": "players",
           "tableTo": "teams",
-          "columnsFrom": ["team_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -511,8 +560,12 @@
           "name": "players_parent_user_id_users_id_fk",
           "tableFrom": "players",
           "tableTo": "users",
-          "columnsFrom": ["parent_user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "parent_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -606,8 +659,12 @@
           "name": "taggables_tag_id_tags_id_fk",
           "tableFrom": "taggables",
           "tableTo": "tags",
-          "columnsFrom": ["tag_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tag_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -615,7 +672,11 @@
       "compositePrimaryKeys": {
         "taggables_tag_id_taggable_type_taggable_id_pk": {
           "name": "taggables_tag_id_taggable_type_taggable_id_pk",
-          "columns": ["tag_id", "taggable_type", "taggable_id"]
+          "columns": [
+            "tag_id",
+            "taggable_type",
+            "taggable_id"
+          ]
         }
       },
       "uniqueConstraints": {},
@@ -685,8 +746,12 @@
           "name": "tags_team_id_teams_id_fk",
           "tableFrom": "tags",
           "tableTo": "teams",
-          "columnsFrom": ["team_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -694,8 +759,12 @@
           "name": "tags_label_id_labels_id_fk",
           "tableFrom": "tags",
           "tableTo": "labels",
-          "columnsFrom": ["label_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "label_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -770,7 +839,9 @@
         "teams_code_unique": {
           "name": "teams_code_unique",
           "nullsNotDistinct": false,
-          "columns": ["code"]
+          "columns": [
+            "code"
+          ]
         }
       },
       "policies": {},
@@ -824,6 +895,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "config": {
+          "name": "config",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -845,8 +922,12 @@
           "name": "users_team_id_teams_id_fk",
           "tableFrom": "users",
           "tableTo": "teams",
-          "columnsFrom": ["team_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -854,8 +935,12 @@
           "name": "users_role_id_roles_id_fk",
           "tableFrom": "users",
           "tableTo": "roles",
-          "columnsFrom": ["role_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "role_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -871,7 +956,12 @@
     "public.taggable_type": {
       "name": "taggable_type",
       "schema": "public",
-      "values": ["event", "player", "team", "user"]
+      "values": [
+        "event",
+        "player",
+        "team",
+        "user"
+      ]
     }
   },
   "schemas": {},

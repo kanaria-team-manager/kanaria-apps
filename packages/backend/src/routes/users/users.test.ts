@@ -363,4 +363,235 @@ describe("User Management API", () => {
       expect(res.status).toBe(403);
     });
   });
+
+  describe("GET /users/:id/config", () => {
+    it("should return user config for own user", async () => {
+      const mockUser = {
+        id: "user_123",
+        supabaseUserId: "supabase_123",
+        teamId: "team_123",
+        config: {
+          display: {
+            playerSortOrder: "name_asc",
+            calendarViewMode: "list",
+            itemsPerPage: 50,
+            defaultListView: "list",
+          },
+          notifications: {
+            eventNotification: false,
+            emailFrequency: "weekly",
+          },
+        },
+        tags: [],
+      };
+
+      vi.spyOn(UserRepository.prototype, "findBySupabaseId").mockResolvedValue({
+        id: "user_123",
+        supabaseUserId: "supabase_123",
+        teamId: "team_123",
+        roleId: 2,
+        status: 1,
+        name: "Test User",
+        email: "test@example.com",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        config: null,
+      });
+      vi.spyOn(UserRepository.prototype, "findByIdWithTags").mockResolvedValue(
+        mockUser,
+      );
+
+      const app = new Hono();
+
+      app.use("*", async (c, next) => {
+        // @ts-expect-error Mocking context
+        c.set("db", {});
+        // @ts-expect-error Mocking user (accessing own config)
+        c.set("user", {
+          id: "supabase_123",
+          app_metadata: { teamId: "team_123", roleId: 2 },
+        });
+        await next();
+      });
+
+      app.route("/users", usersApp);
+
+      const req = new Request("http://localhost/users/user_123/config");
+      const res = await app.fetch(req, { DATABASE_URL: "mock-url" });
+
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data.display.playerSortOrder).toBe("name_asc");
+      expect(data.notifications.eventNotification).toBe(false);
+    });
+
+    it("should return 403 for other user's config", async () => {
+      vi.spyOn(UserRepository.prototype, "findBySupabaseId").mockResolvedValue({
+        id: "user_456",
+        supabaseUserId: "supabase_456",
+        teamId: "team_123",
+        roleId: 2,
+        status: 1,
+        name: "Other User",
+        email: "other@example.com",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        config: null,
+      });
+
+      const app = new Hono();
+
+      app.use("*", async (c, next) => {
+        // @ts-expect-error Mocking context
+        c.set("db", {});
+        // @ts-expect-error Mocking user (trying to access other user's config)
+        c.set("user", {
+          id: "supabase_456",
+          app_metadata: { teamId: "team_123", roleId: 2 },
+        });
+        await next();
+      });
+
+      app.route("/users", usersApp);
+
+      const req = new Request("http://localhost/users/user_123/config");
+      const res = await app.fetch(req, { DATABASE_URL: "mock-url" });
+
+      expect(res.status).toBe(403);
+    });
+  });
+
+  describe("PUT /users/:id/config", () => {
+    it("should update config for own user", async () => {
+      vi.spyOn(UserRepository.prototype, "findBySupabaseId").mockResolvedValue({
+        id: "user_123",
+        supabaseUserId: "supabase_123",
+        teamId: "team_123",
+        roleId: 2,
+        status: 1,
+        name: "Test User",
+        email: "test@example.com",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        config: null,
+      });
+      vi.spyOn(UserRepository.prototype, "updateConfig").mockResolvedValue(
+        undefined,
+      );
+
+      const app = new Hono();
+
+      app.use("*", async (c, next) => {
+        // @ts-expect-error Mocking context
+        c.set("db", {});
+        // @ts-expect-error Mocking user (updating own config)
+        c.set("user", {
+          id: "supabase_123",
+          app_metadata: { teamId: "team_123", roleId: 2 },
+        });
+        await next();
+      });
+
+      app.route("/users", usersApp);
+
+      const req = new Request("http://localhost/users/user_123/config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          display: {
+            itemsPerPage: 100,
+          },
+        }),
+      });
+      const res = await app.fetch(req, { DATABASE_URL: "mock-url" });
+
+      expect(res.status).toBe(200);
+    });
+
+    it("should return 403 for other user's config", async () => {
+      vi.spyOn(UserRepository.prototype, "findBySupabaseId").mockResolvedValue({
+        id: "user_456",
+        supabaseUserId: "supabase_456",
+        teamId: "team_123",
+        roleId: 2,
+        status: 1,
+        name: "Other User",
+        email: "other@example.com",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        config: null,
+      });
+
+      const app = new Hono();
+
+      app.use("*", async (c, next) => {
+        // @ts-expect-error Mocking context
+        c.set("db", {});
+        // @ts-expect-error Mocking user (trying to update other user's config)
+        c.set("user", {
+          id: "supabase_456",
+          app_metadata: { teamId: "team_123", roleId: 2 },
+        });
+        await next();
+      });
+
+      app.route("/users", usersApp);
+
+      const req = new Request("http://localhost/users/user_123/config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          display: {
+            itemsPerPage: 100,
+          },
+        }),
+      });
+      const res = await app.fetch(req, { DATABASE_URL: "mock-url" });
+
+      expect(res.status).toBe(403);
+    });
+
+    it("should return 400 for invalid config", async () => {
+      vi.spyOn(UserRepository.prototype, "findBySupabaseId").mockResolvedValue({
+        id: "user_123",
+        supabaseUserId: "supabase_123",
+        teamId: "team_123",
+        roleId: 2,
+        status: 1,
+        name: "Test User",
+        email: "test@example.com",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        config: null,
+      });
+
+      const app = new Hono();
+
+      app.use("*", async (c, next) => {
+        // @ts-expect-error Mocking context
+        c.set("db", {});
+        // @ts-expect-error Mocking user
+        c.set("user", {
+          id: "supabase_123",
+          app_metadata: { teamId: "team_123", roleId: 2 },
+        });
+        await next();
+      });
+
+      app.route("/users", usersApp);
+
+      const req = new Request("http://localhost/users/user_123/config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          display: {
+            itemsPerPage: 5, // Invalid: below minimum of 10
+          },
+        }),
+      });
+      const res = await app.fetch(req, { DATABASE_URL: "mock-url" });
+
+      expect(res.status).toBe(400);
+    });
+  });
 });

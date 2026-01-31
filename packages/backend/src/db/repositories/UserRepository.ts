@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type { UserConfig } from "@kanaria/shared";
 import type * as schema from "../schema.js";
 import { taggables, tags, users } from "../schema.js";
 
@@ -68,6 +69,40 @@ export class UserRepository {
       .returning();
 
     return updated;
+  }
+
+  async updateConfig(userId: string, config: Partial<UserConfig>) {
+    // Get current config
+    const [current] = await this.db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!current) {
+      throw new Error("User not found");
+    }
+
+    // Deep merge config
+    const currentConfig = (current.config as UserConfig | null) || {};
+    const mergedConfig: UserConfig = {
+      display: {
+        ...(currentConfig.display || {}),
+        ...(config.display || {}),
+      },
+      notifications: {
+        ...(currentConfig.notifications || {}),
+        ...(config.notifications || {}),
+      },
+    };
+
+    await this.db
+      .update(users)
+      .set({
+        config: mergedConfig,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
   }
 
   async updateTags(userId: string, tagIds: string[]) {

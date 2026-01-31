@@ -5,6 +5,7 @@ import { PlayerRepository } from "../../db/repositories/PlayerRepository.js";
 import { UserRepository } from "../../db/repositories/UserRepository.js";
 import { authMiddleware } from "../../middleware/auth.js";
 import type { Bindings, Variables } from "../../types.js";
+import { updateConfigSchema } from "./schema.js";
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
@@ -267,6 +268,56 @@ app.put("/:id/tags", zValidator("json", updateUserTagsSchema), async (c) => {
 
   const updatedTags = await repo.updateTags(userId, tagIds);
   return c.json(updatedTags);
+});
+
+// Get user config
+app.get("/:id/config", async (c) => {
+  const db = c.get("db");
+  const user = c.get("user");
+  const userId = c.req.param("id");
+  const repo = new UserRepository(db);
+
+  // Get current user's ID
+  const currentUser = await repo.findBySupabaseId(user.id);
+  if (!currentUser) {
+    return c.json({ error: "Current user not found" }, 404);
+  }
+
+  // Only allow users to access their own config
+  if (currentUser.id !== userId) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  const userWithTags = await repo.findByIdWithTags(userId);
+  if (!userWithTags) {
+    return c.json({ error: "User not found" }, 404);
+  }
+
+  return c.json(userWithTags.config || {});
+});
+
+// Update user config
+app.put("/:id/config", zValidator("json", updateConfigSchema), async (c) => {
+  const db = c.get("db");
+  const user = c.get("user");
+  const userId = c.req.param("id");
+  const config = c.req.valid("json");
+  const repo = new UserRepository(db);
+
+  // Get current user's ID
+  const currentUser = await repo.findBySupabaseId(user.id);
+  if (!currentUser) {
+    return c.json({ error: "Current user not found" }, 404);
+  }
+
+  // Only allow users to update their own config
+  if (currentUser.id !== userId) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  await repo.updateConfig(userId, config);
+
+  return c.json({ success: true });
 });
 
 export default app;

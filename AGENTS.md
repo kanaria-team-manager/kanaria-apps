@@ -2,7 +2,9 @@
 
 ## プロジェクト概要（Overview）
 
-`/doc/architecture.md`を参照すること。
+- `/doc/architecture.md`を参照すること。
+- `/doc/knowledge.md`を参照すること。
+  - 必要に応じてこのドキュメントは更新すること。
 
 ## コーディング規約（Coding Style Guidelines）
 
