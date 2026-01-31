@@ -1,7 +1,8 @@
 export interface UserConfig {
   events?: {
     viewMode?: "calendar" | "list";
-    filterTagIds?: string[];
+    filterGrades?: string[]; // 学年名の配列 ["小1", "小2", ...]
+    filterLabelIds?: string[]; // ラベルIDの配列
   };
   players?: {
     viewMode?: "card" | "list";
@@ -18,7 +19,8 @@ export interface UserConfig {
 export const DEFAULT_USER_CONFIG: UserConfig = {
   events: {
     viewMode: "calendar",
-    filterTagIds: [],
+    filterGrades: [],
+    filterLabelIds: [],
   },
   players: {
     viewMode: "card",

@@ -1,17 +1,19 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
-import type { Tag } from "$lib/api/types";
+import type { Tag, Label } from "$lib/api/types";
 
 const { data, form } = $props();
 
 // State
 let isSubmitting = $state(false);
-let tagSearch = $state("");
 
 // Config values with defaults
 let eventsViewMode = $state(data.config?.events?.viewMode || "calendar");
-let eventsFilterTagIds = $state<string[]>(
-  data.config?.events?.filterTagIds || [],
+let eventsFilterGrades = $state<string[]>(
+  data.config?.events?.filterGrades || [],
+);
+let eventsFilterLabelIds = $state<string[]>(
+  data.config?.events?.filterLabelIds || [],
 );
 
 let playersViewMode = $state(data.config?.players?.viewMode || "card");
@@ -24,31 +26,34 @@ let notifToHour = $state(
   data.config?.notifications?.emailTimeRange?.toHour ?? 20,
 );
 
-// Tags
+
+// Data from server
 const allTags: Tag[] = data.allTags || [];
-const selectedTags = $derived(
-  allTags.filter((tag) => eventsFilterTagIds.includes(tag.id)),
+const labels: Label[] = data.labels || [];
+
+// Get grade label ID and filter grade tags
+const gradeLabel = $derived(labels.find((l) => l.name === "学年"));
+const gradeTags = $derived(
+  gradeLabel
+    ? allTags.filter((tag) => tag.labelId === gradeLabel.id)
+    : [],
 );
 
-const filteredTags = $derived.by(() => {
-  if (!tagSearch.trim()) return [];
-  const search = tagSearch.toLowerCase();
-  return allTags
-    .filter(
-      (tag) =>
-        tag.name.toLowerCase().includes(search) &&
-        !eventsFilterTagIds.includes(tag.id),
-    )
-    .slice(0, 5);
-});
-
-function addTag(tag: Tag) {
-  eventsFilterTagIds = [...eventsFilterTagIds, tag.id];
-  tagSearch = "";
+// Toggle functions
+function toggleGrade(gradeName: string) {
+  if (eventsFilterGrades.includes(gradeName)) {
+    eventsFilterGrades = eventsFilterGrades.filter((g) => g !== gradeName);
+  } else {
+    eventsFilterGrades = [...eventsFilterGrades, gradeName];
+  }
 }
 
-function removeTag(tagId: string) {
-  eventsFilterTagIds = eventsFilterTagIds.filter((id) => id !== tagId);
+function toggleLabel(labelId: string) {
+  if (eventsFilterLabelIds.includes(labelId)) {
+    eventsFilterLabelIds = eventsFilterLabelIds.filter((id) => id !== labelId);
+  } else {
+    eventsFilterLabelIds = [...eventsFilterLabelIds, labelId];
+  }
 }
 
 // Hours array for select options
@@ -64,14 +69,29 @@ const hours = Array.from({ length: 24 }, (_, i) => i);
     </div>
   {/if}
 
+  <!-- Form Success -->
+  {#if form?.success}
+    <div class="bg-green-50 text-green-700 p-4 rounded-lg mb-6">
+      設定を保存しました
+    </div>
+  {/if}
+
+  <!-- Form Error -->
+  {#if form?.error}
+    <div class="bg-destructive/10 text-destructive p-4 rounded-lg mb-6">
+      {form.error}
+    </div>
+  {/if}
+
   <form
     method="POST"
     action="?/updateConfig"
     use:enhance={() => {
       isSubmitting = true;
       return async ({ update }) => {
-        await update({ invalidateAll: true });
+        await update({ invalidateAll: false, reset: false });
         isSubmitting = false;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       };
     }}
   >
@@ -95,55 +115,65 @@ const hours = Array.from({ length: 24 }, (_, i) => i);
           </select>
         </div>
 
-        <!-- Events Tag Filter -->
+        <!-- Grade Filter -->
         <div class="space-y-2">
           <label class="block text-sm font-medium text-muted-foreground">
-            予定 - フィルター（タグ選択）
+            予定 - 学年フィルター
           </label>
-
-          <!-- Tag search -->
-          <div class="relative">
-            <input
-              type="text"
-              bind:value={tagSearch}
-              class="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
-              placeholder="タグを検索して追加..."
-            />
-
-            {#if filteredTags.length > 0}
-              <div
-                class="absolute z-10 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-48 overflow-auto"
+          <p class="text-xs text-muted-foreground mb-2">
+            選択した学年の予定のみを表示します
+          </p>
+          <div class="flex flex-wrap gap-2">
+            {#each gradeTags as gradeTag}
+              <button
+                type="button"
+                onclick={() => toggleGrade(gradeTag.name)}
+                class="px-3 py-1.5 rounded-full text-sm font-medium transition-all
+                  {eventsFilterGrades.includes(gradeTag.name)
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'bg-secondary text-secondary-foreground hover:bg-hover'}"
               >
-                {#each filteredTags as tag}
-                  <button
-                    type="button"
-                    onclick={() => addTag(tag)}
-                    class="w-full px-3 py-2 text-left hover:bg-accent flex items-center gap-2"
-                  >
-                    <span class="text-primary">+</span>
-                    {tag.name}
-                  </button>
-                {/each}
-              </div>
+                {gradeTag.name}
+              </button>
+            {/each}
+            {#if gradeTags.length === 0}
+              <p class="text-sm text-muted-foreground">学年タグがありません</p>
             {/if}
           </div>
+          <input
+            type="hidden"
+            name="eventsFilterGrades"
+            value={JSON.stringify(eventsFilterGrades)}
+          />
+        </div>
 
-          <!-- Selected tags -->
-          <div class="flex flex-wrap gap-2 min-h-[2rem]">
-            {#each selectedTags as tag (tag.id)}
-              <span
-                class="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm"
+        <!-- Label Filter -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-muted-foreground">
+            予定 - 種類フィルター
+          </label>
+          <p class="text-xs text-muted-foreground mb-2">
+            選択した種類の予定のみを表示します
+          </p>
+          <div class="space-y-2">
+            {#each labels as label}
+              <button
+                type="button"
+                onclick={() => toggleLabel(label.id)}
+                class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all
+                  {eventsFilterLabelIds.includes(label.id)
+                    ? 'bg-accent ring-2 ring-primary'
+                    : 'hover:bg-hover'}"
               >
-                {tag.name}
-                <button
-                  type="button"
-                  onclick={() => removeTag(tag.id)}
-                  class="hover:bg-primary/20 rounded-full p-0.5"
-                  aria-label="タグを削除"
-                >
+                <span
+                  class="w-3 h-3 rounded-full flex-shrink-0"
+                  style="background-color: {label.color}"
+                ></span>
+                <span class="text-sm text-foreground">{label.name}</span>
+                {#if eventsFilterLabelIds.includes(label.id)}
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    class="w-3 h-3"
+                    class="w-4 h-4 ml-auto text-primary flex-shrink-0"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -152,24 +182,20 @@ const hours = Array.from({ length: 24 }, (_, i) => i);
                       stroke-linecap="round"
                       stroke-linejoin="round"
                       stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12"
+                      d="M5 13l4 4L19 7"
                     />
                   </svg>
-                </button>
-              </span>
+                {/if}
+              </button>
             {/each}
-            {#if selectedTags.length === 0}
-              <span class="text-sm text-muted-foreground"
-                >フィルターなし（全て表示）</span
-              >
+            {#if labels.length === 0}
+              <p class="text-sm text-muted-foreground">ラベルがありません</p>
             {/if}
           </div>
-
-          <!-- Hidden input for form submission -->
           <input
             type="hidden"
-            name="eventsFilterTagIds"
-            value={JSON.stringify(eventsFilterTagIds)}
+            name="eventsFilterLabelIds"
+            value={JSON.stringify(eventsFilterLabelIds)}
           />
         </div>
 
@@ -252,19 +278,6 @@ const hours = Array.from({ length: 24 }, (_, i) => i);
       </div>
     </div>
 
-    <!-- Form Error -->
-    {#if form?.error}
-      <div class="bg-destructive/10 text-destructive p-4 rounded-lg mb-4">
-        {form.error}
-      </div>
-    {/if}
-
-    <!-- Form Success -->
-    {#if form?.success}
-      <div class="bg-green-50 text-green-700 p-4 rounded-lg mb-4">
-        設定を保存しました
-      </div>
-    {/if}
 
     <!-- Submit Button -->
     <div class="flex gap-3">

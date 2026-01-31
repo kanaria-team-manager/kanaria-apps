@@ -140,7 +140,8 @@ describe("UserRepository", () => {
       const newConfig = {
         events: {
           viewMode: "list" as const,
-          filterTagIds: ["tag1", "tag2"],
+          filterGrades: ["小1", "小2"],
+          filterLabelIds: ["label-id-1", "label-id-2"],
         },
         players: {
           viewMode: "list" as const,
@@ -175,7 +176,8 @@ describe("UserRepository", () => {
         config: {
           events: {
             viewMode: "calendar",
-            filterTagIds: [],
+            filterGrades: [],
+            filterLabelIds: [],
           },
           players: {
             viewMode: "card",
@@ -202,7 +204,8 @@ describe("UserRepository", () => {
       expect(found?.config).toMatchObject({
         events: {
           viewMode: "calendar",
-          filterTagIds: [],
+          filterGrades: [],
+          filterLabelIds: [],
         },
         players: {
           viewMode: "card",

@@ -4,7 +4,8 @@ export const updateConfigSchema = z.object({
   events: z
     .object({
       viewMode: z.enum(["calendar", "list"]).optional(),
-      filterTagIds: z.array(z.string()).optional(),
+      filterGrades: z.array(z.string()).optional(),
+      filterLabelIds: z.array(z.string()).optional(),
     })
     .optional(),
   players: z

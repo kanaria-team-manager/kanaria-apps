@@ -3,27 +3,38 @@ import type { Actions, PageServerLoad } from "./$types";
 import type { UserConfig } from "@kanaria/shared";
 import { DEFAULT_USER_CONFIG } from "@kanaria/shared";
 import { apiGet, apiPut } from "$lib/api/client";
-import type { Tag } from "$lib/api/types";
+import type { Tag, Label } from "$lib/api/types";
 
 export const load: PageServerLoad = async ({ fetch, locals }) => {
   const { session } = await locals.safeGetSession();
   const accessToken = session?.access_token;
 
   if (!accessToken) {
-    return { config: DEFAULT_USER_CONFIG, allTags: [], error: "認証が必要です" };
+    return {
+      config: DEFAULT_USER_CONFIG,
+      allTags: [],
+      labels: [],
+      error: "認証が必要です",
+    };
   }
 
   try {
-    const [config, allTags] = await Promise.all([
+    const [config, allTags, labels] = await Promise.all([
       apiGet<UserConfig>("/users/me/settings", accessToken, { fetch }),
       apiGet<Tag[]>("/tags", accessToken, { fetch }),
+      apiGet<Label[]>("/labels", accessToken, { fetch }),
     ]);
-    return { config: config || DEFAULT_USER_CONFIG, allTags: allTags || [] };
+    return {
+      config: config || DEFAULT_USER_CONFIG,
+      allTags: allTags || [],
+      labels: labels || [],
+    };
   } catch (e) {
     console.error("Failed to load user config:", e);
     return {
       config: DEFAULT_USER_CONFIG,
       allTags: [],
+      labels: [],
       error: "設定の取得に失敗しました",
     };
   }
@@ -45,17 +56,23 @@ export const actions: Actions = {
 
     // Events settings
     const eventsViewMode = formData.get("eventsViewMode") as string | null;
-    const eventsFilterTagIds = formData.get("eventsFilterTagIds") as
+    const eventsFilterGrades = formData.get("eventsFilterGrades") as
+      | string
+      | null;
+    const eventsFilterLabelIds = formData.get("eventsFilterLabelIds") as
       | string
       | null;
 
-    if (eventsViewMode || eventsFilterTagIds) {
+    if (eventsViewMode || eventsFilterGrades || eventsFilterLabelIds) {
       config.events = {};
       if (eventsViewMode) {
         config.events.viewMode = eventsViewMode as "calendar" | "list";
       }
-      if (eventsFilterTagIds) {
-        config.events.filterTagIds = JSON.parse(eventsFilterTagIds);
+      if (eventsFilterGrades) {
+        config.events.filterGrades = JSON.parse(eventsFilterGrades);
+      }
+      if (eventsFilterLabelIds) {
+        config.events.filterLabelIds = JSON.parse(eventsFilterLabelIds);
       }
     }
 
