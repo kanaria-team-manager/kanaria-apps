@@ -1,18 +1,28 @@
 import { z } from "zod";
 
 export const updateConfigSchema = z.object({
-  display: z
+  events: z
     .object({
-      playerSortOrder: z.enum(["grade_asc", "name_asc"]).optional(),
-      calendarViewMode: z.enum(["calendar", "list"]).optional(),
-      itemsPerPage: z.number().int().min(10).max(100).optional(),
-      defaultListView: z.enum(["card", "list"]).optional(),
+      viewMode: z.enum(["calendar", "list"]).optional(),
+      filterTagIds: z.array(z.string()).optional(),
+    })
+    .optional(),
+  players: z
+    .object({
+      viewMode: z.enum(["card", "list"]).optional(),
+      itemsPerPage: z
+        .union([z.literal(10), z.literal(50), z.literal(100)])
+        .optional(),
     })
     .optional(),
   notifications: z
     .object({
-      eventNotification: z.boolean().optional(),
-      emailFrequency: z.enum(["daily", "weekly", "none"]).optional(),
+      emailTimeRange: z
+        .object({
+          fromHour: z.number().int().min(0).max(23).optional(),
+          toHour: z.number().int().min(0).max(23).optional(),
+        })
+        .optional(),
     })
     .optional(),
 });

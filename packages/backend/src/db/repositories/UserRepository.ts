@@ -86,13 +86,19 @@ export class UserRepository {
     // Deep merge config
     const currentConfig = (current.config as UserConfig | null) || {};
     const mergedConfig: UserConfig = {
-      display: {
-        ...(currentConfig.display || {}),
-        ...(config.display || {}),
+      events: {
+        ...(currentConfig.events || {}),
+        ...(config.events || {}),
+      },
+      players: {
+        ...(currentConfig.players || {}),
+        ...(config.players || {}),
       },
       notifications: {
-        ...(currentConfig.notifications || {}),
-        ...(config.notifications || {}),
+        emailTimeRange: {
+          ...(currentConfig.notifications?.emailTimeRange || {}),
+          ...(config.notifications?.emailTimeRange || {}),
+        },
       },
     };
 

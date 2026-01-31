@@ -584,8 +584,8 @@ describe("User Management API", () => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          display: {
-            itemsPerPage: 5, // Invalid: below minimum of 10
+          players: {
+            itemsPerPage: 5, // Invalid: not 10, 50, or 100
           },
         }),
       });

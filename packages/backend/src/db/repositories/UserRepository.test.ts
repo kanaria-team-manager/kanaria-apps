@@ -138,15 +138,19 @@ describe("UserRepository", () => {
       });
 
       const newConfig = {
-        display: {
-          playerSortOrder: "name_asc" as const,
-          calendarViewMode: "list" as const,
-          itemsPerPage: 50,
-          defaultListView: "list" as const,
+        events: {
+          viewMode: "list" as const,
+          filterTagIds: ["tag1", "tag2"],
+        },
+        players: {
+          viewMode: "list" as const,
+          itemsPerPage: 100 as const,
         },
         notifications: {
-          eventNotification: false,
-          emailFrequency: "weekly" as const,
+          emailTimeRange: {
+            fromHour: 8,
+            toHour: 18,
+          },
         },
       };
 
@@ -169,22 +173,26 @@ describe("UserRepository", () => {
         name: "Partial Config User",
         email: "partial@example.com",
         config: {
-          display: {
-            playerSortOrder: "grade_asc",
-            calendarViewMode: "calendar",
-            itemsPerPage: 20,
-            defaultListView: "card",
+          events: {
+            viewMode: "calendar",
+            filterTagIds: [],
+          },
+          players: {
+            viewMode: "card",
+            itemsPerPage: 50,
           },
           notifications: {
-            eventNotification: true,
-            emailFrequency: "daily",
+            emailTimeRange: {
+              fromHour: 7,
+              toHour: 20,
+            },
           },
         },
       });
 
       const partialConfig = {
-        display: {
-          itemsPerPage: 100,
+        players: {
+          itemsPerPage: 100 as const,
         },
       };
 
@@ -192,15 +200,19 @@ describe("UserRepository", () => {
 
       const found = await repository.findByIdWithTags(userId);
       expect(found?.config).toMatchObject({
-        display: {
-          playerSortOrder: "grade_asc",
-          calendarViewMode: "calendar",
+        events: {
+          viewMode: "calendar",
+          filterTagIds: [],
+        },
+        players: {
+          viewMode: "card",
           itemsPerPage: 100,
-          defaultListView: "card",
         },
         notifications: {
-          eventNotification: true,
-          emailFrequency: "daily",
+          emailTimeRange: {
+            fromHour: 7,
+            toHour: 20,
+          },
         },
       });
     });

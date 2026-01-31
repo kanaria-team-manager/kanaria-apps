@@ -320,4 +320,40 @@ app.put("/:id/config", zValidator("json", updateConfigSchema), async (c) => {
   return c.json({ success: true });
 });
 
+// Get current user settings
+app.get("/me/settings", async (c) => {
+  const db = c.get("db");
+  const user = c.get("user");
+  const repo = new UserRepository(db);
+
+  const currentUser = await repo.findBySupabaseId(user.id);
+  if (!currentUser) {
+    return c.json({ error: "User not found" }, 404);
+  }
+
+  const userWithTags = await repo.findByIdWithTags(currentUser.id);
+  if (!userWithTags) {
+    return c.json({ error: "User not found" }, 404);
+  }
+
+  return c.json(userWithTags.config || {});
+});
+
+// Update current user settings
+app.put("/me/settings", zValidator("json", updateConfigSchema), async (c) => {
+  const db = c.get("db");
+  const user = c.get("user");
+  const config = c.req.valid("json");
+  const repo = new UserRepository(db);
+
+  const currentUser = await repo.findBySupabaseId(user.id);
+  if (!currentUser) {
+    return c.json({ error: "User not found" }, 404);
+  }
+
+  await repo.updateConfig(currentUser.id, config);
+
+  return c.json({ success: true });
+});
+
 export default app;
