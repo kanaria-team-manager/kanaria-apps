@@ -29,20 +29,12 @@ const icons: Record<IconKey, string> = {
 
 <aside class="fixed left-0 top-0 z-50 h-screen w-64 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
   <div class="flex h-full flex-col">
-    <!-- Logo / Header with User Menu -->
+    <!-- Logo / Header -->
     <div class="flex h-14 items-center justify-between border-b px-4">
       <a href="/dashboard" class="flex items-center space-x-2 font-bold text-lg">
         <span class="text-primary">Kanaria</span>
       </a>
-      <UserMenu />
     </div>
-
-    <!-- User info below header -->
-    {#if userName}
-      <div class="border-b px-4 py-3">
-        <p class="truncate text-sm font-medium text-muted-foreground">{userName}</p>
-      </div>
-    {/if}
 
     <!-- Navigation -->
     <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4">
@@ -70,5 +62,11 @@ const icons: Record<IconKey, string> = {
         </a>
       {/each}
     </nav>
+
+    <!-- User info / Footer -->
+    <div class="border-t px-4 py-3 flex items-center justify-between gap-2">
+      <p class="truncate text-sm font-medium text-muted-foreground">{userName}</p>
+      <UserMenu direction="up" />
+    </div>
   </div>
 </aside>

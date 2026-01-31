@@ -12,10 +12,10 @@ let {
 } = $props();
 </script>
 
-<!-- Overlay for mobile -->
+<!-- Overlay for all screen sizes -->
 {#if open}
   <div 
-    class="fixed inset-0 bg-foreground/20 z-40 lg:hidden"
+    class="fixed inset-0 bg-foreground/20 z-40"
     role="button"
     tabindex="0"
     aria-label="Close sidebar"
@@ -25,15 +25,15 @@ let {
 {/if}
 
 <aside class="
-  fixed lg:sticky top-0 left-0 z-50 lg:z-0
-  w-72 h-screen lg:h-[calc(100vh-61px)]
+  fixed top-0 left-0 z-50
+  w-72 h-screen
   bg-card border-r border-border
   transform transition-transform duration-300 ease-in-out
-  {open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+  {open ? 'translate-x-0' : '-translate-x-full'}
   overflow-y-auto
 ">
-  <div class="p-4 lg:pt-6">
-    <div class="flex items-center justify-between mb-6 lg:hidden">
+  <div class="p-4 pt-6">
+    <div class="flex items-center justify-between mb-6">
       <h2 class="font-semibold text-foreground">フィルター</h2>
       <button onclick={() => open = false} class="p-1 rounded hover:bg-hover" aria-label="Close sidebar">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
