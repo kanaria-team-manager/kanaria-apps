@@ -42,25 +42,25 @@ describe("+layout.svelte", () => {
     render: () => '<div data-testid="child">Child Content</div>',
   }));
 
-  it("should render GlobalHeader on private routes (/dashboard)", async () => {
+  it("should render Sidebar on private routes (/dashboard)", async () => {
     mockPage.url = new URL("http://localhost/dashboard");
     mockPage.route = { id: "/dashboard" };
 
     render(Layout, { children: childrenSnippet });
 
-    // Check for header content
+    // Check for sidebar content
     const header = page.getByRole("banner"); // header tag has banner role? or check text
     const kanariaText = page.getByText("Kanaria");
     await expect.element(kanariaText.first()).toBeInTheDocument();
   });
 
-  it("should NOT render GlobalHeader on public routes (/auth/login)", async () => {
+  it("should NOT render Sidebar on public routes (/auth/login)", async () => {
     mockPage.url = new URL("http://localhost/auth/login");
     mockPage.route = { id: "/auth/login" };
 
     render(Layout, { children: childrenSnippet });
 
-    // Check absence of header content
+    // Check absence of sidebar content
     const kanariaText = page.getByText("Kanaria");
     await expect.element(kanariaText).not.toBeInTheDocument();
   });

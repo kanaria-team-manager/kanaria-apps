@@ -3,13 +3,13 @@ import "./layout.css";
 import "../app.css";
 import { page } from "$app/state";
 import favicon from "$lib/assets/favicon.svg";
-import GlobalHeader from "$lib/components/GlobalHeader.svelte";
+import Sidebar from "$lib/components/Sidebar.svelte";
 
 let { children } = $props();
 
-// Header shown on these routes
+// Sidebar shown on these routes
 const privateRoutes = ["/dashboard", "/players", "/places", "/event", "/events", "/user", "/tags", "/labels"];
-let shouldShowHeader = $derived(
+let shouldShowSidebar = $derived(
   privateRoutes.some((route) => page.url.pathname.startsWith(route)),
 );
 </script>
@@ -18,8 +18,11 @@ let shouldShowHeader = $derived(
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-{#if shouldShowHeader}
-<GlobalHeader />
-{/if}
-
+{#if shouldShowSidebar}
+<Sidebar />
+<div class="ml-64">
+  {@render children()}
+</div>
+{:else}
 {@render children()}
+{/if}
