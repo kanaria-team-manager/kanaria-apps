@@ -188,8 +188,8 @@ export class PlayerRepository {
     // Sanitize search query to prevent wildcard abuse
     const sanitizedQ = options?.q?.replace(/[%_]/g, "\\$&");
 
-    // Build where conditions
-    const whereConditions = and(
+    // Build where conditions for filtering
+    const playerFilter = and(
       eq(schema.players.teamId, teamId),
       sanitizedQ
         ? or(
@@ -197,71 +197,154 @@ export class PlayerRepository {
             ilike(schema.players.firstName, `%${sanitizedQ}%`),
           )
         : undefined,
-      options?.tagIds?.length
-        ? inArray(schema.taggables.tagId, options.tagIds)
-        : undefined,
     );
 
-    // Get total count
-    const countSubquery = this.db
+    // Count query - need to count distinct players
+    let countQuery = this.db
       .select({ id: schema.players.id })
       .from(schema.players)
-      .leftJoin(
-        schema.taggables,
-        and(
-          eq(schema.taggables.taggableId, schema.players.id),
-          eq(schema.taggables.taggableType, "player"),
-        ),
-      )
-      .where(whereConditions)
-      .as("count_subquery");
+      .where(playerFilter);
 
-    const [{ count }] = await this.db
-      .select({ count: sql<number>`count(distinct ${countSubquery.id})` })
-      .from(countSubquery);
+    // If filtering by tags, need to join to get accurate count
+    if (options?.tagIds?.length) {
+      const countSubquery = this.db
+        .select({ id: schema.players.id })
+        .from(schema.players)
+        .leftJoin(
+          schema.taggables,
+          and(
+            eq(schema.taggables.taggableId, schema.players.id),
+            eq(schema.taggables.taggableType, "player"),
+          ),
+        )
+        .where(
+          and(
+            playerFilter,
+            inArray(schema.taggables.tagId, options.tagIds),
+          ),
+        )
+        .as("count_subquery");
 
-    // Get paginated data
-    const rows = await this.db
-      .select({
-        player: schema.players,
-        tag: schema.tags,
-      })
-      .from(schema.players)
-      .leftJoin(
-        schema.taggables,
-        and(
-          eq(schema.taggables.taggableId, schema.players.id),
-          eq(schema.taggables.taggableType, "player"),
-        ),
-      )
-      .leftJoin(schema.tags, eq(schema.tags.id, schema.taggables.tagId))
-      .where(whereConditions)
-      .limit(limit)
-      .offset(offset);
+      const [{ count }] = await this.db
+        .select({ count: sql<number>`count(distinct ${countSubquery.id})` })
+        .from(countSubquery);
 
-    // Aggregate players with tags
-    const map = new Map();
-    for (const row of rows) {
-      if (!map.has(row.player.id)) {
-        map.set(row.player.id, { ...row.player, tags: [] });
-      }
-      if (row.tag) {
-        map.get(row.player.id).tags.push(row.tag.name);
-      }
+      const totalPages = Math.ceil(count / limit);
+
+      // Main query with GROUP BY and ORDER BY
+      const rows = await this.db
+        .select({
+          id: schema.players.id,
+          lastName: schema.players.lastName,
+          firstName: schema.players.firstName,
+          nickName: schema.players.nickName,
+          imageUrl: schema.players.imageUrl,
+          teamId: schema.players.teamId,
+          parentUserId: schema.players.parentUserId,
+          // Aggregate tags into array, then convert to text array
+          tags: sql<string[]>`array_agg(${schema.tags.name}) filter (where ${schema.tags.name} is not null)`,
+          // Get first tag for sorting (assumes it's the grade tag)
+          gradeTag: sql<string>`(array_agg(${schema.tags.name}) filter (where ${schema.tags.name} is not null))[1]`,
+        })
+        .from(schema.players)
+        .leftJoin(
+          schema.taggables,
+          and(
+            eq(schema.taggables.taggableId, schema.players.id),
+            eq(schema.taggables.taggableType, "player"),
+          ),
+        )
+        .leftJoin(schema.tags, eq(schema.tags.id, schema.taggables.tagId))
+        .where(
+          and(
+            playerFilter,
+            inArray(schema.taggables.tagId, options.tagIds),
+          ),
+        )
+        .groupBy(schema.players.id)
+        .orderBy(
+          sql`(array_agg(${schema.tags.name}) filter (where ${schema.tags.name} is not null))[1]`,
+          sql`coalesce(${schema.players.nickName}, ${schema.players.lastName} || ${schema.players.firstName})`,
+        )
+        .limit(limit)
+        .offset(offset);
+
+      return {
+        data: rows.map(row => ({
+          id: row.id,
+          lastName: row.lastName,
+          firstName: row.firstName,
+          nickName: row.nickName,
+          imageUrl: row.imageUrl,
+          teamId: row.teamId,
+          parentUserId: row.parentUserId,
+          tags: row.tags || [],
+        })),
+        pagination: {
+          page,
+          limit,
+          total: count,
+          totalPages,
+        },
+      };
+    } else {
+      // No tag filter - simpler query
+      const [{ count }] = await this.db
+        .select({ count: sql<number>`count(*)` })
+        .from(schema.players)
+        .where(playerFilter);
+
+      const totalPages = Math.ceil(count / limit);
+
+      const rows = await this.db
+        .select({
+          id: schema.players.id,
+          lastName: schema.players.lastName,
+          firstName: schema.players.firstName,
+          nickName: schema.players.nickName,
+          imageUrl: schema.players.imageUrl,
+          teamId: schema.players.teamId,
+          parentUserId: schema.players.parentUserId,
+          tags: sql<string[]>`array_agg(${schema.tags.name}) filter (where ${schema.tags.name} is not null)`,
+          gradeTag: sql<string>`(array_agg(${schema.tags.name}) filter (where ${schema.tags.name} is not null))[1]`,
+        })
+        .from(schema.players)
+        .leftJoin(
+          schema.taggables,
+          and(
+            eq(schema.taggables.taggableId, schema.players.id),
+            eq(schema.taggables.taggableType, "player"),
+          ),
+        )
+        .leftJoin(schema.tags, eq(schema.tags.id, schema.taggables.tagId))
+        .where(playerFilter)
+        .groupBy(schema.players.id)
+        .orderBy(
+          sql`(array_agg(${schema.tags.name}) filter (where ${schema.tags.name} is not null))[1]`,
+          sql`coalesce(${schema.players.nickName}, ${schema.players.lastName} || ${schema.players.firstName})`,
+        )
+        .limit(limit)
+        .offset(offset);
+
+      return {
+        data: rows.map(row => ({
+          id: row.id,
+          lastName: row.lastName,
+          firstName: row.firstName,
+          nickName: row.nickName,
+          imageUrl: row.imageUrl,
+          teamId: row.teamId,
+          parentUserId: row.parentUserId,
+          tags: row.tags || [],
+        })),
+        pagination: {
+          page,
+          limit,
+          total: count,
+          totalPages,
+        },
+      };
     }
-
-    const data = Array.from(map.values());
-    const totalPages = Math.ceil(count / limit);
-
-    return {
-      data,
-      pagination: {
-        page,
-        limit,
-        total: count,
-        totalPages,
-      },
-    };
   }
 
   async update(id: string, player: Partial<NewPlayer>) {

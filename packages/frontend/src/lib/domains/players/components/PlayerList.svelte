@@ -37,7 +37,7 @@ let {
 let players = $state(initialPlayers);
 let searchQuery = $state("");
 let isLoading = $state(false);
-let activeFilterId = $state(""); // Empty string means "All"
+let selectedGrades = $state<string[]>([]); // Empty array means "All"
 let gradeTags = $state<Tag[]>([]);
 let viewMode = $state<ViewMode>(
   (userConfig?.players?.viewMode) ?? 'card'
@@ -89,7 +89,16 @@ async function fetchPlayers() {
     params.append("page", String(currentPage));
     params.append("limit", String(itemsPerPage));
     if (searchQuery) params.append("q", searchQuery);
-    if (activeFilterId) params.append("tagIds", activeFilterId);
+    
+    // Add selected grade tag IDs to params
+    if (selectedGrades.length > 0) {
+      const gradeTagIds = gradeTags
+        .filter(tag => selectedGrades.includes(tag.name))
+        .map(tag => tag.id);
+      for (const id of gradeTagIds) {
+        params.append("tagIds", id);
+      }
+    }
 
     const response = await apiGet<{
       data: Player[];
@@ -116,10 +125,21 @@ function handleSearch(e: Event) {
   searchTimeout = setTimeout(fetchPlayers, 300);
 }
 
-function handleFilter(tagId: string) {
-    activeFilterId = tagId;
-    currentPage = 1; // Reset to first page
-    fetchPlayers();
+function toggleGrade(gradeName: string) {
+  if (selectedGrades.includes(gradeName)) {
+    selectedGrades = selectedGrades.filter(g => g !== gradeName);
+  } else {
+    selectedGrades = [...selectedGrades, gradeName];
+  }
+  currentPage = 1; // Reset to first page
+  fetchPlayers();
+}
+
+function clearFilters() {
+  selectedGrades = [];
+  searchQuery = "";
+  currentPage = 1;
+  fetchPlayers();
 }
 
 function handleRefresh() {
@@ -192,41 +212,59 @@ function goToPage(page: number) {
     </div>
   </div>
 
-  <!-- Filters (Tabs) with Items Per Page Selector -->
-  <div class="flex items-center justify-between gap-4 border-b border-gray-100 pb-1">
-    <div class="flex items-center gap-2 overflow-x-auto">
-      <button 
-        onclick={() => handleFilter("")}
-        class="px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap {activeFilterId === "" ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}"
-      >
-        全て
-      </button>
-      {#each gradeTags as tag}
-        <button 
-          onclick={() => handleFilter(tag.id)}
-          class="px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap {activeFilterId === tag.id ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}"
+  <!-- Filters (Toggle) with Items Per Page Selector -->
+  <div class="bg-white rounded-xl border border-gray-100 p-4 mb-6 shadow-sm">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-sm font-semibold text-gray-900 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+        </svg>
+        学年フィルター
+      </h3>
+      {#if selectedGrades.length > 0}
+        <button
+          onclick={clearFilters}
+          class="text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
         >
-          {tag.name}
+          クリア
         </button>
-      {/each}
+      {/if}
     </div>
+    
+    <div class="flex items-center justify-between gap-4">
+      <div class="flex flex-wrap gap-2">
+        {#each gradeTags as tag}
+          <button
+            onclick={() => toggleGrade(tag.name)}
+            class="
+              px-3 py-1.5 rounded-full text-sm font-medium transition-all
+              {selectedGrades.includes(tag.name)
+                ? 'bg-indigo-600 text-white shadow-sm hover:bg-indigo-700'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}
+            "
+          >
+            {tag.name}
+          </button>
+        {/each}
+      </div>
 
-    <!-- Items Per Page Selector -->
-    <div class="flex items-center gap-2 flex-shrink-0">
-      <label for="items-per-page" class="text-sm text-gray-500 whitespace-nowrap">表示件数:</label>
-      <select
-        id="items-per-page"
-        bind:value={itemsPerPage}
-        onchange={() => {
-          currentPage = 1;
-          fetchPlayers();
-        }}
-        class="pl-3 pr-8 py-1.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-      >
-        <option value={10}>10件</option>
-        <option value={50}>50件</option>
-        <option value={100}>100件</option>
-      </select>
+      <!-- Items Per Page Selector -->
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <label for="items-per-page" class="text-sm text-gray-500 whitespace-nowrap">表示件数:</label>
+        <select
+          id="items-per-page"
+          bind:value={itemsPerPage}
+          onchange={() => {
+            currentPage = 1;
+            fetchPlayers();
+          }}
+          class="pl-3 pr-8 py-1.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+        >
+          <option value={10}>10件</option>
+          <option value={50}>50件</option>
+          <option value={100}>100件</option>
+        </select>
+      </div>
     </div>
   </div>
 
