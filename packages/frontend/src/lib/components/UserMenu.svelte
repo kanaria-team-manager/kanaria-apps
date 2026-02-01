@@ -4,25 +4,27 @@ import { logout } from "$lib/domains/auth/logout";
 let isOpen = $state(false);
 let isLoggingOut = $state(false);
 
-function toggleMenu() {
-  isOpen = !isOpen;
-}
+  let { direction = "down" }: { direction?: "up" | "down" } = $props();
 
-function closeMenu() {
-  isOpen = false;
-}
-
-async function handleLogout() {
-  isLoggingOut = true;
-  try {
-    await logout();
-  } catch (err) {
-    console.error("Logout failed:", err);
-  } finally {
-    isLoggingOut = false;
-    closeMenu();
+  function toggleMenu() {
+    isOpen = !isOpen;
   }
-}
+
+  function closeMenu() {
+    isOpen = false;
+  }
+
+  async function handleLogout() {
+    isLoggingOut = true;
+    try {
+      await logout();
+    } catch (err) {
+      console.error("Logout failed:", err);
+    } finally {
+      isLoggingOut = false;
+      closeMenu();
+    }
+  }
 </script>
 
 <svelte:window onclick={(e) => {
@@ -57,7 +59,7 @@ async function handleLogout() {
   <!-- Dropdown Menu -->
   {#if isOpen}
     <div 
-      class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+      class="absolute right-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 {direction === 'up' ? 'bottom-full mb-2' : 'mt-2'}"
     >
       <!-- User -->
       <a

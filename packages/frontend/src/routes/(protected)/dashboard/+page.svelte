@@ -153,47 +153,43 @@ function handleDateSelect(date: Date) {
 </script>
 
 <div class="min-h-screen bg-background text-foreground">
- 
-  <div class="flex">
-    <Sidebar 
-      bind:open={sidebarOpen}
-      {grades}
-      {eventTypes}
-      {labelStats}
-      {selectedGrades}
-      {selectedTypes}
-      {toggleGrade}
-      {toggleType}
-      {clearFilters}
-    />
-    
-    <main class="flex-1 p-4 md:p-6 lg:p-8">
-      <div class="max-w-7xl mx-auto">
-        <FilterPanel 
-          bind:currentView
-          bind:currentMonth
-          {selectedGrades}
-          {selectedTypes}
+  <Sidebar 
+    bind:open={sidebarOpen}
+    {grades}
+    {eventTypes}
+    {labelStats}
+    {selectedGrades}
+    {selectedTypes}
+    {toggleGrade}
+    {toggleType}
+    {clearFilters}
+  />
+  
+  <main class="p-4 md:p-6 lg:p-8">
+    <div class="max-w-7xl mx-auto">
+      <FilterPanel 
+        bind:currentView
+        bind:currentMonth
+        {selectedGrades}
+        {selectedTypes}
+        {selectedDate}
+        {clearFilters}
+        {eventTypes}
+        toggleSidebar={() => (sidebarOpen = !sidebarOpen)}
+      />
+      
+      <!-- Access filteredEvents as value, not function -->
+      {#if currentView === 'calendar'}
+        <CalendarView 
+          events={filteredEvents}
+          {currentMonth}
+          {handleDateSelect}
           {selectedDate}
-          {clearFilters}
           {eventTypes}
-          toggleSidebar={() => (sidebarOpen = !sidebarOpen)}
         />
-        
-        <!-- Access filteredEvents as value, not function -->
-        {#if currentView === 'calendar'}
-          <CalendarView 
-            events={filteredEvents}
-            {currentMonth}
-            {handleDateSelect}
-            {selectedDate}
-            {eventTypes}
-          />
-        {:else}
-          <ListView events={filteredEvents} {eventTypes} />
-        {/if}
-      </div>
-    </main>
-  </div>
+      {:else}
+        <ListView events={filteredEvents} {eventTypes} />
+      {/if}
+    </div>
+  </main>
 </div>
-

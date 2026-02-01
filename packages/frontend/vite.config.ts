@@ -1,36 +1,25 @@
 import { sveltekit } from "@sveltejs/kit/vite";
 import tailwindcss from "@tailwindcss/vite";
-import { playwright } from "@vitest/browser-playwright";
+
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [tailwindcss(), sveltekit()],
   test: {
     expect: { requireAssertions: true },
-    projects: [
-      {
-        extends: "./vite.config.ts",
-        test: {
-          name: "client",
-          browser: {
-            enabled: true,
-            provider: playwright(),
-            instances: [{ browser: "chromium", headless: true }],
-          },
-          include: ["src/**/*.svelte.{test,spec}.{js,ts}"],
-          exclude: ["src/lib/server/**"],
-        },
+    environment: "jsdom",
+    include: ["src/**/*.{test,spec}.{js,ts}"],
+    exclude: ["src/lib/server/**", "src/**/*.server.{test,spec}.{js,ts}"],
+    setupFiles: ["./src/vitest-setup.ts"],
+    server: {
+      deps: {
+        inline: ["@sveltejs/kit"],
       },
-      {
-        extends: "./vite.config.ts",
-        test: {
-          name: "server",
-          environment: "node",
-          include: ["src/**/*.{test,spec}.{js,ts}"],
-          exclude: ["src/**/*.svelte.{test,spec}.{js,ts}"],
-        },
-      },
-    ],
+    },
+
+  },
+  resolve: {
+    conditions: ["browser"],
   },
   // プロキシ設定を削除
   // APIコールはサーバーサイド(+page.server.ts)からPUBLIC_BACKEND_URLを使用して行う

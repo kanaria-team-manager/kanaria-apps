@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { page } from "vitest/browser";
-import { render } from "vitest-browser-svelte";
+import { render, screen } from "@testing-library/svelte";
 import Page from "./+page.svelte";
 
 vi.mock("$app/navigation", () => ({
@@ -8,10 +7,10 @@ vi.mock("$app/navigation", () => ({
 }));
 
 describe("/+page.svelte", () => {
-  it("should render redirect message", async () => {
+  it("should render redirect message", () => {
     render(Page);
 
-    const message = page.getByText("リダイレクト中...");
-    await expect.element(message).toBeInTheDocument();
+    const message = screen.getByText("リダイレクト中...");
+    expect(message).toBeInTheDocument();
   });
 });
