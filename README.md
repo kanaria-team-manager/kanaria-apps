@@ -56,6 +56,7 @@ Run all E2E tests:
 pnpm test:e2e
 ```
 
+
 ### Other Test Commands
 
 - **UI Mode** (Interactive test runner):
@@ -70,6 +71,24 @@ pnpm test:e2e
   ```bash
   pnpm test:e2e:debug
   ```
+
+## AI Code Review with CodeRabbit
+
+This repository uses **CodeRabbit** for AI-based code reviews. It automatically reviews Pull Requests and provides feedback.
+
+### Common Commands
+
+You can interact with CodeRabbit by commenting on the PR:
+
+- `@coderabbitai review`: performs an incremental review of new changes.
+- `@coderabbitai full-review`: performs a full review from scratch.
+- `@coderabbitai resolve`: Resolves all CodeRabbit threads that have been addressed.
+- `@coderabbitai pause`: pause the review.
+- `@coderabbitai resume`: resume the review.
+- `@coderabbitai configuration`: show the current configuration.
+- `@coderabbitai plan`: show the review plan.
+- `@coderabbitai ignore`: ignore specific files or directories.
+- `@coderabbitai help`: Shows all available commands.
 
 ---
 
@@ -145,3 +164,21 @@ pnpm test:e2e
   ```bash
   pnpm test:e2e:debug
   ```
+
+## CodeRabbitによるAIコードレビュー
+
+このリポジトリでは、AIによるコードレビューツール **CodeRabbit** を導入しています。Pull Request作成時に自動的にレビューが行われます。
+
+### 主なコマンド
+
+PRへのコメントでCodeRabbitを操作できます：
+
+- `@coderabbitai review`: 新しい変更に対してインクリメンタルレビューを実行します。
+- `@coderabbitai full-review`: 最初からフルレビューを実行します。
+- `@coderabbitai resolve`: 解決済みのCodeRabbitスレッドをすべて解決します。
+- `@coderabbitai pause`: レビューを一時停止します。
+- `@coderabbitai resume`: レビューを再開します。
+- `@coderabbitai configuration`: 現在の設定を表示します。
+- `@coderabbitai plan`: レビュー計画を表示します。
+- `@coderabbitai ignore`: 特定のファイルやディレクトリを無視します。
+- `@coderabbitai help`: 利用可能なコマンド一覧を表示します。
