@@ -56,6 +56,7 @@ Run all E2E tests:
 pnpm test:e2e
 ```
 
+
 ### Other Test Commands
 
 - **UI Mode** (Interactive test runner):
@@ -70,6 +71,19 @@ pnpm test:e2e
   ```bash
   pnpm test:e2e:debug
   ```
+
+## AI Code Review with CodeRabbit
+
+This repository uses **CodeRabbit** for AI-based code reviews. It automatically reviews Pull Requests and provides feedback.
+
+### Common Commands
+
+You can interact with CodeRabbit by commenting on the PR:
+
+- `@coderabbitai summary`: Generates a summary of the changes.
+- `@coderabbitai review`: Triggers a full code review.
+- `@coderabbitai resolve`: Resolves all CodeRabbit threads that have been addressed.
+- `@coderabbitai help`: Shows all available commands.
 
 ---
 
@@ -145,3 +159,16 @@ pnpm test:e2e
   ```bash
   pnpm test:e2e:debug
   ```
+
+## CodeRabbitによるAIコードレビュー
+
+このリポジトリでは、AIによるコードレビューツール **CodeRabbit** を導入しています。Pull Request作成時に自動的にレビューが行われます。
+
+### 主なコマンド
+
+PRへのコメントでCodeRabbitを操作できます：
+
+- `@coderabbitai summary`: 変更の要約を生成します。
+- `@coderabbitai review`: フルレビューを実行します。
+- `@coderabbitai resolve`: 対応済みのCodeRabbitのスレッドをすべて解決します。
+- `@coderabbitai help`: 利用可能なコマンド一覧を表示します。
