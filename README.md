@@ -80,9 +80,14 @@ This repository uses **CodeRabbit** for AI-based code reviews. It automatically 
 
 You can interact with CodeRabbit by commenting on the PR:
 
-- `@coderabbitai summary`: Generates a summary of the changes.
-- `@coderabbitai review`: Triggers a full code review.
+- `@coderabbitai review`: performs an incremental review of new changes.
+- `@coderabbitai full-review`: performs a full review from scratch.
 - `@coderabbitai resolve`: Resolves all CodeRabbit threads that have been addressed.
+- `@coderabbitai pause`: pause the review.
+- `@coderabbitai resume`: resume the review.
+- `@coderabbitai configuration`: show the current configuration.
+- `@coderabbitai plan`: show the review plan.
+- `@coderabbitai ignore`: ignore specific files or directories.
 - `@coderabbitai help`: Shows all available commands.
 
 ---
@@ -168,7 +173,12 @@ pnpm test:e2e
 
 PRへのコメントでCodeRabbitを操作できます：
 
-- `@coderabbitai summary`: 変更の要約を生成します。
-- `@coderabbitai review`: フルレビューを実行します。
-- `@coderabbitai resolve`: 対応済みのCodeRabbitのスレッドをすべて解決します。
+- `@coderabbitai review`: 新しい変更に対してインクリメンタルレビューを実行します。
+- `@coderabbitai full-review`: 最初からフルレビューを実行します。
+- `@coderabbitai resolve`: 解決済みのCodeRabbitスレッドをすべて解決します。
+- `@coderabbitai pause`: レビューを一時停止します。
+- `@coderabbitai resume`: レビューを再開します。
+- `@coderabbitai configuration`: 現在の設定を表示します。
+- `@coderabbitai plan`: レビュー計画を表示します。
+- `@coderabbitai ignore`: 特定のファイルやディレクトリを無視します。
 - `@coderabbitai help`: 利用可能なコマンド一覧を表示します。

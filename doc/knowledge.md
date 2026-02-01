@@ -369,7 +369,8 @@ pnpm dev
 
 - **プロセスの自動化**: PR作成時にCodeRabbitが自動レビューを行う
 - **活用方法**:
-  - `@coderabbitai summary` で変更内容の要約を確認し、PRの説明文に活用する
+  - `@coderabbitai review` でインクリメンタルレビュー、`@coderabbitai full-review` でフルレビューを実行
+  - `@coderabbitai pause` / `@coderabbitai resume` でレビューの一時停止・再開が可能
   - 指摘事項は人間のレビュアーが見る前に修正し、レビュー負荷を下げる
   - 自明な修正以外は、人間による最終確認を行う
 
