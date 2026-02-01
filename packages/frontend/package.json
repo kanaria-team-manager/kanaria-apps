@@ -24,17 +24,16 @@
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.17",
     "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/svelte": "^5.3.1",
     "@types/node": "^24",
-    "@vitest/browser-playwright": "^4.0.10",
-    "playwright": "1.54.1",
+    "jsdom": "^27.4.0",
     "svelte": "^5.43.8",
     "svelte-check": "^4.3.4",
     "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3",
     "vite": "^7.2.2",
-    "vitest": "^4.0.10",
-    "vitest-browser-svelte": "^2.0.1"
+    "vitest": "^4.0.10"
   },
   "dependencies": {
     "@kanaria/shared": "workspace:*",
