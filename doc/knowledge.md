@@ -365,6 +365,15 @@ pnpm dev
 - Supabase RLSを必ず有効化
 - フロントエンドにサービスロール鍵を含めない
 
+### AIコードレビュー (CodeRabbit)
+
+- **プロセスの自動化**: PR作成時にCodeRabbitが自動レビューを行う
+- **活用方法**:
+  - `@coderabbitai review` でインクリメンタルレビュー、`@coderabbitai full-review` でフルレビューを実行
+  - `@coderabbitai pause` / `@coderabbitai resume` でレビューの一時停止・再開が可能
+  - 指摘事項は人間のレビュアーが見る前に修正し、レビュー負荷を下げる
+  - 自明な修正以外は、人間による最終確認を行う
+
 ---
 
 ## 📚 参考リソース
