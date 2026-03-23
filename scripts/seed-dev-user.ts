@@ -74,15 +74,28 @@ async function main() {
     }
     const teamId = teams[0].id;
 
+    const roles = await db.select().from(schema.roles).limit(1);
+    if (roles.length === 0) {
+      throw new Error("No roles found in schema.roles. Please create roles before running this seed to avoid invalid schema.users.roleId foreign key.");
+    }
+    const roleId = roles[0].id;
+
     // Check if user already exists in public.users
     const existingPublicUsers = await db.select().from(schema.users).where(eq(schema.users.supabaseUserId, authUserId)).limit(1);
     
     if (existingPublicUsers.length > 0) {
-      console.log(`✅ User ${email} is already linked to team in public.users.`);
+      await db.update(schema.users)
+        .set({
+          status: 1, // confirmed
+          teamId: teamId,
+          roleId: roleId,
+          name: userName,
+          email: email,
+        })
+        .where(eq(schema.users.supabaseUserId, authUserId));
+      console.log(`✅ Updated stale fields for user ${email} in public.users.`);
     } else {
       const publicUserId = ulid();
-      const roles = await db.select().from(schema.roles).limit(1);
-      const roleId = roles.length > 0 ? roles[0].id : 1;
       
       await db.insert(schema.users).values({
         id: publicUserId,

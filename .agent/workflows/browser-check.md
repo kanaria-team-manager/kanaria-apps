@@ -28,6 +28,7 @@ nix develop --command bash -c "pnpm seed:dev-user"
 3. フロントエンド・バックエンドのDevサーバーをバックグラウンドで起動
 ```bash
 nix develop --command bash -c "pnpm dev" &
+while ! curl -s http://localhost:5173/auth/login > /dev/null; do sleep 1; done
 ```
 
 4. ブラウザサブエージェント（`browser_subagent`）による検証の実行
@@ -36,7 +37,7 @@ nix develop --command bash -c "pnpm dev" &
 **Subagent Task (Prompt) の例:**
 ```text
 Navigate to http://localhost:5173/auth/login.
-Fill in the email "dev@kanaria.local" and the password "devpassword123".
+Fill in the email "dev@kanaria.local" and the password from DEV_USER_PASSWORD (or provided password parameter).
 Click the login button.
 Wait for the redirect to /dashboard.
 (ここに検証したい具体的な動作や確認ポイントを追記。例：ウィンドウ幅をモバイルサイズに変えてドロワーが開くか確認するなど)
