@@ -19,6 +19,7 @@
     "drizzle:migrate": "env $(grep -v '^#' ./.dev.vars | grep -v '^$' | xargs) drizzle-kit migrate",
     "drizzle:push:prod": "env $(grep -v '^#' ./.dev.vars.production | grep -v '^$' | xargs) drizzle-kit push",
     "seed:players": "env $(grep -v '^#' ./.dev.vars | grep -v '^$' | xargs) tsx scripts/generate-dummy-players.ts",
+    "seed:dev-user": "env $(grep -v '^#' ./.dev.vars | grep -v '^$' | xargs) tsx ../../scripts/seed-dev-user.ts",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
