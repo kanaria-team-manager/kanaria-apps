@@ -2,6 +2,8 @@
 import { page } from "$app/state";
 import UserMenu from "$lib/components/UserMenu.svelte";
 
+let { open = $bindable(false) } = $props();
+
 const userName = $derived(page.data.user?.user_metadata?.name || page.data.user?.email || "");
 
 // Navigation items
@@ -25,15 +27,46 @@ const icons: Record<IconKey, string> = {
   bookmark: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />',
   "user-circle": '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />',
 };
+
+function handleNavClick() {
+  open = false;
+}
 </script>
 
-<aside class="fixed left-0 top-0 z-50 h-screen w-64 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+<!-- Mobile overlay -->
+{#if open}
+  <div
+    class="fixed inset-0 bg-foreground/20 z-40 md:hidden"
+    role="button"
+    tabindex="0"
+    aria-label="サイドバーを閉じる"
+    onclick={() => open = false}
+    onkeydown={(e) => e.key === 'Enter' && (open = false)}
+  ></div>
+{/if}
+
+<aside class="
+  fixed left-0 top-0 z-50 h-screen w-64 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60
+  transform transition-transform duration-300 ease-in-out
+  {open ? 'translate-x-0' : '-translate-x-full'}
+  md:translate-x-0
+">
   <div class="flex h-full flex-col">
     <!-- Logo / Header -->
     <div class="flex h-14 items-center justify-between border-b px-4">
-      <a href="/dashboard" class="flex items-center space-x-2 font-bold text-lg">
+      <a href="/dashboard" class="flex items-center space-x-2 font-bold text-lg" onclick={handleNavClick}>
         <span class="text-primary">Kanaria</span>
       </a>
+      <!-- Close button (mobile only) -->
+      <button
+        class="md:hidden p-1 rounded-lg hover:bg-accent/50 transition-colors"
+        onclick={() => open = false}
+        aria-label="サイドバーを閉じる"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
     </div>
 
     <!-- Navigation -->
@@ -42,6 +75,7 @@ const icons: Record<IconKey, string> = {
         {@const isActive = page.url.pathname.startsWith(item.href)}
         <a
           href={item.href}
+          onclick={handleNavClick}
           class="
             flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors
             {isActive
@@ -64,7 +98,7 @@ const icons: Record<IconKey, string> = {
     </nav>
 
     <!-- User info / Footer -->
-    <div class="border-t px-4 py-3 flex items-center justify-between gap-2">
+    <div class="border-t px-4 py-3 hidden md:flex items-center justify-between gap-2">
       <p class="truncate text-sm font-medium text-muted-foreground">{userName}</p>
       <UserMenu direction="up" />
     </div>
