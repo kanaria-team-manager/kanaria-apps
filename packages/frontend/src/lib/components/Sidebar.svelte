@@ -98,7 +98,7 @@ function handleNavClick() {
     </nav>
 
     <!-- User info / Footer -->
-    <div class="border-t px-4 py-3 flex items-center justify-between gap-2">
+    <div class="border-t px-4 py-3 hidden md:flex items-center justify-between gap-2">
       <p class="truncate text-sm font-medium text-muted-foreground">{userName}</p>
       <UserMenu direction="up" />
     </div>
