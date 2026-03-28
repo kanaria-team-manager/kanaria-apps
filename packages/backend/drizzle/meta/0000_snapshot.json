@@ -1,5 +1,5 @@
 {
-  "id": "80b1dbdd-1d43-496b-933f-a3e09b27626e",
+  "id": "1cdfaf29-4c3d-49ca-b212-74beb3afe565",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -360,7 +360,8 @@
         },
         "type": {
           "name": "type",
-          "type": "text",
+          "type": "label_type",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
           "default": "'event'"
@@ -953,6 +954,16 @@
     }
   },
   "enums": {
+    "public.label_type": {
+      "name": "label_type",
+      "schema": "public",
+      "values": [
+        "event",
+        "player",
+        "grade",
+        "user"
+      ]
+    },
     "public.taggable_type": {
       "name": "taggable_type",
       "schema": "public",
