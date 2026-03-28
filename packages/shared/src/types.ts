@@ -10,12 +10,15 @@ export interface Tag {
   updatedAt: string | Date;
 }
 
+export const LABEL_TYPES = ["event", "player", "grade", "user"] as const;
+export type LabelType = typeof LABEL_TYPES[number];
+
 export interface Label {
   id: string;
   name: string;
   teamId: string | null;
   color: string;
-  type: string;
+  type: LabelType;
   systemFlag: boolean;
   createdAt: string | Date;
   updatedAt: string | Date;

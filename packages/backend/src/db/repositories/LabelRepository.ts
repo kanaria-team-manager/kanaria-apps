@@ -1,6 +1,7 @@
 import { and, eq, or } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { ulid } from "ulid";
+import type { LabelType } from "@kanaria/shared";
 import type * as schema from "../schemas/index";
 import { labels } from "../schemas/labels";
 import { SYSTEM_FLAG } from "../schemas/utils";
@@ -25,7 +26,10 @@ export class LabelRepository {
    * - System labels (systemFlag = true) OR belong to the specified team
    * - Optionally filtered by type (e.g., 'event')
    */
-  async findByTeamAndType(teamId: string, type?: string) {
+  async findByTeamAndType(
+    teamId: string,
+    type?: LabelType,
+  ) {
     const conditions = [
       or(eq(labels.systemFlag, SYSTEM_FLAG.SYSTEM), eq(labels.teamId, teamId)),
     ];
@@ -44,7 +48,7 @@ export class LabelRepository {
     teamId: string;
     name: string;
     color: string;
-    type?: string;
+    type?: LabelType;
   }) {
     const id = ulid();
     const [label] = await this.db
@@ -54,7 +58,7 @@ export class LabelRepository {
         teamId: data.teamId,
         name: data.name,
         color: data.color,
-        type: data.type || undefined,
+        type: data.type || "event",
         systemFlag: SYSTEM_FLAG.CUSTOM,
       })
       .returning();
@@ -64,13 +68,14 @@ export class LabelRepository {
   async update(
     id: string,
     teamId: string,
-    data: { name?: string; color?: string },
+    data: { name?: string; color?: string; type?: LabelType },
   ) {
     const [updated] = await this.db
       .update(labels)
       .set({
         ...(data.name !== undefined && { name: data.name }),
         ...(data.color !== undefined && { color: data.color }),
+        ...(data.type !== undefined && { type: data.type }),
       })
       .where(and(eq(labels.id, id), eq(labels.teamId, teamId)))
       .returning();

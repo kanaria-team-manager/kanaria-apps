@@ -1,6 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
+import { LABEL_TYPES, type LabelType } from "@kanaria/shared";
 import { LabelRepository } from "../../db/repositories/LabelRepository.js";
 import { UserRepository } from "../../db/repositories/UserRepository.js";
 import { SYSTEM_FLAG } from "../../db/schemas/utils.js";
@@ -19,7 +20,7 @@ const createLabelSchema = z.object({
   color: z
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/, "色は#FFFFFFの形式で指定してください"),
-  type: z.string().optional(),
+  type: z.enum(LABEL_TYPES).optional(),
 });
 
 const updateLabelSchema = z.object({
@@ -28,6 +29,7 @@ const updateLabelSchema = z.object({
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/)
     .optional(),
+  type: z.enum(LABEL_TYPES).optional(),
 });
 
 labelsRoute.get("/", async (c) => {
@@ -43,7 +45,10 @@ labelsRoute.get("/", async (c) => {
   }
 
   const repository = new LabelRepository(db);
-  const labels = await repository.findByTeamAndType(currentUser.teamId, type);
+  const labels = await repository.findByTeamAndType(
+    currentUser.teamId,
+    type as LabelType | undefined,
+  );
   return c.json(labels);
 });
 

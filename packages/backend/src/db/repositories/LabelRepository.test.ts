@@ -16,7 +16,7 @@ describe("LabelRepository", () => {
         teamId: TEST_TEAMS.MAIN,
         name: "Test Label",
         color: "#FF0000",
-        type: "event",
+        type: "event" as const,
       };
 
       const label = await repository.create(labelData);

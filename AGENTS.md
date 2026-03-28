@@ -17,6 +17,7 @@
 
 ## ビルド＆テスト手順（Build & Test）
 
+- pnpmやNode.js系のコマンド（ビルド、lint、testなど）を実行する際は、**必ず `nix develop` 環境で実行** すること。例えば、ターミナルで実行する際は `nix develop -c pnpm test` のようにするか、開発シェルに入ってから実行すること。
 - セットアップ手順、ビルドコマンド、テスト実行方法、CI/CDでのチェック内容を記載すること。
 - backendのテストに関しては [TESTING.md](./packages/backend/TESTING.md) を参照すること。
 
