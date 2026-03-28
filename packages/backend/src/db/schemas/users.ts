@@ -1,4 +1,11 @@
-import { jsonb, pgTable, smallint, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  jsonb,
+  pgTable,
+  smallint,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { roles } from "./roles";
 import { teams } from "./teams";
 import { USER_STATUS, ulid } from "./utils";

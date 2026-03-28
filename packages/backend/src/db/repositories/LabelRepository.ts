@@ -1,7 +1,7 @@
+import type { LabelType } from "@kanaria/shared";
 import { and, eq, or } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { ulid } from "ulid";
-import type { LabelType } from "@kanaria/shared";
 import type * as schema from "../schemas/index";
 import { labels } from "../schemas/labels";
 import { SYSTEM_FLAG } from "../schemas/utils";
@@ -26,10 +26,7 @@ export class LabelRepository {
    * - System labels (systemFlag = true) OR belong to the specified team
    * - Optionally filtered by type (e.g., 'event')
    */
-  async findByTeamAndType(
-    teamId: string,
-    type?: LabelType,
-  ) {
+  async findByTeamAndType(teamId: string, type?: LabelType) {
     const conditions = [
       or(eq(labels.systemFlag, SYSTEM_FLAG.SYSTEM), eq(labels.teamId, teamId)),
     ];

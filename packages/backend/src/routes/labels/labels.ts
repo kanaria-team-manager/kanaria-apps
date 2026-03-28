@@ -1,7 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
+import { LABEL_TYPES, type LabelType } from "@kanaria/shared";
 import { Hono } from "hono";
 import { z } from "zod";
-import { LABEL_TYPES, type LabelType } from "@kanaria/shared";
 import { LabelRepository } from "../../db/repositories/LabelRepository.js";
 import { UserRepository } from "../../db/repositories/UserRepository.js";
 import { SYSTEM_FLAG } from "../../db/schemas/utils.js";
