@@ -1,6 +1,6 @@
+import type { UserConfig } from "@kanaria/shared";
 import { and, eq } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import type { UserConfig } from "@kanaria/shared";
 import type * as schema from "../schema.js";
 import { taggables, tags, users } from "../schema.js";
 

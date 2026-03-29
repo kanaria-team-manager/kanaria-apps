@@ -20,9 +20,12 @@ export const updatePlayerSchema = z.object({
 export const listPlayersQuerySchema = z.object({
   page: z.string().optional().default("1").transform(Number),
   limit: z.string().optional().default("50").transform(Number),
-  tagIds: z.union([z.string(), z.array(z.string())]).optional().transform((val) => {
-    if (!val) return undefined;
-    return Array.isArray(val) ? val : [val];
-  }),
+  tagIds: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined;
+      return Array.isArray(val) ? val : [val];
+    }),
   q: z.string().optional(),
 });

@@ -4,7 +4,11 @@ import { ulid } from "ulid";
 import { PlayerRepository } from "../../db/repositories/PlayerRepository.js";
 import { authMiddleware } from "../../middleware/auth.js";
 import type { Bindings, Variables } from "../../types.js";
-import { createPlayerSchema, updatePlayerSchema, listPlayersQuerySchema } from "./schema.js";
+import {
+  createPlayerSchema,
+  listPlayersQuerySchema,
+  updatePlayerSchema,
+} from "./schema.js";
 
 export const playersRoute = new Hono<{
   Bindings: Bindings;
@@ -118,24 +122,28 @@ playersRoute.put("/:id", zValidator("json", updatePlayerSchema), async (c) => {
 });
 
 // List players with pagination, optional tag filter and name search
-playersRoute.get("/", zValidator("query", listPlayersQuerySchema), async (c) => {
-  const db = c.get("db");
-  const user = c.get("user");
-  const repo = new PlayerRepository(db);
-  const { page, limit, tagIds, q } = c.req.valid("query");
+playersRoute.get(
+  "/",
+  zValidator("query", listPlayersQuerySchema),
+  async (c) => {
+    const db = c.get("db");
+    const user = c.get("user");
+    const repo = new PlayerRepository(db);
+    const { page, limit, tagIds, q } = c.req.valid("query");
 
-  const teamId = user.app_metadata?.teamId as string | undefined;
+    const teamId = user.app_metadata?.teamId as string | undefined;
 
-  if (!teamId) {
-    return c.json({ error: "Team ID not found in user context" }, 403);
-  }
+    if (!teamId) {
+      return c.json({ error: "Team ID not found in user context" }, 403);
+    }
 
-  const result = await repo.findAllWithPagination(teamId, {
-    page,
-    limit,
-    tagIds,
-    q,
-  });
+    const result = await repo.findAllWithPagination(teamId, {
+      page,
+      limit,
+      tagIds,
+      q,
+    });
 
-  return c.json(result);
-});
+    return c.json(result);
+  },
+);
