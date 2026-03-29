@@ -100,16 +100,6 @@ const nicknames = [
   null, // nullを含めてニックネームなしも生成
 ];
 
-// 学年名
-const grades = [
-  "小学1年生",
-  "小学2年生",
-  "小学3年生",
-  "小学4年生",
-  "小学5年生",
-  "小学6年生",
-];
-
 function getRandomItem<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)];
 }
@@ -155,7 +145,6 @@ async function main() {
     if (gradeLabel.length === 0) {
       throw new Error("Grade label not found. Please run migrations.");
     }
-    const gradeLabelId = gradeLabel[0].id;
 
     // 4. 学年タグを取得
     const gradeTags = await db

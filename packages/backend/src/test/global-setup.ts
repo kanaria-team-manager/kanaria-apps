@@ -111,6 +111,7 @@ export default async function setup() {
     console.log("🧹 Dropping types...");
     await db.execute(sql`
       DROP TYPE IF EXISTS "taggable_type";
+      DROP TYPE IF EXISTS "label_type";
     `);
 
     console.log("🧹 Cleaning migrations...");

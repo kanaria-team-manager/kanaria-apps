@@ -199,12 +199,6 @@ export class PlayerRepository {
         : undefined,
     );
 
-    // Count query - need to count distinct players
-    const countQuery = this.db
-      .select({ id: schema.players.id })
-      .from(schema.players)
-      .where(playerFilter);
-
     // If filtering by tags, need to join to get accurate count
     if (options?.tagIds?.length) {
       const countSubquery = this.db
