@@ -1,3 +1,4 @@
+CREATE TYPE "public"."label_type" AS ENUM('event', 'player', 'grade', 'user');--> statement-breakpoint
 CREATE TYPE "public"."taggable_type" AS ENUM('event', 'player', 'team', 'user');--> statement-breakpoint
 CREATE TABLE "attendance_statuses" (
 	"id" varchar(26) PRIMARY KEY NOT NULL,
@@ -44,7 +45,7 @@ CREATE TABLE "labels" (
 	"name" text NOT NULL,
 	"team_id" varchar(26),
 	"color" text DEFAULT '#000000' NOT NULL,
-	"type" text DEFAULT 'event' NOT NULL,
+	"type" "label_type" DEFAULT 'event' NOT NULL,
 	"system_flag" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL

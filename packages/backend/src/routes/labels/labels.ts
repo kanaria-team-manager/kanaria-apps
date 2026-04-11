@@ -1,4 +1,5 @@
 import { zValidator } from "@hono/zod-validator";
+import { LABEL_TYPES, type LabelType } from "@kanaria/shared";
 import { Hono } from "hono";
 import { z } from "zod";
 import { LabelRepository } from "../../db/repositories/LabelRepository.js";
@@ -19,7 +20,7 @@ const createLabelSchema = z.object({
   color: z
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/, "色は#FFFFFFの形式で指定してください"),
-  type: z.string().optional(),
+  type: z.enum(LABEL_TYPES).optional(),
 });
 
 const updateLabelSchema = z.object({
@@ -28,12 +29,17 @@ const updateLabelSchema = z.object({
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/)
     .optional(),
+  type: z.enum(LABEL_TYPES).optional(),
 });
 
-labelsRoute.get("/", async (c) => {
+const getLabelsQuerySchema = z.object({
+  type: z.enum(LABEL_TYPES).optional(),
+});
+
+labelsRoute.get("/", zValidator("query", getLabelsQuerySchema), async (c) => {
   const db = c.get("db");
   const user = c.get("user");
-  const type = c.req.query("type"); // Optional: 'event', etc.
+  const { type } = c.req.valid("query");
 
   const userRepo = new UserRepository(db);
   const currentUser = await userRepo.findBySupabaseId(user.id);
@@ -43,7 +49,10 @@ labelsRoute.get("/", async (c) => {
   }
 
   const repository = new LabelRepository(db);
-  const labels = await repository.findByTeamAndType(currentUser.teamId, type);
+  const labels = await repository.findByTeamAndType(
+    currentUser.teamId,
+    type,
+  );
   return c.json(labels);
 });
 

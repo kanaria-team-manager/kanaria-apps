@@ -199,12 +199,6 @@ export class PlayerRepository {
         : undefined,
     );
 
-    // Count query - need to count distinct players
-    let countQuery = this.db
-      .select({ id: schema.players.id })
-      .from(schema.players)
-      .where(playerFilter);
-
     // If filtering by tags, need to join to get accurate count
     if (options?.tagIds?.length) {
       const countSubquery = this.db
@@ -218,10 +212,7 @@ export class PlayerRepository {
           ),
         )
         .where(
-          and(
-            playerFilter,
-            inArray(schema.taggables.tagId, options.tagIds),
-          ),
+          and(playerFilter, inArray(schema.taggables.tagId, options.tagIds)),
         )
         .as("count_subquery");
 
@@ -242,7 +233,9 @@ export class PlayerRepository {
           teamId: schema.players.teamId,
           parentUserId: schema.players.parentUserId,
           // Aggregate tags into array, then convert to text array
-          tags: sql<string[]>`array_agg(${schema.tags.name}) filter (where ${schema.tags.name} is not null)`,
+          tags: sql<
+            string[]
+          >`array_agg(${schema.tags.name}) filter (where ${schema.tags.name} is not null)`,
           // Get first tag for sorting (assumes it's the grade tag)
           gradeTag: sql<string>`(array_agg(${schema.tags.name}) filter (where ${schema.tags.name} is not null))[1]`,
         })
@@ -256,10 +249,7 @@ export class PlayerRepository {
         )
         .leftJoin(schema.tags, eq(schema.tags.id, schema.taggables.tagId))
         .where(
-          and(
-            playerFilter,
-            inArray(schema.taggables.tagId, options.tagIds),
-          ),
+          and(playerFilter, inArray(schema.taggables.tagId, options.tagIds)),
         )
         .groupBy(schema.players.id)
         .orderBy(
@@ -270,7 +260,7 @@ export class PlayerRepository {
         .offset(offset);
 
       return {
-        data: rows.map(row => ({
+        data: rows.map((row) => ({
           id: row.id,
           lastName: row.lastName,
           firstName: row.firstName,
@@ -305,7 +295,9 @@ export class PlayerRepository {
           imageUrl: schema.players.imageUrl,
           teamId: schema.players.teamId,
           parentUserId: schema.players.parentUserId,
-          tags: sql<string[]>`array_agg(${schema.tags.name}) filter (where ${schema.tags.name} is not null)`,
+          tags: sql<
+            string[]
+          >`array_agg(${schema.tags.name}) filter (where ${schema.tags.name} is not null)`,
           gradeTag: sql<string>`(array_agg(${schema.tags.name}) filter (where ${schema.tags.name} is not null))[1]`,
         })
         .from(schema.players)
@@ -327,7 +319,7 @@ export class PlayerRepository {
         .offset(offset);
 
       return {
-        data: rows.map(row => ({
+        data: rows.map((row) => ({
           id: row.id,
           lastName: row.lastName,
           firstName: row.firstName,

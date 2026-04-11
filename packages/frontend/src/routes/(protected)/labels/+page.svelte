@@ -1,14 +1,6 @@
 <script lang="ts">
 import { apiGet, apiPost, apiPut, apiDelete } from "$lib/api/client";
-
-interface Label {
-  id: string;
-  name: string;
-  color: string;
-  teamId: string | null;
-  systemFlag: boolean;
-  type?: string | null;
-}
+import { LABEL_TYPES, type Label, type LabelType } from "@kanaria/shared";
 
 let { data } = $props();
 
@@ -20,8 +12,8 @@ let isLoading = $state(true);
 let editingId = $state<string | null>(null);
 let editingName = $state("");
 let editingColor = $state("");
+let editingType = $state<LabelType>("event");
 
-// Preset colors for picker
 const PRESET_COLORS = [
   "#ef4444",
   "#f59e0b",
@@ -32,6 +24,13 @@ const PRESET_COLORS = [
   "#06b6d4",
   "#64748b",
 ];
+
+const LABEL_TYPE_NAMES: Record<LabelType, string> = {
+  event: "イベント",
+  player: "プレイヤー",
+  grade: "学年",
+  user: "ユーザー",
+};
 
 const filteredLabels = $derived(
   labels.filter((label) =>
@@ -60,27 +59,30 @@ async function handleAddLabel() {
       {
         name: "新規ラベル",
         color: "#6366f1",
+        type: "event",
       },
       data.session.access_token,
     );
     labels = [newLabel, ...labels];
     // Start editing the new label immediately
-    startEdit(newLabel.id, newLabel.name, newLabel.color);
+    startEdit(newLabel.id, newLabel.name, newLabel.color, newLabel.type);
   } catch (e) {
     console.error("Failed to add label", e);
   }
 }
 
-function startEdit(id: string, name: string, color: string) {
+function startEdit(id: string, name: string, color: string, type: LabelType) {
   editingId = id;
   editingName = name;
   editingColor = color;
+  editingType = type;
 }
 
 function cancelEdit() {
   editingId = null;
   editingName = "";
   editingColor = "";
+  editingType = "event";
 }
 
 async function saveEdit(id: string) {
@@ -94,10 +96,11 @@ async function saveEdit(id: string) {
     await apiPut(`/labels/${id}`, {
       name: editingName.trim(),
       color: editingColor,
+      type: editingType,
     }, data.session.access_token);
     labels = labels.map((label) =>
       label.id === id
-        ? { ...label, name: editingName.trim(), color: editingColor }
+        ? { ...label, name: editingName.trim(), color: editingColor, type: editingType }
         : label,
     );
     cancelEdit();
@@ -224,8 +227,20 @@ $effect(() => {
             </div>
 
             <!-- Type -->
-            <div class="col-span-2 text-sm text-muted-foreground">
-              {label.type || "-"}
+            <div class="col-span-2 text-sm text-muted-foreground mr-2">
+              {#if editingId === label.id}
+                <select
+                  bind:value={editingType}
+                  aria-label="タイプ"
+                  class="w-full px-3 py-1.5 border border-border bg-background rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
+                >
+                  {#each LABEL_TYPES as type}
+                    <option value={type}>{LABEL_TYPE_NAMES[type]}</option>
+                  {/each}
+                </select>
+              {:else}
+                {LABEL_TYPE_NAMES[label.type]}
+              {/if}
             </div>
 
             <!-- Actions -->
@@ -245,7 +260,7 @@ $effect(() => {
                 </button>
               {:else}
                 <button
-                  onclick={() => startEdit(label.id, label.name, label.color)}
+                  onclick={() => startEdit(label.id, label.name, label.color, label.type)}
                   disabled={label.systemFlag}
                   class="p-2 text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="編集"
