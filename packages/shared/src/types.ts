@@ -13,6 +13,11 @@ export interface Tag {
 export const LABEL_TYPES = ["event", "tag"] as const;
 export type LabelType = typeof LABEL_TYPES[number];
 
+export const LABEL_TYPE_NAMES: Record<LabelType, string> = {
+  event: "イベント",
+  tag: "タグ",
+};
+
 export interface Label {
   id: string;
   name: string;
