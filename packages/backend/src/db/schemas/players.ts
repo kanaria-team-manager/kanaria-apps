@@ -1,15 +1,14 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { teams, users } from "./index";
 import { taggables } from "./taggables";
-import { ulid } from "./utils";
 
 export const players = pgTable("players", {
-  id: ulid("id").primaryKey(), // varchar(26)
-  teamId: ulid("team_id")
+  id: uuid("id").primaryKey(),
+  teamId: uuid("team_id")
     .notNull()
     .references(() => teams.id),
-  parentUserId: ulid("parent_user_id")
+  parentUserId: uuid("parent_user_id")
     .notNull()
     .references(() => users.id),
   lastName: text("last_name").notNull(),

@@ -1,4 +1,4 @@
-import { ulid } from "ulid";
+import { uuidv7 } from "uuidv7";
 import { beforeEach, describe, expect, it } from "vitest";
 import { getTestDb } from "../../test/setup.js";
 import { TeamRepository } from "./TeamRepository.js";
@@ -13,7 +13,7 @@ describe("TeamRepository", () => {
   describe("create", () => {
     it("should create a new team", async () => {
       const teamData = {
-        id: ulid(),
+        id: uuidv7(),
         name: "Test Team",
         code: `test-${Date.now()}`,
         status: 0,
@@ -33,7 +33,7 @@ describe("TeamRepository", () => {
     it("should find a team by code", async () => {
       const code = `find-test-${Date.now()}`;
       await repository.create({
-        id: ulid(),
+        id: uuidv7(),
         name: "Find Test Team",
         code,
         status: 0,
@@ -56,7 +56,7 @@ describe("TeamRepository", () => {
   describe("updateStatus", () => {
     it("should update team status", async () => {
       const code = `status-test-${Date.now()}`;
-      const teamId = ulid();
+      const teamId = uuidv7();
 
       await repository.create({
         id: teamId,

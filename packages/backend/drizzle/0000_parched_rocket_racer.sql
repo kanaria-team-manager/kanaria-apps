@@ -1,8 +1,8 @@
 CREATE TYPE "public"."label_type" AS ENUM('event', 'tag');--> statement-breakpoint
 CREATE TYPE "public"."taggable_type" AS ENUM('event', 'player', 'team', 'user');--> statement-breakpoint
 CREATE TABLE "attendance_statuses" (
-	"id" varchar(26) PRIMARY KEY NOT NULL,
-	"team_id" varchar(26),
+	"id" uuid PRIMARY KEY NOT NULL,
+	"team_id" uuid,
 	"name" text NOT NULL,
 	"color" text NOT NULL,
 	"system_flag" boolean DEFAULT false NOT NULL,
@@ -12,27 +12,27 @@ CREATE TABLE "attendance_statuses" (
 --> statement-breakpoint
 ALTER TABLE "attendance_statuses" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "attendances" (
-	"id" varchar(26) PRIMARY KEY NOT NULL,
-	"team_id" varchar(26) NOT NULL,
-	"event_id" varchar(26) NOT NULL,
-	"player_id" varchar(26) NOT NULL,
-	"attendance_status_ids" varchar(26)[] NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
+	"team_id" uuid NOT NULL,
+	"event_id" uuid NOT NULL,
+	"player_id" uuid NOT NULL,
+	"attendance_status_ids" uuid[] NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 ALTER TABLE "attendances" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "events" (
-	"id" varchar(26) PRIMARY KEY NOT NULL,
-	"owner_id" varchar(26) NOT NULL,
-	"team_id" varchar(26) NOT NULL,
-	"place_id" varchar(26),
+	"id" uuid PRIMARY KEY NOT NULL,
+	"owner_id" uuid NOT NULL,
+	"team_id" uuid NOT NULL,
+	"place_id" uuid,
 	"title" text NOT NULL,
 	"details" text,
 	"start_date_time" timestamp NOT NULL,
 	"end_date_time" timestamp NOT NULL,
 	"event_no" text NOT NULL,
-	"label_id" varchar(26),
+	"label_id" uuid,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "events_event_no_unique" UNIQUE("event_no"),
@@ -41,9 +41,9 @@ CREATE TABLE "events" (
 --> statement-breakpoint
 ALTER TABLE "events" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "labels" (
-	"id" varchar(26) PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
-	"team_id" varchar(26),
+	"team_id" uuid,
 	"color" text DEFAULT '#000000' NOT NULL,
 	"type" "label_type" DEFAULT 'event' NOT NULL,
 	"system_flag" boolean DEFAULT false NOT NULL,
@@ -53,8 +53,8 @@ CREATE TABLE "labels" (
 --> statement-breakpoint
 ALTER TABLE "labels" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "places" (
-	"id" varchar(26) PRIMARY KEY NOT NULL,
-	"team_id" varchar(26) NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
+	"team_id" uuid NOT NULL,
 	"name" text NOT NULL,
 	"description" text,
 	"location" "point",
@@ -64,9 +64,9 @@ CREATE TABLE "places" (
 --> statement-breakpoint
 ALTER TABLE "places" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "players" (
-	"id" varchar(26) PRIMARY KEY NOT NULL,
-	"team_id" varchar(26) NOT NULL,
-	"parent_user_id" varchar(26) NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
+	"team_id" uuid NOT NULL,
+	"parent_user_id" uuid NOT NULL,
 	"last_name" text NOT NULL,
 	"first_name" text NOT NULL,
 	"nick_name" text,
@@ -85,9 +85,9 @@ CREATE TABLE "roles" (
 --> statement-breakpoint
 ALTER TABLE "roles" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "taggables" (
-	"tag_id" varchar(26) NOT NULL,
+	"tag_id" uuid NOT NULL,
 	"taggable_type" "taggable_type" NOT NULL,
-	"taggable_id" varchar(26) NOT NULL,
+	"taggable_id" uuid NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "taggables_tag_id_taggable_type_taggable_id_pk" PRIMARY KEY("tag_id","taggable_type","taggable_id")
@@ -95,19 +95,19 @@ CREATE TABLE "taggables" (
 --> statement-breakpoint
 ALTER TABLE "taggables" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "tags" (
-	"id" varchar(26) PRIMARY KEY NOT NULL,
-	"team_id" varchar(26),
+	"id" uuid PRIMARY KEY NOT NULL,
+	"team_id" uuid,
 	"name" text NOT NULL,
 	"color" text NOT NULL,
 	"system_flag" boolean DEFAULT false NOT NULL,
-	"label_id" varchar(26),
+	"label_id" uuid,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 ALTER TABLE "tags" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "teams" (
-	"id" varchar(26) PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"code" varchar(32) NOT NULL,
 	"event_sequence" integer DEFAULT 0 NOT NULL,
@@ -120,9 +120,9 @@ CREATE TABLE "teams" (
 --> statement-breakpoint
 ALTER TABLE "teams" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "users" (
-	"id" varchar(26) PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
 	"supabase_user_id" uuid NOT NULL,
-	"team_id" varchar(26) NOT NULL,
+	"team_id" uuid NOT NULL,
 	"role_id" smallint NOT NULL,
 	"status" smallint DEFAULT 0 NOT NULL,
 	"name" text NOT NULL,

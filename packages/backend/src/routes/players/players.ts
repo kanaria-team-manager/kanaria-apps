@@ -1,6 +1,6 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
-import { ulid } from "ulid";
+import { uuidv7 } from "uuidv7";
 import { PlayerRepository } from "../../db/repositories/PlayerRepository.js";
 import { authMiddleware } from "../../middleware/auth.js";
 import type { Bindings, Variables } from "../../types.js";
@@ -58,7 +58,7 @@ playersRoute.post("/", zValidator("json", createPlayerSchema), async (c) => {
 
   const player = await repo.createWithTag(
     {
-      id: ulid(),
+      id: uuidv7(),
       lastName,
       firstName,
       nickName,

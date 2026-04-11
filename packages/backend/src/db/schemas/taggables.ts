@@ -1,8 +1,7 @@
 import { relations } from "drizzle-orm";
-import { pgEnum, pgTable, primaryKey, timestamp } from "drizzle-orm/pg-core";
+import { pgEnum, pgTable, primaryKey, timestamp, uuid } from "drizzle-orm/pg-core";
 import { tags } from "./index";
 import { players } from "./players";
-import { ulid } from "./utils";
 
 export const taggableType = pgEnum("taggable_type", [
   "event",
@@ -14,11 +13,11 @@ export const taggableType = pgEnum("taggable_type", [
 export const taggables = pgTable(
   "taggables",
   {
-    tagId: ulid("tag_id")
+    tagId: uuid("tag_id")
       .notNull()
       .references(() => tags.id),
     taggableType: taggableType("taggable_type").notNull(),
-    taggableId: ulid("taggable_id").notNull(),
+    taggableId: uuid("taggable_id").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()

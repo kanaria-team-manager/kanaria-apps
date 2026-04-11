@@ -1,5 +1,3 @@
-import { customType } from "drizzle-orm/pg-core";
-
 export const TEAM_CODE_MAX_LENGTH = 32;
 export const TEAM_STATUS = {
   CREATED: 0,
@@ -19,7 +17,3 @@ export const ATTENDANCE_STATUS = {
   ABSENCE: 2,
   IS_LATE: 3,
 };
-
-export const ulid = customType<{ data: string }>({
-  dataType: () => "varchar(26)",
-});

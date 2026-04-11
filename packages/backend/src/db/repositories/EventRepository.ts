@@ -1,6 +1,6 @@
 import { and, eq, gte, lt, sql } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { ulid } from "ulid";
+import { uuidv7 } from "uuidv7";
 import * as schema from "../schemas/index.js";
 
 type NewEvent = typeof schema.events.$inferInsert;
@@ -36,7 +36,7 @@ export class EventRepository {
 
       const eventNo = `${teamCode}-${nextSequence}`;
 
-      const eventId = ulid();
+      const eventId = uuidv7();
 
       // 1. Create Event
       const [newEvent] = await tx
@@ -381,7 +381,7 @@ export class EventRepository {
         if (playersToAdd.length > 0) {
           await tx.insert(schema.attendances).values(
             playersToAdd.map((att) => ({
-              id: ulid(),
+              id: uuidv7(),
               teamId,
               eventId,
               playerId: att.playerId,

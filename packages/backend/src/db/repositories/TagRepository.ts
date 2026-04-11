@@ -1,6 +1,6 @@
 import { and, asc, eq, or } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { ulid } from "ulid";
+import { uuidv7 } from "uuidv7";
 import type * as schema from "../schemas/index";
 import { labels } from "../schemas/labels";
 import { tags } from "../schemas/tags";
@@ -65,7 +65,7 @@ export class TagRepository {
   }
 
   async create(data: { teamId: string; name: string; color: string }) {
-    const id = ulid();
+    const id = uuidv7();
     await this.db.insert(tags).values({
       id,
       teamId: data.teamId,

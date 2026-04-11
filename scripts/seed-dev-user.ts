@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { ulid } from "ulid";
+import { uuidv7 } from "uuidv7";
 import { eq } from "drizzle-orm";
 import * as schema from "../packages/backend/src/db/schemas/index.js";
 
@@ -95,7 +95,7 @@ async function main() {
         .where(eq(schema.users.supabaseUserId, authUserId));
       console.log(`✅ Updated stale fields for user ${email} in public.users.`);
     } else {
-      const publicUserId = ulid();
+      const publicUserId = uuidv7();
       
       await db.insert(schema.users).values({
         id: publicUserId,

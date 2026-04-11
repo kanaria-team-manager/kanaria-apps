@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { ulid } from "ulid";
+import { uuidv7 } from "uuidv7";
 import * as schema from "../schemas/index.js";
 
 type NewPlace = typeof schema.places.$inferInsert;
@@ -9,7 +9,7 @@ export class PlaceRepository {
   constructor(private db: PostgresJsDatabase<typeof schema>) {}
 
   async create(place: Omit<NewPlace, "id" | "createdAt" | "updatedAt">) {
-    const id = ulid();
+    const id = uuidv7();
     const [newPlace] = await this.db
       .insert(schema.places)
       .values({

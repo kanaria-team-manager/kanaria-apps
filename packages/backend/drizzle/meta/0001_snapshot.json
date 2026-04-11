@@ -1,6 +1,6 @@
 {
-  "id": "c2e82057-4f73-40b0-b0b7-316f6c40f187",
-  "prevId": "b8ed233c-d2be-4942-8cc8-4692019d611e",
+  "id": "bde4bcba-5234-4f10-a920-445dbd00e08e",
+  "prevId": "2595571c-2919-4cdb-a198-4c0633b985b4",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -10,13 +10,13 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": true,
           "notNull": true
         },
         "team_id": {
           "name": "team_id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
@@ -82,31 +82,31 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": true,
           "notNull": true
         },
         "team_id": {
           "name": "team_id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
         "event_id": {
           "name": "event_id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
         "player_id": {
           "name": "player_id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
         "attendance_status_ids": {
           "name": "attendance_status_ids",
-          "type": "varchar(26)[]",
+          "type": "uuid[]",
           "primaryKey": false,
           "notNull": true
         },
@@ -179,25 +179,25 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": true,
           "notNull": true
         },
         "owner_id": {
           "name": "owner_id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
         "team_id": {
           "name": "team_id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
         "place_id": {
           "name": "place_id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
@@ -233,7 +233,7 @@
         },
         "label_id": {
           "name": "label_id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
@@ -335,7 +335,7 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": true,
           "notNull": true
         },
@@ -347,7 +347,7 @@
         },
         "team_id": {
           "name": "team_id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
@@ -416,13 +416,13 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": true,
           "notNull": true
         },
         "team_id": {
           "name": "team_id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -487,19 +487,19 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": true,
           "notNull": true
         },
         "team_id": {
           "name": "team_id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
         "parent_user_id": {
           "name": "parent_user_id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -622,7 +622,7 @@
       "columns": {
         "tag_id": {
           "name": "tag_id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -635,7 +635,7 @@
         },
         "taggable_id": {
           "name": "taggable_id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -691,13 +691,13 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": true,
           "notNull": true
         },
         "team_id": {
           "name": "team_id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
@@ -722,7 +722,7 @@
         },
         "label_id": {
           "name": "label_id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
@@ -782,7 +782,7 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": true,
           "notNull": true
         },
@@ -855,7 +855,7 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": true,
           "notNull": true
         },
@@ -867,7 +867,7 @@
         },
         "team_id": {
           "name": "team_id",
-          "type": "varchar(26)",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },

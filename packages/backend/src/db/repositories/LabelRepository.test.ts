@@ -47,7 +47,7 @@ describe("LabelRepository", () => {
     });
 
     it("should return undefined for non-existent id", async () => {
-      const found = await repository.findById("non-existent-id-12345");
+      const found = await repository.findById("00000000-0000-7000-8000-123456789012");
       expect(found).toBeUndefined();
     });
   });
@@ -93,7 +93,7 @@ describe("LabelRepository", () => {
         teamId: TEST_TEAMS.GAMMA,
         name: "Player Label",
         color: "#00FF00",
-        type: "player" as const,
+        type: "tag" as const,
       });
 
       const eventLabels = await repository.findByTeamAndType(

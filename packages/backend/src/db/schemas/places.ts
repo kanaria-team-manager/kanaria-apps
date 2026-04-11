@@ -1,10 +1,9 @@
-import { pgTable, point, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, point, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { teams } from "./teams";
-import { ulid } from "./utils";
 
 export const places = pgTable("places", {
-  id: ulid("id").primaryKey(), // varchar(26)
-  teamId: ulid("team_id")
+  id: uuid("id").primaryKey(),
+  teamId: uuid("team_id")
     .notNull()
     .references(() => teams.id),
   name: text("name").notNull(),

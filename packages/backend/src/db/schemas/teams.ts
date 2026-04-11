@@ -4,12 +4,13 @@ import {
   smallint,
   text,
   timestamp,
+  uuid,
   varchar,
 } from "drizzle-orm/pg-core";
-import { TEAM_CODE_MAX_LENGTH, TEAM_STATUS, ulid } from "./utils";
+import { TEAM_CODE_MAX_LENGTH, TEAM_STATUS } from "./utils";
 
 export const teams = pgTable("teams", {
-  id: ulid("id").primaryKey(), // varchar(26)
+  id: uuid("id").primaryKey(),
   name: text("name").notNull(),
   code: varchar("code", { length: TEAM_CODE_MAX_LENGTH }).notNull().unique(),
   eventSequence: integer("event_sequence").default(0).notNull(),

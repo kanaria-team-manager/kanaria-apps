@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { Hono } from "hono";
-import { ulid } from "ulid";
+import { uuidv7 } from "uuidv7";
 import { TeamRepository } from "../../db/repositories/TeamRepository.js";
 import { UserRepository } from "../../db/repositories/UserRepository.js";
 import { USER_STATUS } from "../../db/schema.js";
@@ -30,8 +30,8 @@ app.post("/create", async (c) => {
   const userRepo = new UserRepository(db);
 
   try {
-    const teamId = ulid();
-    const userRecordId = ulid();
+    const teamId = uuidv7();
+    const userRecordId = uuidv7();
 
     // Use transaction to ensure both team and user (owner) are created
     await db.transaction(async (tx) => {

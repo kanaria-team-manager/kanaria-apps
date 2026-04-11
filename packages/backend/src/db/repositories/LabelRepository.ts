@@ -1,7 +1,7 @@
 import type { LabelType } from "@kanaria/shared";
 import { and, eq, or } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { ulid } from "ulid";
+import { uuidv7 } from "uuidv7";
 import type * as schema from "../schemas/index";
 import { labels } from "../schemas/labels";
 import { SYSTEM_FLAG } from "../schemas/utils";
@@ -47,7 +47,7 @@ export class LabelRepository {
     color: string;
     type?: LabelType;
   }) {
-    const id = ulid();
+    const id = uuidv7();
     const [label] = await this.db
       .insert(labels)
       .values({
