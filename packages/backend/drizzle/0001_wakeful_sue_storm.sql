@@ -7,7 +7,7 @@ INSERT INTO "labels" ("id", "name", "system_flag", "color", "type") VALUES
 ('01KC1QNE9AV0KF8T26MTEJ880X', '練習', true, '#00FF00', 'event'),
 ('01KC1QNE9A0R8D4GGQ9AEZ58T6', 'イベント', true, '#0000FF', 'event'),
 ('01KC1QNE9A2MYRJKR6BBKC0D8F', 'デフォルト', true, '#000000', 'event'),
-('01KC1QNE9ASPYJEV0S3S6DW4CV', '学年', true, '#808080', 'grade');
+('01KC1QNE9ASPYJEV0S3S6DW4CV', '学年', true, '#808080', 'tag');
 
 -- Insert Tags (Linked to '学年' Label: 01KC1QNE9ASPYJEV0S3S6DW4CV)
 INSERT INTO "tags" ("id", "name", "system_flag", "color", "label_id") VALUES

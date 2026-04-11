@@ -27,9 +27,7 @@ const PRESET_COLORS = [
 
 const LABEL_TYPE_NAMES: Record<LabelType, string> = {
   event: "イベント",
-  player: "プレイヤー",
-  grade: "学年",
-  user: "ユーザー",
+  tag: "タグ"
 };
 
 const filteredLabels = $derived(
