@@ -55,7 +55,7 @@ export class LabelRepository {
         teamId: data.teamId,
         name: data.name,
         color: data.color,
-        type: data.type || "event",
+        type: data.type ?? "event",
         systemFlag: SYSTEM_FLAG.CUSTOM,
       })
       .returning();

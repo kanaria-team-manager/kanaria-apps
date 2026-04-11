@@ -32,10 +32,14 @@ const updateLabelSchema = z.object({
   type: z.enum(LABEL_TYPES).optional(),
 });
 
-labelsRoute.get("/", async (c) => {
+const getLabelsQuerySchema = z.object({
+  type: z.enum(LABEL_TYPES).optional(),
+});
+
+labelsRoute.get("/", zValidator("query", getLabelsQuerySchema), async (c) => {
   const db = c.get("db");
   const user = c.get("user");
-  const type = c.req.query("type"); // Optional: 'event', etc.
+  const { type } = c.req.valid("query");
 
   const userRepo = new UserRepository(db);
   const currentUser = await userRepo.findBySupabaseId(user.id);
@@ -47,7 +51,7 @@ labelsRoute.get("/", async (c) => {
   const repository = new LabelRepository(db);
   const labels = await repository.findByTeamAndType(
     currentUser.teamId,
-    type as LabelType | undefined,
+    type,
   );
   return c.json(labels);
 });

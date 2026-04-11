@@ -1,6 +1,6 @@
 <script lang="ts">
 import { apiGet, apiPost, apiPut, apiDelete } from "$lib/api/client";
-import type { Label, LabelType } from "@kanaria/shared";
+import { LABEL_TYPES, type Label, type LabelType } from "@kanaria/shared";
 
 let { data } = $props();
 
@@ -14,7 +14,6 @@ let editingName = $state("");
 let editingColor = $state("");
 let editingType = $state<LabelType>("event");
 
-// Preset colors for picker
 const PRESET_COLORS = [
   "#ef4444",
   "#f59e0b",
@@ -25,6 +24,13 @@ const PRESET_COLORS = [
   "#06b6d4",
   "#64748b",
 ];
+
+const LABEL_TYPE_NAMES: Record<LabelType, string> = {
+  event: "イベント",
+  player: "プレイヤー",
+  grade: "学年",
+  user: "ユーザー",
+};
 
 const filteredLabels = $derived(
   labels.filter((label) =>
@@ -59,7 +65,7 @@ async function handleAddLabel() {
     );
     labels = [newLabel, ...labels];
     // Start editing the new label immediately
-    startEdit(newLabel.id, newLabel.name, newLabel.color, newLabel.type || "event");
+    startEdit(newLabel.id, newLabel.name, newLabel.color, newLabel.type);
   } catch (e) {
     console.error("Failed to add label", e);
   }
@@ -225,15 +231,15 @@ $effect(() => {
               {#if editingId === label.id}
                 <select
                   bind:value={editingType}
+                  aria-label="タイプ"
                   class="w-full px-3 py-1.5 border border-border bg-background rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
                 >
-                  <option value="event">イベント</option>
-                  <option value="player">プレイヤー</option>
-                  <option value="grade">学年</option>
-                  <option value="user">ユーザー</option>
+                  {#each LABEL_TYPES as type}
+                    <option value={type}>{LABEL_TYPE_NAMES[type]}</option>
+                  {/each}
                 </select>
               {:else}
-                {label.type === 'event' ? 'イベント' : label.type === 'player' ? 'プレイヤー' : label.type === 'grade' ? '学年' : label.type === 'user' ? 'ユーザー' : label.type || "-"}
+                {LABEL_TYPE_NAMES[label.type]}
               {/if}
             </div>
 
@@ -254,7 +260,7 @@ $effect(() => {
                 </button>
               {:else}
                 <button
-                  onclick={() => startEdit(label.id, label.name, label.color, (label.type || "event") as any)}
+                  onclick={() => startEdit(label.id, label.name, label.color, label.type)}
                   disabled={label.systemFlag}
                   class="p-2 text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="編集"

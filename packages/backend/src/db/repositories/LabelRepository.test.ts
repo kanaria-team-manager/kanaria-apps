@@ -86,14 +86,14 @@ describe("LabelRepository", () => {
         teamId: TEST_TEAMS.GAMMA,
         name: "Event Label",
         color: "#FF0000",
-        type: "event",
+        type: "event" as const,
       });
 
       await repository.create({
         teamId: TEST_TEAMS.GAMMA,
         name: "Player Label",
         color: "#00FF00",
-        type: "player",
+        type: "player" as const,
       });
 
       const eventLabels = await repository.findByTeamAndType(
