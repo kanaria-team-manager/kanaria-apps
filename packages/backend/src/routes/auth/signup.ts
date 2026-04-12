@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { Hono } from "hono";
-import { ulid } from "ulid";
+import { uuidv7 } from "uuidv7";
 import { UserRepository } from "../../db/repositories/UserRepository.js";
 import { USER_STATUS } from "../../db/schema.js";
 import { verifySupabaseUser } from "../../middleware/verify-supabase-user.js";
@@ -30,7 +30,7 @@ app.post("/", async (c) => {
   const userRepo = new UserRepository(db);
 
   try {
-    const userRecordId = ulid();
+    const userRecordId = uuidv7();
 
     // ユーザーを作成（role=2: member, status=0: TEMPORARY）
     await userRepo.create({

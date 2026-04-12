@@ -29,7 +29,7 @@ erDiagram
     予定 {
         date 日付
         int 種別（試合・練習）
-        ULID 場所ID
+        UUID 場所ID
     }
     場所 {
         string name
@@ -41,9 +41,9 @@ erDiagram
     選手 ||--|| 出欠 : ""
 
     出欠 {
-        ULID 予定ID
-        ULID 場所ID
-        ULID 選手ID
+        UUID 予定ID
+        UUID 場所ID
+        UUID 選手ID
         int 出欠フラグ
         datetime 回答期限
     }

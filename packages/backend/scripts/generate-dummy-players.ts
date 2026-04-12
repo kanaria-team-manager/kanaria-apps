@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { ulid } from "ulid";
+import { uuidv7 } from "uuidv7";
 import * as schema from "../src/db/schemas/index.js";
 
 // 日本人のダミー名前データ
@@ -171,7 +171,7 @@ async function main() {
       const nickName = Math.random() > 0.5 ? getRandomItem(nicknames) : null;
       const gradeTag = getRandomItem(gradeTags);
 
-      const playerId = ulid();
+      const playerId = uuidv7();
 
       // プレイヤー作成
       await db.insert(schema.players).values({
