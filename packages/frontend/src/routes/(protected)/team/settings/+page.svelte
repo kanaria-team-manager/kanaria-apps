@@ -2,6 +2,8 @@
 import { apiGet, apiPut } from "$lib/api/client";
 
 const MAX_INPUT_LENGTH = 500;
+const FIELD_BASE_CLASSES = "w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary shadow-sm";
+const FIELD_DISABLED_CLASSES = "w-full px-3 py-2 border border-border rounded-md bg-muted text-muted-foreground cursor-not-allowed shadow-sm focus:outline-none";
 
 interface Team {
   id: string;
@@ -23,7 +25,13 @@ let errorMessage = $state("");
 let successMessage = $state("");
 
 async function fetchTeam() {
-  if (!data.session?.access_token) return;
+  errorMessage = "";
+  successMessage = "";
+  if (!data.session?.access_token) {
+    isLoading = false;
+    return;
+  }
+  
   isLoading = true;
   try {
     const fetchedTeam = await apiGet<Team>("/teams/settings", data.session.access_token);
@@ -113,7 +121,7 @@ $effect(() => {
             type="text"
             value={team.code}
             disabled
-            class="w-full px-3 py-2 border border-border rounded-md bg-muted text-muted-foreground cursor-not-allowed shadow-sm focus:outline-none"
+            class={FIELD_DISABLED_CLASSES}
           />
           <p class="text-xs text-muted-foreground">メンバーを招待する際に使用するコードです。</p>
         </div>
@@ -126,7 +134,7 @@ $effect(() => {
             bind:value={formName}
             maxlength={MAX_INPUT_LENGTH}
             required
-            class="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+            class={FIELD_BASE_CLASSES}
           />
           <p class="text-xs text-muted-foreground">{formName.length} / {MAX_INPUT_LENGTH} 文字</p>
         </div>
@@ -138,7 +146,7 @@ $effect(() => {
             rows="4"
             bind:value={formDescription}
             maxlength={MAX_INPUT_LENGTH}
-            class="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+            class={FIELD_BASE_CLASSES}
           ></textarea>
           <p class="text-xs text-muted-foreground">{formDescription.length} / {MAX_INPUT_LENGTH} 文字</p>
         </div>
