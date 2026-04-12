@@ -1,5 +1,11 @@
 import { relations } from "drizzle-orm";
-import { pgEnum, pgTable, primaryKey, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  pgEnum,
+  pgTable,
+  primaryKey,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { tags } from "./index";
 import { players } from "./players";
 

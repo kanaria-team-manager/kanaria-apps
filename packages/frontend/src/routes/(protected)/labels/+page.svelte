@@ -23,8 +23,7 @@ const PRESET_COLORS = [
   "#ec4899",
   "#06b6d4",
   "#64748b",
-
-
+];
 const filteredLabels = $derived(
   labels.filter((label) =>
     label.name.toLowerCase().includes(searchQuery.toLowerCase()),

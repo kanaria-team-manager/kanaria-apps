@@ -1,5 +1,12 @@
 import { LABEL_TYPES } from "@kanaria/shared";
-import { boolean, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { teams } from "./index";
 import { SYSTEM_FLAG } from "./utils";
 

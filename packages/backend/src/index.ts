@@ -14,6 +14,7 @@ import { playersRoute } from "./routes/players/players.js";
 import { tagsRoute } from "./routes/tags/tags.js";
 import activateTeam from "./routes/teams/activate.js";
 import createTeam from "./routes/teams/create.js";
+import teamsRoute from "./routes/teams/teams.js";
 import verifyTeam from "./routes/teams/verify.js";
 import usersRoute from "./routes/users/users.js";
 
@@ -79,6 +80,7 @@ app.route("/auth/signup", signup);
 app.route("/teams", verifyTeam);
 app.route("/teams", createTeam);
 app.route("/teams", activateTeam);
+app.route("/teams", teamsRoute);
 app.route("/tags", tagsRoute);
 app.route("/labels", labelsRoute);
 app.route("/players", playersRoute);
