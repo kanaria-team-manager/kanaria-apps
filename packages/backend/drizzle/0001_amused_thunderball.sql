@@ -1,5 +1,6 @@
 -- Custom SQL migration file, put your code below! --
 INSERT INTO "roles" ("id", "name") VALUES (0, 'owner'), (1, 'admin'), (2, 'member') ON CONFLICT ("id") DO NOTHING;
+SELECT setval(pg_get_serial_sequence('"roles"','id'), COALESCE(MAX("id"),0)) FROM "roles";
 
 -- Insert Labels
 INSERT INTO "labels" ("id", "name", "system_flag", "color", "type") VALUES

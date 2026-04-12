@@ -91,7 +91,7 @@ describe("LabelRepository", () => {
 
       await repository.create({
         teamId: TEST_TEAMS.GAMMA,
-        name: "Player Label",
+        name: "Player Tag",
         color: "#00FF00",
         type: "tag" as const,
       });

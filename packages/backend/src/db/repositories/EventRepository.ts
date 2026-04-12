@@ -66,7 +66,7 @@ export class EventRepository {
         // Create attendance records for each player
         await tx.insert(schema.attendances).values(
           attendances.map((att) => ({
-            id: ulid(),
+            id: uuidv7(),
             teamId: eventData.teamId,
             eventId: eventId,
             playerId: att.playerId,
