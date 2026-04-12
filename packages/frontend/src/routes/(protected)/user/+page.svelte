@@ -18,12 +18,12 @@
   const { data, form } = $props();
 
   // Use data from load function
-  let user = $state<UserProfile | null>(data.user);
+  let user = $state<UserProfile | null>(data.profile);
   let allTags = $state<Tag[]>(data.allTags || []);
   
   // Edit states
   let isEditingName = $state(false);
-  let editedName = $state(data.user?.name || '');
+  let editedName = $state(data.profile?.name || '');
   let isSavingName = $state(false);
   let isSavingTags = $state(false);
   

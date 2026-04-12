@@ -4,13 +4,13 @@ import type { UserWithTags, CurrentUser, TagSimple } from "@kanaria/shared";
 
 let { data } = $props();
 
-let user = $state<UserWithTags | null>(data.user);
+let user = $state<UserWithTags | null>(data.targetUser);
 let currentUser = $state<CurrentUser | null>(data.currentUser);
 let allTags = $state<TagSimple[]>(data.allTags || []);
 
 // Edit states
 let isEditingName = $state(false);
-let editedName = $state(data.user?.name || "");
+let editedName = $state(data.targetUser?.name || "");
 let isSavingName = $state(false);
 let isSavingTags = $state(false);
 
@@ -112,9 +112,9 @@ async function updateTags(tagIds: string[]) {
 
 // Sync with server data
 $effect(() => {
-  if (data.user) {
-    user = data.user;
-    editedName = data.user.name;
+  if (data.targetUser) {
+    user = data.targetUser;
+    editedName = data.targetUser.name;
   }
   if (data.currentUser) {
     currentUser = data.currentUser;

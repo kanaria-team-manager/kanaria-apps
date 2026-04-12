@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
   const accessToken = session?.access_token;
 
   if (!accessToken) {
-    return { user: null, allTags: [] };
+    return { profile: null, allTags: [] };
   }
 
   try {
@@ -31,10 +31,10 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
       fetchTags(fetch, accessToken),
     ]);
 
-    return { user, allTags };
+    return { profile: user, allTags };
   } catch (e) {
     console.error("Failed to load user data:", e);
-    return { user: null, allTags: [], error: "ユーザー情報の取得に失敗しました" };
+    return { profile: null, allTags: [], error: "ユーザー情報の取得に失敗しました" };
   }
 };
 
