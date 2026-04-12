@@ -16,7 +16,12 @@ const navItems = [
   { href: "/users", label: "ユーザー", icon: "user-circle" as const },
 ];
 
-type IconKey = typeof navItems[number]["icon"];
+const roleId = $derived(page.data.user?.app_metadata?.roleId);
+const isOwnerOrAdmin = $derived(roleId === 0 || roleId === 1);
+const teamNavContent = { href: "/team/settings", label: "チーム管理", icon: "team" as const };
+const activeNavItems = $derived(isOwnerOrAdmin ? [...navItems, teamNavContent] : navItems);
+
+type IconKey = typeof navItems[number]["icon"] | "team";
 
 // SVG icons
 const icons: Record<IconKey, string> = {
@@ -26,6 +31,7 @@ const icons: Record<IconKey, string> = {
   tag: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />',
   bookmark: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />',
   "user-circle": '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />',
+  team: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />',
 };
 
 function handleNavClick() {
@@ -71,7 +77,7 @@ function handleNavClick() {
 
     <!-- Navigation -->
     <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-      {#each navItems as item}
+      {#each activeNavItems as item}
         {@const isActive = page.url.pathname.startsWith(item.href)}
         <a
           href={item.href}

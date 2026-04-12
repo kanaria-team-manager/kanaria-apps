@@ -16,6 +16,41 @@ export class TeamRepository {
     return result.length > 0 ? result[0] : null;
   }
 
+  async findById(id: string) {
+    const result = await this.db
+      .select()
+      .from(teams)
+      .where(eq(teams.id, id))
+      .limit(1);
+
+    return result.length > 0 ? result[0] : null;
+  }
+
+  // biome-ignore lint/suspicious/noExplicitAny: Transaction type is complex
+  async update(
+    id: string,
+    data: { name?: string; description?: string | null },
+    tx?: any,
+  ) {
+    const executor = tx || this.db;
+    const updateData: Partial<typeof teams.$inferInsert> = {};
+
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.description !== undefined)
+      updateData.description = data.description;
+
+    await executor.update(teams).set(updateData).where(eq(teams.id, id));
+    // Since this might run in a transaction, return might be tricky without executor.
+    // Instead we just return the id, or refetch using executor if really needed.
+    // Drizzle also supports returning()
+    const result = await executor
+      .update(teams)
+      .set(updateData)
+      .where(eq(teams.id, id))
+      .returning();
+    return result.length > 0 ? result[0] : null;
+  }
+
   // biome-ignore lint/suspicious/noExplicitAny: Transaction type is complex
   async create(team: typeof teams.$inferInsert, tx?: any) {
     const executor = tx || this.db;

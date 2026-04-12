@@ -49,10 +49,7 @@ labelsRoute.get("/", zValidator("query", getLabelsQuerySchema), async (c) => {
   }
 
   const repository = new LabelRepository(db);
-  const labels = await repository.findByTeamAndType(
-    currentUser.teamId,
-    type,
-  );
+  const labels = await repository.findByTeamAndType(currentUser.teamId, type);
   return c.json(labels);
 });
 
