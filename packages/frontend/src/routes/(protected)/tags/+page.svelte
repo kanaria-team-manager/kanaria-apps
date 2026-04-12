@@ -59,7 +59,7 @@ async function fetchTags() {
 async function fetchAllLabels() {
   if (!data.session?.access_token) return;
   try {
-    const res = await fetchLabels(fetch, data.session.access_token);
+    const res = await fetchLabels(fetch, data.session.access_token, "tag");
     allLabels = res;
   } catch (e) {
     console.error("Failed to fetch labels", e);

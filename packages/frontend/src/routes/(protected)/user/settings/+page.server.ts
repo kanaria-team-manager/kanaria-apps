@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
     const [config, allTags, labels] = await Promise.all([
       apiGet<UserConfig>("/users/me/settings", accessToken, { fetch }),
       apiGet<Tag[]>("/tags", accessToken, { fetch }),
-      apiGet<Label[]>("/labels", accessToken, { fetch }),
+      apiGet<Label[]>("/labels?type=event", accessToken, { fetch }),
     ]);
     return {
       config: config || DEFAULT_USER_CONFIG,
