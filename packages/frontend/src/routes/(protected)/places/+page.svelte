@@ -16,81 +16,92 @@
   });
 </script>
 
-<div class="container mx-auto px-4 py-8 max-w-4xl">
-  <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold">場所管理</h1>
-    <a 
-      href="/places/new"
-      class="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md text-sm font-medium transition-colors"
-    >
-      新規作成
-    </a>
+<div class="container mx-auto max-w-6xl px-4 py-8">
+  <!-- ページヘッダー -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h1 class="text-2xl font-semibold tracking-tight">場所管理</h1>
+        <p class="text-muted-foreground mt-1">練習や試合で利用する場所を管理します</p>
+      </div>
+      <a 
+        href="/places/new"
+        class="px-4 py-2 bg-primary text-primary-foreground font-medium rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors text-sm"
+      >
+        新規作成
+      </a>
+    </div>
   </div>
 
-  {#if error}
-    <div class="bg-destructive/10 text-destructive p-4 rounded-lg">
-      {error}
-    </div>
-  {:else if form?.deleteError}
-    <div class="bg-destructive/10 text-destructive p-4 rounded-lg mb-4">
-      {form.deleteError}
-    </div>
-  {/if}
-  
-  {#if places.length === 0}
-    <div class="text-center py-12 text-muted-foreground bg-muted/30 rounded-lg border border-border">
-      <p>場所が登録されていません</p>
-    </div>
-  {:else}
-    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {#each places as place (place.id)}
-        <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div 
-            class="bg-card border border-border rounded-lg p-4 shadow-sm hover:shadow transition-shadow cursor-pointer"
-            onclick={() => goto(`/places/${place.id}`)}
-        >
-          <div class="flex justify-between items-start mb-2">
-            <h3 class="font-semibold text-lg">{place.name}</h3>
-            <form 
-              method="POST" 
-              action="?/delete" 
-              use:enhance={() => {
-                if (!confirm('本当に削除しますか？')) {
-                  return () => {};
-                }
-                return async ({ update }) => {
-                  await update();
-                };
-              }}
-              onclick={(e) => e.stopPropagation()}
-            >
-              <input type="hidden" name="id" value={place.id} />
-              <button 
-                type="submit"
-                class="text-sm text-destructive hover:text-destructive/80 p-1"
-                aria-label="削除"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            </form>
-          </div>
-          {#if place.description}
-            <p class="text-sm text-muted-foreground line-clamp-2 mb-2">{place.description}</p>
-          {/if}
-          {#if place.location}
-            <div class="flex items-center gap-1 text-xs text-muted-foreground mt-2">
-               <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-               </svg>
-               地図情報あり
-            </div>
-          {/if}
+  <!-- コンテンツ領域 -->
+  <div class="rounded-lg border border-border bg-card">
+    <div class="p-6">
+      {#if error}
+        <div class="bg-destructive/10 text-destructive p-4 rounded-lg mb-6">
+          {error}
         </div>
-      {/each}
+      {:else if form?.deleteError}
+        <div class="bg-destructive/10 text-destructive p-4 rounded-lg mb-6">
+          {form.deleteError}
+        </div>
+      {/if}
+      
+      {#if places.length === 0}
+        <div class="text-center py-12 text-muted-foreground bg-muted/30 rounded-lg border border-border">
+          <p>場所が登録されていません</p>
+        </div>
+      {:else}
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {#each places as place (place.id)}
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <div 
+                class="bg-card border border-border rounded-lg p-4 shadow-sm hover:shadow transition-shadow cursor-pointer"
+                onclick={() => goto(`/places/${place.id}`)}
+            >
+              <div class="flex justify-between items-start mb-2">
+                <h3 class="font-semibold text-lg">{place.name}</h3>
+                <form 
+                  method="POST" 
+                  action="?/delete" 
+                  use:enhance={() => {
+                    if (!confirm('本当に削除しますか？')) {
+                      return () => {};
+                    }
+                    return async ({ update }) => {
+                      await update();
+                    };
+                  }}
+                  onclick={(e) => e.stopPropagation()}
+                >
+                  <input type="hidden" name="id" value={place.id} />
+                  <button 
+                    type="submit"
+                    class="text-sm text-destructive hover:text-destructive/80 p-1"
+                    aria-label="削除"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </form>
+              </div>
+              {#if place.description}
+                <p class="text-sm text-muted-foreground line-clamp-2 mb-2">{place.description}</p>
+              {/if}
+              {#if place.location}
+                <div class="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                   </svg>
+                   地図情報あり
+                </div>
+              {/if}
+            </div>
+          {/each}
+        </div>
+      {/if}
     </div>
-  {/if}
+  </div>
 </div>

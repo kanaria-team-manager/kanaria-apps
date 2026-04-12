@@ -36,10 +36,11 @@ export const actions: Actions = {
         accessToken,
         { fetch },
       );
-      return redirect(303, "/places");
     } catch (e) {
       console.error("Failed to create place:", e);
       return fail(500, { error: "作成に失敗しました", name, description });
     }
+    
+    return redirect(303, "/places");
   },
 };
