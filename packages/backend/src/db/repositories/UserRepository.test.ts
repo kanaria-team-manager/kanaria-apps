@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { ulid } from "ulid";
+import { uuidv7 } from "uuidv7";
 import { beforeEach, describe, expect, it } from "vitest";
 import { getTestDb, TEST_TEAMS } from "../../test/setup.js";
 import { UserRepository } from "./UserRepository.js";
@@ -14,7 +14,7 @@ describe("UserRepository", () => {
   describe("create", () => {
     it("should create a new user", async () => {
       const userData = {
-        id: ulid(),
+        id: uuidv7(),
         supabaseUserId: crypto.randomUUID(),
         teamId: TEST_TEAMS.MAIN,
         roleId: 0,
@@ -37,7 +37,7 @@ describe("UserRepository", () => {
       const supabaseUserId = crypto.randomUUID();
 
       await repository.create({
-        id: ulid(),
+        id: uuidv7(),
         supabaseUserId,
         teamId: TEST_TEAMS.ALPHA,
         roleId: 2,
@@ -62,7 +62,7 @@ describe("UserRepository", () => {
   describe("findAllByTeamId", () => {
     it("should return all users for a team", async () => {
       await repository.create({
-        id: ulid(),
+        id: uuidv7(),
         supabaseUserId: crypto.randomUUID(),
         teamId: TEST_TEAMS.ALPHA,
         roleId: 0,
@@ -72,7 +72,7 @@ describe("UserRepository", () => {
       });
 
       await repository.create({
-        id: ulid(),
+        id: uuidv7(),
         supabaseUserId: crypto.randomUUID(),
         teamId: TEST_TEAMS.ALPHA,
         roleId: 1,
@@ -82,7 +82,7 @@ describe("UserRepository", () => {
       });
 
       await repository.create({
-        id: ulid(),
+        id: uuidv7(),
         supabaseUserId: crypto.randomUUID(),
         teamId: TEST_TEAMS.BETA,
         roleId: 2,
@@ -100,7 +100,7 @@ describe("UserRepository", () => {
 
   describe("updateProfile", () => {
     it("should update user profile", async () => {
-      const userId = ulid();
+      const userId = uuidv7();
       const supabaseUserId = crypto.randomUUID();
 
       await repository.create({
@@ -124,7 +124,7 @@ describe("UserRepository", () => {
 
   describe("updateConfig", () => {
     it("should update user config", async () => {
-      const userId = ulid();
+      const userId = uuidv7();
       const supabaseUserId = crypto.randomUUID();
 
       await repository.create({
@@ -162,7 +162,7 @@ describe("UserRepository", () => {
     });
 
     it("should partially update user config", async () => {
-      const userId = ulid();
+      const userId = uuidv7();
       const supabaseUserId = crypto.randomUUID();
 
       await repository.create({

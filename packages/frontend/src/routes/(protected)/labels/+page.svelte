@@ -1,6 +1,6 @@
 <script lang="ts">
 import { apiGet, apiPost, apiPut, apiDelete } from "$lib/api/client";
-import { LABEL_TYPES, type Label, type LabelType } from "@kanaria/shared";
+import { LABEL_TYPES, LABEL_TYPE_NAMES, type Label, type LabelType } from "@kanaria/shared";
 
 let { data } = $props();
 
@@ -23,14 +23,7 @@ const PRESET_COLORS = [
   "#ec4899",
   "#06b6d4",
   "#64748b",
-];
 
-const LABEL_TYPE_NAMES: Record<LabelType, string> = {
-  event: "イベント",
-  player: "プレイヤー",
-  grade: "学年",
-  user: "ユーザー",
-};
 
 const filteredLabels = $derived(
   labels.filter((label) =>

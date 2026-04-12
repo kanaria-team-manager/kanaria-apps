@@ -8,12 +8,12 @@ import {
 } from "drizzle-orm/pg-core";
 import { roles } from "./roles";
 import { teams } from "./teams";
-import { USER_STATUS, ulid } from "./utils";
+import { USER_STATUS } from "./utils";
 
 export const users = pgTable("users", {
-  id: ulid("id").primaryKey(), // varchar(26)
+  id: uuid("id").primaryKey(),
   supabaseUserId: uuid("supabase_user_id").notNull(), // Supabase Auth User ID
-  teamId: ulid("team_id")
+  teamId: uuid("team_id")
     .notNull()
     .references(() => teams.id),
   roleId: smallint("role_id")

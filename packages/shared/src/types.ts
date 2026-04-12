@@ -10,8 +10,13 @@ export interface Tag {
   updatedAt: string | Date;
 }
 
-export const LABEL_TYPES = ["event", "player", "grade", "user"] as const;
+export const LABEL_TYPES = ["event", "tag"] as const;
 export type LabelType = typeof LABEL_TYPES[number];
+
+export const LABEL_TYPE_NAMES: Record<LabelType, string> = {
+  event: "イベント",
+  tag: "タグ",
+};
 
 export interface Label {
   id: string;

@@ -21,16 +21,16 @@ import * as schema from "../db/schemas/index.js";
  * These are created once in global setup and available to all tests
  */
 export const TEST_TEAMS = {
-  MAIN: "test-team-main",
-  ALPHA: "test-team-alpha",
-  BETA: "test-team-beta",
-  GAMMA: "test-team-gamma",
-  UPDATE: "test-team-update",
-  DELETE: "test-team-delete",
-  PROTECTED: "test-team-protected",
-  ORIGINAL: "test-team-original",
-  DIFFERENT: "test-team-different",
-  WRONG: "test-team-wrong",
+  MAIN: "00000000-0000-7000-8000-000000000001",
+  ALPHA: "00000000-0000-7000-8000-000000000002",
+  BETA: "00000000-0000-7000-8000-000000000003",
+  GAMMA: "00000000-0000-7000-8000-000000000004",
+  UPDATE: "00000000-0000-7000-8000-000000000005",
+  DELETE: "00000000-0000-7000-8000-000000000006",
+  PROTECTED: "00000000-0000-7000-8000-000000000007",
+  ORIGINAL: "00000000-0000-7000-8000-000000000008",
+  DIFFERENT: "00000000-0000-7000-8000-000000000009",
+  WRONG: "00000000-0000-7000-8000-000000000010",
 } as const;
 
 /**
@@ -116,7 +116,7 @@ export default async function setup() {
 
     console.log("🧹 Cleaning migrations...");
     await db.execute(sql`
-      TRUNCATE TABLE drizzle.__drizzle_migrations;
+      DROP SCHEMA IF EXISTS drizzle CASCADE;
     `);
 
     // Run migrations (will insert system data)
@@ -130,7 +130,7 @@ export default async function setup() {
     const teamData = Object.entries(TEST_TEAMS).map(([key, id]) => ({
       id,
       name: key,
-      code: id,
+      code: key.toLowerCase(),
       status: 1,
       eventSequence: 0,
     }));

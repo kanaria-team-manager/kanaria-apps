@@ -1,25 +1,24 @@
-import { pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 import { labels, teams, users } from "./index";
 import { places } from "./places";
-import { ulid } from "./utils";
 
 export const events = pgTable(
   "events",
   {
-    id: ulid("id").primaryKey(), // varchar(26)
-    ownerId: ulid("owner_id")
+    id: uuid("id").primaryKey(),
+    ownerId: uuid("owner_id")
       .notNull()
       .references(() => users.id),
-    teamId: ulid("team_id")
+    teamId: uuid("team_id")
       .notNull()
       .references(() => teams.id),
-    placeId: ulid("place_id").references(() => places.id),
+    placeId: uuid("place_id").references(() => places.id),
     title: text("title").notNull(),
     details: text("details"),
     startDateTime: timestamp("start_date_time").notNull(),
     endDateTime: timestamp("end_date_time").notNull(),
     eventNo: text("event_no").notNull().unique(),
-    labelId: ulid("label_id").references(() => labels.id),
+    labelId: uuid("label_id").references(() => labels.id),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
