@@ -16,10 +16,11 @@ const navItems = [
   { href: "/users", label: "ユーザー", icon: "user-circle" as const },
 ];
 
+import { isOwnerOrAdmin } from "$lib/auth/roles";
 const roleId = $derived(page.data.user?.app_metadata?.roleId);
-const isOwnerOrAdmin = $derived(roleId === 0 || roleId === 1);
+const isAuthorized = $derived(isOwnerOrAdmin(roleId));
 const teamNavContent = { href: "/team/settings", label: "チーム管理", icon: "team" as const };
-const activeNavItems = $derived(isOwnerOrAdmin ? [...navItems, teamNavContent] : navItems);
+const activeNavItems = $derived(isAuthorized ? [...navItems, teamNavContent] : navItems);
 
 type IconKey = typeof navItems[number]["icon"] | "team";
 

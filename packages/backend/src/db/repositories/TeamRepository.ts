@@ -39,10 +39,10 @@ export class TeamRepository {
     if (data.description !== undefined)
       updateData.description = data.description;
 
-    await executor.update(teams).set(updateData).where(eq(teams.id, id));
-    // Since this might run in a transaction, return might be tricky without executor.
-    // Instead we just return the id, or refetch using executor if really needed.
-    // Drizzle also supports returning()
+    if (Object.keys(updateData).length === 0) {
+      return this.findById(id);
+    }
+
     const result = await executor
       .update(teams)
       .set(updateData)

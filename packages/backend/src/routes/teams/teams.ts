@@ -16,8 +16,18 @@ app.get("/settings", async (c) => {
   const teamRepo = new TeamRepository(db);
 
   const teamId = user.app_metadata?.teamId as string | undefined;
+  const currentRoleId = user.app_metadata?.roleId as number | undefined;
+
   if (!teamId) {
     return c.json({ error: "Team ID not found" }, 403);
+  }
+
+  // Only owner (0) or admin (1) can read team settings
+  if (currentRoleId !== 0 && currentRoleId !== 1) {
+    return c.json(
+      { error: "Forbidden. Only owner or admin can read team settings." },
+      403,
+    );
   }
 
   const team = await teamRepo.findById(teamId);
@@ -66,6 +76,11 @@ app.put("/settings", zValidator("json", updateTeamSchema), async (c) => {
     name,
     description: description ?? null,
   });
+
+  if (!updated) {
+    return c.json({ error: "Team not found" }, 404);
+  }
+
   return c.json(updated);
 });
 

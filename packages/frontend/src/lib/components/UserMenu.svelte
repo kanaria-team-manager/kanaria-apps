@@ -1,12 +1,13 @@
 <script lang="ts">
 import { logout } from "$lib/domains/auth/logout";
 import { page } from "$app/state";
+import { isOwnerOrAdmin } from "$lib/auth/roles";
 
 let isOpen = $state(false);
 let isLoggingOut = $state(false);
 
 const roleId = $derived(page.data.user?.app_metadata?.roleId);
-const isOwnerOrAdmin = $derived(roleId === 0 || roleId === 1);
+const isAuthorized = $derived(isOwnerOrAdmin(roleId));
 
   let { direction = "down" }: { direction?: "up" | "down" } = $props();
 
@@ -90,7 +91,7 @@ const isOwnerOrAdmin = $derived(roleId === 0 || roleId === 1);
         設定
       </a>
 
-      {#if isOwnerOrAdmin}
+      {#if isAuthorized}
         <!-- Team Settings -->
         <a
           href="/team/settings"

@@ -1,6 +1,8 @@
 <script lang="ts">
 import { apiGet, apiPut } from "$lib/api/client";
 
+const MAX_INPUT_LENGTH = 500;
+
 interface Team {
   id: string;
   name: string;
@@ -48,8 +50,8 @@ async function saveTeam(e: Event) {
     return;
   }
   
-  if (formName.length > 500 || formDescription.length > 500) {
-    errorMessage = "500文字以内で入力してください。";
+  if (formName.length > MAX_INPUT_LENGTH || formDescription.length > MAX_INPUT_LENGTH) {
+    errorMessage = `${MAX_INPUT_LENGTH}文字以内で入力してください。`;
     return;
   }
 
@@ -122,11 +124,11 @@ $effect(() => {
             id="teamName"
             type="text"
             bind:value={formName}
-            maxlength="500"
+            maxlength={MAX_INPUT_LENGTH}
             required
             class="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
           />
-          <p class="text-xs text-muted-foreground">{formName.length} / 500 文字</p>
+          <p class="text-xs text-muted-foreground">{formName.length} / {MAX_INPUT_LENGTH} 文字</p>
         </div>
 
         <div class="space-y-2">
@@ -135,10 +137,10 @@ $effect(() => {
             id="teamDescription"
             rows="4"
             bind:value={formDescription}
-            maxlength="500"
+            maxlength={MAX_INPUT_LENGTH}
             class="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
           ></textarea>
-          <p class="text-xs text-muted-foreground">{formDescription.length} / 500 文字</p>
+          <p class="text-xs text-muted-foreground">{formDescription.length} / {MAX_INPUT_LENGTH} 文字</p>
         </div>
 
         <div class="pt-4 flex justify-end">
@@ -151,6 +153,17 @@ $effect(() => {
           </button>
         </div>
       </form>
+    </div>
+  {:else}
+    <div class="text-center py-12">
+      <p class="text-destructive mb-4">{errorMessage || "チーム情報の読み込みに失敗しました。"}</p>
+      <button
+        type="button"
+        onclick={fetchTeam}
+        class="px-4 py-2 border border-border text-foreground font-medium rounded-md hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+      >
+        再試行
+      </button>
     </div>
   {/if}
 </div>
