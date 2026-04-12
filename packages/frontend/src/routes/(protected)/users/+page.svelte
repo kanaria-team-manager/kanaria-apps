@@ -145,10 +145,15 @@ $effect(() => {
 });
 </script>
 
-<div class="container mx-auto max-w-7xl px-4 py-8">
+<div class="container mx-auto max-w-6xl px-4 py-8">
   <!-- Header -->
   <div class="mb-8">
-    <h1 class="text-2xl font-semibold tracking-tight mb-4">ユーザー管理</h1>
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h1 class="text-2xl font-semibold tracking-tight">ユーザー管理</h1>
+        <p class="text-muted-foreground mt-1">システム利用ユーザーの権限管理と情報の確認を行います</p>
+      </div>
+    </div>
 
     <!-- Filters -->
     <div class="space-y-4">
@@ -185,8 +190,8 @@ $effect(() => {
             class="px-3 py-1.5 rounded-full text-sm font-medium border transition-all {selectedTags.includes(
               tag.id
             )
-              ? 'bg-indigo-600 text-white border-indigo-600'
-              : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'}"
+              ? 'bg-primary text-primary-foreground border-primary'
+              : 'bg-background text-foreground border-border hover:bg-muted'}"
           >
             {tag.name}
           </button>
@@ -197,21 +202,21 @@ $effect(() => {
 
   <!-- User List -->
   {#if isLoading}
-    <div class="text-center py-12">読み込み中...</div>
+    <div class="text-center py-12 text-muted-foreground">読み込み中...</div>
   {:else if filteredUsers.length === 0}
     <div class="text-center py-12 text-muted-foreground">
       ユーザーが見つかりませんでした
     </div>
   {:else}
-    <div class="space-y-2">
+    <div class="space-y-3">
       {#each filteredUsers as user (user.id)}
-        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div class="bg-card rounded-lg border border-border overflow-hidden">
           <!-- User Row -->
           <div class="p-4 flex items-center gap-4">
             <!-- Expand Button -->
             <button
               onclick={() => toggleUser(user.id)}
-              class="text-gray-400 hover:text-gray-600 transition-colors"
+              class="text-muted-foreground hover:text-foreground transition-colors"
               aria-label="展開/折りたたみ"
             >
               <svg
@@ -237,11 +242,11 @@ $effect(() => {
               <div class="col-span-4">
                 <a
                   href="/users/{user.id}"
-                  class="font-medium text-indigo-600 hover:text-indigo-700 hover:underline"
+                  class="font-medium text-primary hover:underline"
                 >
                   {user.name}
                 </a>
-                <div class="text-sm text-gray-500">{user.email}</div>
+                <div class="text-sm text-muted-foreground">{user.email}</div>
               </div>
 
               <!-- Role Selector (only for owner/admin) -->
@@ -251,7 +256,7 @@ $effect(() => {
                     value={user.roleId}
                     onchange={(e) =>
                       updateUserRole(user.id, Number(e.currentTarget.value))}
-                    class="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    class="w-full px-3 py-1.5 border border-border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <!-- Owner role not selectable -->
                     <option value={1}>Admin</option>
@@ -264,7 +269,7 @@ $effect(() => {
                       ? 'bg-purple-100 text-purple-700'
                       : user.roleId === 1
                         ? 'bg-blue-100 text-blue-700'
-                        : 'bg-gray-100 text-gray-700'}"
+                        : 'bg-muted text-muted-foreground'}"
                   >
                     {ROLES[user.roleId]}
                   </span>
@@ -276,7 +281,7 @@ $effect(() => {
                 <div class="flex flex-wrap gap-1">
                   {#each user.tags as tag}
                     <span
-                      class="px-2 py-1 text-xs bg-indigo-50 text-indigo-700 rounded"
+                      class="px-2 py-1 text-xs bg-primary/10 text-primary rounded"
                     >
                       {tag.name}
                     </span>
@@ -288,13 +293,13 @@ $effect(() => {
 
           <!-- Players (Expanded) -->
           {#if expandedUsers.has(user.id) && user.players.length > 0}
-            <div class="bg-gray-50 border-t border-gray-200 px-4 py-3">
+            <div class="bg-muted/30 border-t border-border px-4 py-3">
               <div class="ml-9 space-y-2">
                 {#each user.players as player}
                   <div class="flex items-center gap-3 text-sm">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      class="w-4 h-4 text-gray-400"
+                      class="w-4 h-4 text-muted-foreground"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -306,13 +311,13 @@ $effect(() => {
                         d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                       />
                     </svg>
-                    <span class="font-medium text-gray-700"
+                    <span class="font-medium text-foreground"
                       >{getPlayerName(player)}</span
                     >
                     <div class="flex gap-1">
                       {#each player.tags as tag}
                         <span
-                          class="px-2 py-0.5 text-xs bg-green-50 text-green-700 rounded"
+                          class="px-2 py-0.5 text-xs bg-green-100/50 text-green-700 rounded"
                         >
                           {tag.name}
                         </span>
@@ -340,3 +345,4 @@ $effect(() => {
     </div>
   </div>
 </div>
+

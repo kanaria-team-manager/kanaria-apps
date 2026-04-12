@@ -72,17 +72,23 @@
   }
 </script>
 
-<div class="container mx-auto px-4 py-6 max-w-2xl">
-
-
-  <h1 class="text-2xl font-bold mb-6">ユーザー設定</h1>
+<div class="container mx-auto px-4 py-8 max-w-6xl">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h1 class="text-2xl font-semibold tracking-tight">ユーザープロファイル</h1>
+        <p class="text-muted-foreground mt-1">あなたの基本情報と所属タグの確認・編集を行います</p>
+      </div>
+    </div>
+  </div>
 
   {#if data.error}
-    <div class="bg-destructive/10 text-destructive p-4 rounded-lg">
+    <div class="bg-destructive/10 text-destructive p-4 rounded-lg mb-6">
       {data.error}
     </div>
   {:else if user}
-    <div class="bg-card border border-border rounded-xl p-6 shadow-sm space-y-6">
+    <div class="bg-card border border-border rounded-lg p-6 space-y-6">
       
       <!-- Name -->
       <div class="space-y-2">
@@ -104,13 +110,13 @@
               type="text"
               name="name"
               bind:value={editedName}
-              class="flex-1 px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+              class="flex-1 px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="名前を入力"
             />
             <button
               type="submit"
               disabled={isSavingName || !editedName.trim()}
-              class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
+              class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
               {isSavingName ? '保存中...' : '保存'}
             </button>
@@ -118,17 +124,17 @@
               type="button"
               onclick={cancelEditName}
               disabled={isSavingName}
-              class="px-4 py-2 border border-input rounded-md hover:bg-accent"
+              class="px-4 py-2 border border-border rounded-md hover:bg-muted disabled:opacity-50 transition-colors"
             >
               キャンセル
             </button>
           </form>
           {#if form?.nameError}
-            <p class="text-sm text-destructive">{form.nameError}</p>
+            <p class="text-sm text-destructive mt-1">{form.nameError}</p>
           {/if}
         {:else}
           <div class="flex items-center justify-between">
-            <span class="text-lg">{user.name}</span>
+            <span class="text-lg text-foreground font-medium">{user.name}</span>
             <button
               onclick={startEditName}
               class="text-sm text-primary hover:underline"
@@ -144,9 +150,9 @@
         <span class="text-sm font-medium text-muted-foreground">メールアドレス</span>
         <div class="flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v10a2 2 0 002 2z" />
           </svg>
-          <span class="text-muted-foreground">{user.email}</span>
+          <span class="text-foreground">{user.email}</span>
         </div>
       </div>
 
@@ -159,7 +165,7 @@
           <input
             type="text"
             bind:value={tagSearch}
-            class="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+            class="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="タグを検索して追加..."
           />
           
@@ -187,9 +193,9 @@
                   <button
                     type="submit"
                     disabled={isSavingTags}
-                    class="w-full px-3 py-2 text-left hover:bg-accent disabled:opacity-50 flex items-center gap-2"
+                    class="w-full px-3 py-2 text-left hover:bg-muted disabled:opacity-50 flex items-center gap-2 transition-colors"
                   >
-                    <span class="text-primary">+</span>
+                    <span class="text-primary font-bold">+</span>
                     {tag.name}
                   </button>
                 </form>
@@ -199,11 +205,11 @@
         </div>
 
         {#if form?.tagError}
-          <p class="text-sm text-destructive">{form.tagError}</p>
+          <p class="text-sm text-destructive mt-1">{form.tagError}</p>
         {/if}
 
         <!-- Current tags -->
-        <div class="flex flex-wrap gap-2 min-h-[2rem]">
+        <div class="flex flex-wrap gap-2 min-h-[2.5rem]">
           {#each user.tags as tag (tag.id)}
             <span class="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
               {tag.name}
@@ -227,10 +233,10 @@
                 <button
                   type="submit"
                   disabled={isSavingTags}
-                  class="hover:bg-primary/20 rounded-full p-0.5 disabled:opacity-50"
+                  class="hover:bg-primary/20 rounded-full p-0.5 disabled:opacity-50 transition-colors"
                   aria-label="タグを削除"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -238,7 +244,7 @@
             </span>
           {/each}
           {#if user.tags.length === 0}
-            <span class="text-sm text-muted-foreground">タグがありません</span>
+            <span class="text-sm text-muted-foreground flex items-center h-8">タグがありません</span>
           {/if}
         </div>
       </div>

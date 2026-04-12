@@ -13,7 +13,7 @@ const navItems = [
   { href: "/places", label: "場所", icon: "map-pin" as const },
   { href: "/tags", label: "タグ", icon: "tag" as const },
   { href: "/labels", label: "ラベル", icon: "bookmark" as const },
-  { href: "/users", label: "ユーザー", icon: "user-circle" as const },
+  { href: "/users", label: "ユーザー管理", icon: "user-circle" as const },
 ];
 
 import { isOwnerOrAdmin } from "$lib/auth/roles";
