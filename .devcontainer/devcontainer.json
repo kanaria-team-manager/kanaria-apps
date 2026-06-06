@@ -22,7 +22,7 @@
     }
   },
   "onCreateCommand": "sudo apt-get update && sudo apt-get install -y direnv",
-  "updateContentCommand": "echo 'eval \"$(direnv hook bash)\"' >> ~/.bashrc || true",
+  "updateContentCommand": "grep -qF 'eval \"$(direnv hook bash)\"' ~/.bashrc || echo 'eval \"$(direnv hook bash)\"' >> ~/.bashrc",
   "postCreateCommand": "direnv allow .",
   "remoteUser": "vscode"
 }
