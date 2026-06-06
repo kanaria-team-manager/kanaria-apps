@@ -1,0 +1,28 @@
+{
+  "name": "Kanaria Nix Environment",
+  "image": "mcr.microsoft.com/devcontainers/base:jammy",
+  "features": {
+    "ghcr.io/devcontainers/features/nix:1": {
+      "extraOptions": "experimental-features = nix-command flakes"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "moby": true,
+      "enableNonRootDocker": true
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "mkhl.direnv",
+        "jnoortheen.nix-ide",
+        "biomejs.biome",
+        "svelte.svelte-vscode",
+        "bradlc.vscode-tailwindcss"
+      ]
+    }
+  },
+  "onCreateCommand": "sudo apt-get update && sudo apt-get install -y direnv",
+  "updateContentCommand": "grep -qF 'eval \"$(direnv hook bash)\"' ~/.bashrc || echo 'eval \"$(direnv hook bash)\"' >> ~/.bashrc",
+  "postCreateCommand": "direnv allow .",
+  "remoteUser": "vscode"
+}
