@@ -4,13 +4,13 @@ import type { UserWithTags, CurrentUser, TagSimple } from "@kanaria/shared";
 
 let { data } = $props();
 
-let user = $state<UserWithTags | null>(data.user);
+let user = $state<UserWithTags | null>(data.targetUser);
 let currentUser = $state<CurrentUser | null>(data.currentUser);
 let allTags = $state<TagSimple[]>(data.allTags || []);
 
 // Edit states
 let isEditingName = $state(false);
-let editedName = $state(data.user?.name || "");
+let editedName = $state(data.targetUser?.name || "");
 let isSavingName = $state(false);
 let isSavingTags = $state(false);
 
@@ -112,9 +112,12 @@ async function updateTags(tagIds: string[]) {
 
 // Sync with server data
 $effect(() => {
-  if (data.user) {
-    user = data.user;
-    editedName = data.user.name;
+  if (data.targetUser) {
+    user = data.targetUser;
+    editedName = data.targetUser.name;
+  } else {
+    user = null;
+    editedName = "";
   }
   if (data.currentUser) {
     currentUser = data.currentUser;
@@ -129,12 +132,12 @@ $effect(() => {
   <title>ユーザー詳細 | Kanaria</title>
 </svelte:head>
 
-<div class="container mx-auto px-4 py-6 max-w-2xl">
+<div class="container mx-auto px-4 py-8 max-w-6xl">
   <!-- Back Button -->
   <div class="mb-6">
     <a
       href="/users"
-      class="text-indigo-600 hover:text-indigo-700 flex items-center gap-2 text-sm font-medium"
+      class="text-primary hover:text-primary/80 flex items-center gap-2 text-sm font-medium transition-colors"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -154,11 +157,19 @@ $effect(() => {
     </a>
   </div>
 
-  <h1 class="text-2xl font-bold mb-6">ユーザー詳細</h1>
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h1 class="text-2xl font-semibold tracking-tight">ユーザー詳細</h1>
+        <p class="text-muted-foreground mt-1">ユーザーの基本情報と取得したタグの管理を行います</p>
+      </div>
+    </div>
+  </div>
 
   {#if data.error}
     <div
-      class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6"
+      class="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-md mb-6"
     >
       {data.error}
     </div>
@@ -167,40 +178,40 @@ $effect(() => {
   {#if user}
     <div class="space-y-6">
       <!-- User Info Card -->
-      <div class="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
+      <div class="bg-card rounded-lg border border-border p-6 space-y-4">
         <!-- Name -->
         <div>
-          <div class="block text-sm font-medium text-gray-700 mb-2">名前</div>
+          <div class="block text-sm font-medium text-muted-foreground mb-2">名前</div>
           {#if isEditingName && canEdit}
             <div class="flex gap-2">
               <input
                 type="text"
                 bind:value={editedName}
                 disabled={isSavingName}
-                class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50"
+                class="flex-1 px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
               />
               <button
                 onclick={saveName}
                 disabled={isSavingName}
-                class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors"
               >
                 {isSavingName ? "保存中..." : "保存"}
               </button>
               <button
                 onclick={cancelEditName}
                 disabled={isSavingName}
-                class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                class="px-4 py-2 border border-border rounded-md hover:bg-muted disabled:opacity-50 transition-colors"
               >
                 キャンセル
               </button>
             </div>
           {:else}
             <div class="flex items-center justify-between">
-              <p class="text-gray-900">{user.name}</p>
+              <p class="text-foreground text-lg">{user.name}</p>
               {#if canEdit}
                 <button
                   onclick={startEditName}
-                  class="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                  class="text-sm text-primary hover:underline font-medium"
                 >
                   編集
                 </button>
@@ -211,22 +222,22 @@ $effect(() => {
 
         <!-- Email (read-only) -->
         <div>
-          <div class="block text-sm font-medium text-gray-700 mb-2">
+          <div class="block text-sm font-medium text-muted-foreground mb-2">
             メールアドレス
           </div>
-          <p class="text-gray-900">{user.email}</p>
+          <p class="text-foreground">{user.email}</p>
         </div>
 
         <!-- Role (read-only) -->
         <div>
-          <div class="block text-sm font-medium text-gray-700 mb-2">権限</div>
+          <div class="block text-sm font-medium text-muted-foreground mb-2">権限</div>
           <span
             class="inline-block px-3 py-1 text-sm font-medium rounded {user.roleId ===
             0
               ? 'bg-purple-100 text-purple-700'
               : user.roleId === 1
                 ? 'bg-blue-100 text-blue-700'
-                : 'bg-gray-100 text-gray-700'}"
+                : 'bg-muted text-muted-foreground'}"
           >
             {ROLES[user.roleId]}
           </span>
@@ -235,17 +246,17 @@ $effect(() => {
 
       <!-- Players Card -->
       {#if user.players && user.players.length > 0}
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 class="text-lg font-semibold mb-4">保護者として登録されているプレイヤー</h2>
+        <div class="bg-card rounded-lg border border-border p-6">
+          <h2 class="text-lg font-semibold mb-4 text-foreground">保護者として登録されているプレイヤー</h2>
           <div class="flex flex-wrap gap-2">
             {#each user.players as player}
               <a
                 href="/players/{player.id}"
-                class="inline-flex items-center gap-2 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm font-medium transition-colors"
+                class="inline-flex items-center gap-2 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-md text-sm font-medium transition-colors"
               >
                 {player.lastName} {player.firstName}
                 {#if player.nickName}
-                  <span class="text-indigo-500">({player.nickName})</span>
+                  <span class="opacity-70">({player.nickName})</span>
                 {/if}
               </a>
             {/each}
@@ -254,18 +265,18 @@ $effect(() => {
       {/if}
 
       <!-- Tags Card -->
-      <div class="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
+      <div class="bg-card rounded-lg border border-border p-6 space-y-4">
         <div class="flex items-center justify-between">
-          <h2 class="text-lg font-semibold">タグ</h2>
+          <h2 class="text-lg font-semibold text-foreground">タグ</h2>
           {#if !canEdit}
-            <span class="text-sm text-gray-500">閲覧のみ</span>
+            <span class="text-sm text-muted-foreground">閲覧のみ</span>
           {/if}
         </div>
         
         <!-- Add Tag (only for owner/admin) -->
         {#if canEdit}
           <div>
-            <div class="block text-sm font-medium text-gray-700 mb-2">
+            <div class="block text-sm font-medium text-muted-foreground mb-2">
               タグを追加
             </div>
             <div class="relative">
@@ -274,17 +285,17 @@ $effect(() => {
                 bind:value={tagSearch}
                 disabled={isSavingTags}
                 placeholder="タグ名で検索..."
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50"
+                class="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
               />
               {#if filteredTags.length > 0}
                 <div
-                  class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto"
+                  class="absolute z-10 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-48 overflow-y-auto"
                 >
                   {#each filteredTags as tag}
                     <button
                       onclick={() => addTag(tag)}
                       disabled={isSavingTags}
-                      class="w-full text-left px-4 py-2 hover:bg-gray-50 disabled:opacity-50"
+                      class="w-full text-left px-4 py-2 hover:bg-muted disabled:opacity-50 transition-colors"
                     >
                       {tag.name}
                     </button>
@@ -297,20 +308,20 @@ $effect(() => {
 
         <!-- Current Tags -->
         <div>
-          <div class="block text-sm font-medium text-gray-700 mb-2">
+          <div class="block text-sm font-medium text-muted-foreground mb-2">
             設定済みタグ
           </div>
           {#if user.tags.length > 0}
             <div class="flex flex-wrap gap-2">
               {#each user.tags as tag}
                 <span
-                  class="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-sm"
+                  class="inline-flex items-center gap-1 px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm"
                 >
                   {tag.name}
                   {#if canEdit && !isSavingTags}
                     <button
                       onclick={() => removeTag(tag.id)}
-                      class="hover:bg-indigo-100 rounded-full p-0.5"
+                      class="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
                       aria-label="タグを削除"
                     >
                       <svg
@@ -333,10 +344,11 @@ $effect(() => {
               {/each}
             </div>
           {:else}
-            <p class="text-sm text-gray-500">タグが設定されていません</p>
+            <p class="text-sm text-muted-foreground">タグが設定されていません</p>
           {/if}
         </div>
       </div>
     </div>
   {/if}
 </div>
+

@@ -18,7 +18,7 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 
   if (!accessToken) {
     return {
-      user: null,
+      targetUser: null,
       currentUser: null,
       allTags: [],
       error: "認証が必要です",
@@ -34,11 +34,11 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
       apiGet<CurrentUser>("/users/me", accessToken, { fetch }),
     ]);
 
-    return { user, currentUser, allTags: allTags as TagSimple[] };
+    return { targetUser: user, currentUser, allTags: allTags as TagSimple[] };
   } catch (e) {
     console.error("Failed to load user data:", e);
     return {
-      user: null,
+      targetUser: null,
       currentUser: null,
       allTags: [],
       error: "ユーザー情報の取得に失敗しました",
