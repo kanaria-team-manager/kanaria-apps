@@ -115,6 +115,9 @@ $effect(() => {
   if (data.targetUser) {
     user = data.targetUser;
     editedName = data.targetUser.name;
+  } else {
+    user = null;
+    editedName = "";
   }
   if (data.currentUser) {
     currentUser = data.currentUser;

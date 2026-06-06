@@ -317,7 +317,7 @@ $effect(() => {
                     <div class="flex gap-1">
                       {#each player.tags as tag}
                         <span
-                          class="px-2 py-0.5 text-xs bg-green-100/50 text-green-700 rounded"
+                          class="px-2 py-0.5 text-xs bg-primary/10 text-primary rounded"
                         >
                           {tag.name}
                         </span>
