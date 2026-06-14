@@ -1,4 +1,4 @@
-import { apiGet } from "$lib/api/client";
+import { apiGet } from "$lib/server/api/client";
 import type { PageServerLoad } from "./$types";
 
 interface Place {

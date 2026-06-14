@@ -1,7 +1,7 @@
 import { fail } from "@sveltejs/kit";
-import { apiGet, apiPut } from "$lib/api/client";
-import { fetchTags } from "$lib/api/master";
-import type { Tag } from "$lib/api/types";
+import { apiGet, apiPut } from "$lib/server/api/client";
+import { fetchTags } from "$lib/server/api/master";
+import type { Tag } from "$lib/server/api/types";
 import type { Actions, PageServerLoad } from "./$types";
 
 interface UserTag {

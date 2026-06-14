@@ -1,7 +1,6 @@
 <script lang="ts">
-import { apiGet, apiPost, apiPut, apiDelete } from "$lib/api/client";
-import { fetchLabels } from "$lib/api/master";
 import TagRow from "$lib/components/TagRow.svelte";
+import { invalidateAll } from "$app/navigation";
 
 interface Label {
   id: string;
@@ -20,10 +19,15 @@ interface Tag {
 
 let { data } = $props();
 
-let tags = $state<Tag[]>([]);
-let allLabels = $state<Label[]>([]);
+let tags = $state<Tag[]>(data.tags || []);
+let allLabels = $state<Label[]>(data.allLabels || []);
 let searchQuery = $state("");
-let isLoading = $state(true);
+let isLoading = $state(false);
+
+$effect(() => {
+  if (data.tags) tags = data.tags;
+  if (data.allLabels) allLabels = data.allLabels;
+});
 
 // Preset colors for picker
 const PRESET_COLORS = [
@@ -43,110 +47,68 @@ const filteredTags = $derived(
   ),
 );
 
-async function fetchTags() {
-  if (!data.session?.access_token) return;
-  isLoading = true;
-  try {
-    const res = await apiGet<Tag[]>("/tags", data.session.access_token);
-    tags = res;
-  } catch (e) {
-    console.error("Failed to fetch tags", e);
-  } finally {
-    isLoading = false;
-  }
-}
 
-async function fetchAllLabels() {
-  if (!data.session?.access_token) return;
-  try {
-    const res = await fetchLabels(fetch, data.session.access_token, "tag");
-    allLabels = res;
-  } catch (e) {
-    console.error("Failed to fetch labels", e);
-  }
-}
 
 async function handleAddTag() {
-  if (!data.session?.access_token) return;
   try {
-    const newTag = await apiPost<Tag>(
-      "/tags",
-      {
-        name: "新規タグ",
-        color: "#6366f1",
-      },
-      data.session.access_token,
-    );
-    tags = [newTag, ...tags];
+    const res = await fetch("?/addTag", { method: "POST" });
+    if (res.ok) await invalidateAll();
   } catch (e) {
     console.error("Failed to add tag", e);
   }
 }
 
-async function handleUpdateTag(
-  id: string,
-  updates: { name?: string; color?: string },
-) {
-  if (!data.session?.access_token) return;
+async function handleUpdateTag(id: string, updates: { name?: string; color?: string }) {
   try {
-    await apiPut(`/tags/${id}`, updates, data.session.access_token);
-    tags = tags.map((tag) => (tag.id === id ? { ...tag, ...updates } : tag));
+    const formData = new FormData();
+    formData.append("id", id);
+    if (updates.name) formData.append("name", updates.name);
+    if (updates.color) formData.append("color", updates.color);
+    
+    const res = await fetch("?/updateTag", { method: "POST", body: formData });
+    if (res.ok) await invalidateAll();
   } catch (e) {
     console.error("Failed to update tag", e);
   }
 }
 
 async function handleDeleteTag(id: string) {
-  if (!data.session?.access_token) return;
   if (!confirm("このタグを削除しますか？")) return;
   try {
-    await apiDelete(`/tags/${id}`, data.session.access_token);
-    tags = tags.filter((tag) => tag.id !== id);
+    const formData = new FormData();
+    formData.append("id", id);
+    const res = await fetch("?/deleteTag", { method: "POST", body: formData });
+    if (res.ok) await invalidateAll();
   } catch (e) {
     console.error("Failed to delete tag", e);
   }
 }
 
 async function handleAddLabel(tagId: string, labelId: string) {
-  if (!data.session?.access_token) return;
   try {
-    await apiPost(
-      `/tags/${tagId}/labels/${labelId}`,
-      {},
-      data.session.access_token,
-    );
-    // ローカルステートを更新 - 単一ラベルに設定
-    const label = allLabels.find((l) => l.id === labelId);
-    if (label) {
-      tags = tags.map((tag) => (tag.id === tagId ? { ...tag, label } : tag));
-    }
+    const formData = new FormData();
+    formData.append("tagId", tagId);
+    formData.append("labelId", labelId);
+    const res = await fetch("?/addLabel", { method: "POST", body: formData });
+    if (res.ok) await invalidateAll();
   } catch (e) {
     console.error("Failed to add label", e);
   }
 }
 
 async function handleRemoveLabel(tagId: string, labelId: string) {
-  if (!data.session?.access_token) return;
   try {
-    await apiDelete(
-      `/tags/${tagId}/labels/${labelId}`,
-      data.session.access_token,
-    );
-    // ローカルステートを更新 - ラベルをnullに設定
-    tags = tags.map((tag) =>
-      tag.id === tagId ? { ...tag, label: null } : tag,
-    );
+    const formData = new FormData();
+    formData.append("tagId", tagId);
+    formData.append("labelId", labelId);
+    const res = await fetch("?/removeLabel", { method: "POST", body: formData });
+    if (res.ok) await invalidateAll();
   } catch (e) {
     console.error("Failed to remove label", e);
   }
 }
 
-$effect(() => {
-  if (data.session) {
-    fetchTags();
-    fetchAllLabels();
-  }
-});
+
 </script>
 
 <div class="container mx-auto max-w-6xl px-4 py-8">

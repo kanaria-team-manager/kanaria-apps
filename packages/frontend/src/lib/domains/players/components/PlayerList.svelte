@@ -1,10 +1,7 @@
 <script lang="ts">
-import { apiGet } from "$lib/api/client";
-import { fetchGradeTags } from "$lib/api/master";
 import type { Tag } from "@kanaria/shared";
 import type { UserConfig } from "@kanaria/shared";
 import type { Session } from "@supabase/supabase-js";
-import { onMount } from "svelte";
 import PlayerCard from "./PlayerCard.svelte";
 
 // Types
@@ -26,11 +23,13 @@ let {
   session,
   userConfig,
   initialPagination,
+  gradeTags: initialGradeTags = [],
 }: {
   initialPlayers?: Player[];
   session: Session;
   userConfig?: UserConfig;
   initialPagination?: { page: number; limit: number; total: number; totalPages: number };
+  gradeTags?: Tag[];
 } = $props();
 
 // State
@@ -38,7 +37,7 @@ let players = $state(initialPlayers);
 let searchQuery = $state("");
 let isLoading = $state(false);
 let selectedGrades = $state<string[]>([]); // Empty array means "All"
-let gradeTags = $state<Tag[]>([]);
+let gradeTags = $state<Tag[]>(initialGradeTags);
 let viewMode = $state<ViewMode>(
   (userConfig?.players?.viewMode) ?? 'card'
 );
@@ -74,13 +73,7 @@ function getInitial(p: Player): string {
   return p.lastName.charAt(0);
 }
 
-onMount(async () => {
-    try {
-        gradeTags = await fetchGradeTags(window.fetch, session?.access_token);
-    } catch (e) {
-        console.error("Failed to fetch grade tags", e);
-    }
-});
+
 
 async function fetchPlayers() {
   isLoading = true;
@@ -100,15 +93,13 @@ async function fetchPlayers() {
       }
     }
 
-    const response = await apiGet<{
-      data: Player[];
-      pagination: { page: number; limit: number; total: number; totalPages: number };
-    }>(`/players?${params.toString()}`, session?.access_token);
+    const response = await fetch(`/api/players?${params.toString()}`);
+    const result = await response.json();
 
-    players = response.data;
-    totalPages = response.pagination.totalPages;
-    total = response.pagination.total;
-    currentPage = response.pagination.page;
+    players = result.data;
+    totalPages = result.pagination.totalPages;
+    total = result.pagination.total;
+    currentPage = result.pagination.page;
   } catch (err) {
     console.error("Failed to fetch players", err);
   } finally {

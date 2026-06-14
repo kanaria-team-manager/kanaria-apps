@@ -1,5 +1,5 @@
 import { fail } from "@sveltejs/kit";
-import { apiGet, apiDelete } from "$lib/api/client";
+import { apiGet, apiDelete } from "$lib/server/api/client";
 import type { Actions, PageServerLoad } from "./$types";
 
 interface Place {

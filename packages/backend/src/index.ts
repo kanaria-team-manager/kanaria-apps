@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { cors } from "hono/cors";
+
 import { secureHeaders } from "hono/secure-headers";
 import { dbMiddleware } from "./middleware/db.js";
 import { rateLimitMiddleware } from "./middleware/rate-limiter.js";
@@ -26,7 +26,6 @@ function validateEnv(env: Bindings) {
     "DATABASE_URL",
     "SUPABASE_URL",
     "SUPABASE_SERVICE_ROLE_KEY",
-    "FRONTEND_URL",
   ];
   for (const key of required) {
     if (!env[key]) {
@@ -46,25 +45,6 @@ app.use("*", async (c, next) => {
 // Security headers
 app.use("*", secureHeaders());
 
-// CORS middleware
-app.use(
-  "/*",
-  cors({
-    origin: (origin, c) => {
-      // Allow requests from configured frontend URL
-      const allowed = c.env.FRONTEND_URL
-        ? [c.env.FRONTEND_URL, "http://localhost:5173"]
-        : ["http://localhost:5173"];
-      // Check environment variable
-      return allowed.includes(origin) ? origin : allowed[0];
-    },
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization"],
-    exposeHeaders: ["Content-Length"],
-    maxAge: 600,
-    credentials: true,
-  }),
-);
 
 // Rate limiting for auth endpoints
 app.use("/auth/*", rateLimitMiddleware);

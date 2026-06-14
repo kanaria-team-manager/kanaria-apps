@@ -1,6 +1,6 @@
 import { fail, redirect } from "@sveltejs/kit";
-import { apiGet, apiPut } from "$lib/api/client";
-import { fetchGradeTags } from "$lib/api/master";
+import { apiGet, apiPut } from "$lib/server/api/client";
+import { fetchGradeTags } from "$lib/server/api/master";
 import type { Tag } from "@kanaria/shared";
 import type { Actions, PageServerLoad } from "./$types";
 

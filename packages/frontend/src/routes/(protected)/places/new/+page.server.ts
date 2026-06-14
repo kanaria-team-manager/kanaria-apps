@@ -1,5 +1,5 @@
 import { fail, redirect } from "@sveltejs/kit";
-import { apiPost } from "$lib/api/client";
+import { apiPost } from "$lib/server/api/client";
 import type { Actions } from "./$types";
 
 export const actions: Actions = {

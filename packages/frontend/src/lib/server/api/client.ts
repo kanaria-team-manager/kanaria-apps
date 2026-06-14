@@ -1,4 +1,4 @@
-import { PUBLIC_BACKEND_URL } from "$env/static/public";
+import { BACKEND_URL } from "$env/static/private";
 
 /**
  * 認証付きAPIクライアント
@@ -20,7 +20,7 @@ export async function fetchWithAuth(
   // Remove custom options before passing to fetch
   const { fetch: _, ...fetchOptions } = options;
 
-  return customFetch(`${PUBLIC_BACKEND_URL}${endpoint}`, {
+  return customFetch(`${BACKEND_URL}${endpoint}`, {
     ...fetchOptions,
     headers,
   });

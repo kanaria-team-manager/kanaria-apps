@@ -1,8 +1,9 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import { apiPut } from '$lib/api/client';
+  import { invalidateAll } from '$app/navigation';
+  import { enhance } from '$app/forms';
   import PlaceDisplay from '$lib/components/PlaceDisplay.svelte';
-  import type { AttendanceStatus } from '$lib/api/types';
+  import type { AttendanceStatus, Tag } from '@kanaria/shared';
 
   interface CurrentUser {
     id: string;
@@ -33,14 +34,37 @@
     return `${player.lastName} ${player.firstName}`;
   }
 
+  interface Place {
+    id: string;
+    name: string;
+    description?: string | null;
+    location?: { x: number; y: number } | null;
+  }
+
+  interface EventData {
+    id: string;
+    eventNo: string;
+    title: string;
+    details?: string | null;
+    startDateTime: string;
+    endDateTime: string;
+    ownerId: string;
+    place?: Place | null;
+    placeId?: string | null;
+    label?: { id: string; name: string } | null;
+    owner?: { id: string; name: string } | null;
+    tags: { id: string; name: string }[];
+    attendances?: Attendance[];
+  }
+
   const { data } = $props();
   const eventNo = page.params.eventNo;
 
   // Use data from load function
-  let event = $state<any>(data.event);
-  const currentUser = data.currentUser as CurrentUser | null;
-  const attendanceStatuses = (data.attendanceStatuses || []) as AttendanceStatus[];
-  const error = data.error as string | undefined;
+  let event = $derived(data.event as EventData | null);
+  const currentUser = $derived(data.currentUser as CurrentUser | null);
+  const attendanceStatuses = $derived((data.attendanceStatuses || []) as AttendanceStatus[]);
+  const error = $derived(data.error as string | undefined);
 
   // Check if user can edit status
   const canEditAny = $derived(currentUser?.roleId === 0 || currentUser?.roleId === 1);
@@ -66,30 +90,7 @@
     return att.player.parentUserId === currentUser.id;
   }
 
-  async function updateAttendanceStatus(attendanceId: string, newStatusId: string) {
-    if (!data.session?.access_token) return;
-    try {
-      await apiPut(`/attendances/${attendanceId}`, {
-        attendanceStatusId: newStatusId,
-      }, data.session.access_token);
-      
-      // Update local state
-      if (event?.attendances) {
-        const status = attendanceStatuses.find(s => s.id === newStatusId);
-        event = {
-          ...event,
-          attendances: event.attendances.map((att: Attendance) => 
-            att.id === attendanceId 
-              ? { ...att, attendanceStatusIds: [newStatusId], status: status ? { name: status.name, color: status.color } : att.status }
-              : att
-          ),
-        };
-      }
-    } catch (e) {
-      console.error('Failed to update status:', e);
-      alert('ステータスの更新に失敗しました');
-    }
-  }
+
 </script>
 
 <div class="container mx-auto px-4 py-6 max-w-2xl">
@@ -189,16 +190,32 @@
                 </div>
                 
                 {#if canEditPlayer(att)}
-                  <select
-                    value={att.attendanceStatusIds?.[0] || ''}
-                    onchange={(e) => updateAttendanceStatus(att.id, e.currentTarget.value)}
-                    class="text-sm border rounded-md py-1 px-2 focus:ring-primary focus:border-primary"
-                    style="background-color: {att.status?.color || '#f3f4f6'}20; border-color: {att.status?.color || '#d1d5db'}"
+                  <form
+                    method="POST"
+                    action="?/updateAttendance"
+                    use:enhance={() => {
+                      return async ({ result, update }) => {
+                        if (result.type === 'success') {
+                          await update();
+                        } else {
+                          alert('ステータスの更新に失敗しました');
+                        }
+                      };
+                    }}
                   >
-                    {#each attendanceStatuses as status}
-                      <option value={status.id}>{status.name}</option>
-                    {/each}
-                  </select>
+                    <input type="hidden" name="attendanceId" value={att.id} />
+                    <select
+                      name="attendanceStatusId"
+                      value={att.attendanceStatusIds?.[0] || ''}
+                      onchange={(e) => e.currentTarget.form?.requestSubmit()}
+                      class="text-sm border rounded-md py-1 px-2 focus:ring-primary focus:border-primary"
+                      style="background-color: {att.status?.color || '#f3f4f6'}20; border-color: {att.status?.color || '#d1d5db'}"
+                    >
+                      {#each attendanceStatuses as status}
+                        <option value={status.id}>{status.name}</option>
+                      {/each}
+                    </select>
+                  </form>
                 {:else}
                   <span 
                     class="text-xs px-3 py-1 rounded-full font-medium"

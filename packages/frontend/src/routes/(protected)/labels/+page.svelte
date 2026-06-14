@@ -1,12 +1,16 @@
 <script lang="ts">
-import { apiGet, apiPost, apiPut, apiDelete } from "$lib/api/client";
 import { LABEL_TYPES, LABEL_TYPE_NAMES, type Label, type LabelType } from "@kanaria/shared";
+import { invalidateAll } from "$app/navigation";
 
 let { data } = $props();
 
-let labels = $state<Label[]>([]);
+let labels = $state<Label[]>(data.labels || []);
 let searchQuery = $state("");
-let isLoading = $state(true);
+let isLoading = $state(false);
+
+$effect(() => {
+  if (data.labels) labels = data.labels;
+});
 
 // Editing state for inline editing
 let editingId = $state<string | null>(null);
@@ -30,34 +34,12 @@ const filteredLabels = $derived(
   ),
 );
 
-async function fetchLabels() {
-  if (!data.session?.access_token) return;
-  isLoading = true;
-  try {
-    const res = await apiGet<Label[]>("/labels", data.session.access_token);
-    labels = res;
-  } catch (e) {
-    console.error("Failed to fetch labels", e);
-  } finally {
-    isLoading = false;
-  }
-}
+
 
 async function handleAddLabel() {
-  if (!data.session?.access_token) return;
   try {
-    const newLabel = await apiPost<Label>(
-      "/labels",
-      {
-        name: "新規ラベル",
-        color: "#6366f1",
-        type: "event",
-      },
-      data.session.access_token,
-    );
-    labels = [newLabel, ...labels];
-    // Start editing the new label immediately
-    startEdit(newLabel.id, newLabel.name, newLabel.color, newLabel.type);
+    const res = await fetch("?/addLabel", { method: "POST" });
+    if (res.ok) await invalidateAll();
   } catch (e) {
     console.error("Failed to add label", e);
   }
@@ -78,24 +60,25 @@ function cancelEdit() {
 }
 
 async function saveEdit(id: string) {
-  if (!data.session?.access_token) return;
   if (!editingName.trim()) {
     alert("ラベル名は必須です");
     return;
   }
 
   try {
-    await apiPut(`/labels/${id}`, {
-      name: editingName.trim(),
-      color: editingColor,
-      type: editingType,
-    }, data.session.access_token);
-    labels = labels.map((label) =>
-      label.id === id
-        ? { ...label, name: editingName.trim(), color: editingColor, type: editingType }
-        : label,
-    );
-    cancelEdit();
+    const formData = new FormData();
+    formData.append("id", id);
+    formData.append("name", editingName.trim());
+    formData.append("color", editingColor);
+    formData.append("type", editingType);
+
+    const res = await fetch("?/updateLabel", { method: "POST", body: formData });
+    if (res.ok) {
+      await invalidateAll();
+      cancelEdit();
+    } else {
+      alert("ラベルの更新に失敗しました");
+    }
   } catch (e) {
     console.error("Failed to update label", e);
   }
@@ -106,21 +89,18 @@ async function handleDeleteLabel(id: string, systemFlag: boolean) {
     alert("システムラベルは削除できません");
     return;
   }
-  if (!data.session?.access_token) return;
   if (!confirm("このラベルを削除しますか？")) return;
   try {
-    await apiDelete(`/labels/${id}`, data.session.access_token);
-    labels = labels.filter((label) => label.id !== id);
+    const formData = new FormData();
+    formData.append("id", id);
+    const res = await fetch("?/deleteLabel", { method: "POST", body: formData });
+    if (res.ok) await invalidateAll();
   } catch (e) {
     console.error("Failed to delete label", e);
   }
 }
 
-$effect(() => {
-  if (data.session) {
-    fetchLabels();
-  }
-});
+
 </script>
 
 <div class="container mx-auto max-w-6xl px-4 py-8">

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { apiPut } from "$lib/api/client";
+import { enhance } from "$app/forms";
 import type { UserWithTags, CurrentUser, TagSimple } from "@kanaria/shared";
 
 let { data } = $props();
@@ -50,64 +50,21 @@ function cancelEditName() {
   editedName = user?.name || "";
 }
 
-async function saveName() {
+// Actually, let's use a hidden form for tags to use SvelteKit's enhance properly.
+let tagsForm: HTMLFormElement | undefined = $state();
+let newTagIds = $state<string[]>([]);
+
+function addTag(tag: TagSimple) {
   if (!user || !canEdit) return;
-  if (!editedName.trim()) {
-    alert("名前は必須です");
-    return;
-  }
-
-  isSavingName = true;
-  try {
-    const updated = await apiPut<UserWithTags>(
-      `/users/${user.id}`,
-      { name: editedName },
-      data.session?.access_token
-    );
-
-    user = updated;
-    isEditingName = false;
-  } catch (e) {
-    console.error("Failed to update name", e);
-    alert("名前の更新に失敗しました");
-  } finally {
-    isSavingName = false;
-  }
-}
-
-async function addTag(tag: TagSimple) {
-  if (!user || !canEdit) return;
-
-  const newTagIds = [...user.tags.map((t) => t.id), tag.id];
-  await updateTags(newTagIds);
+  newTagIds = [...user.tags.map((t) => t.id), tag.id];
+  tagsForm?.requestSubmit();
   tagSearch = "";
 }
 
-async function removeTag(tagId: string) {
+function removeTag(tagId: string) {
   if (!user || !canEdit) return;
-
-  const newTagIds = user.tags.filter((t) => t.id !== tagId).map((t) => t.id);
-  await updateTags(newTagIds);
-}
-
-async function updateTags(tagIds: string[]) {
-  if (!user) return;
-
-  isSavingTags = true;
-  try {
-    const updatedTags = await apiPut<TagSimple[]>(
-      `/users/${user.id}/tags`,
-      { tagIds },
-      data.session?.access_token
-    );
-
-    user = { ...user, tags: updatedTags };
-  } catch (e) {
-    console.error("Failed to update tags", e);
-    alert("タグの更新に失敗しました");
-  } finally {
-    isSavingTags = false;
-  }
+  newTagIds = user.tags.filter((t) => t.id !== tagId).map((t) => t.id);
+  tagsForm?.requestSubmit();
 }
 
 // Sync with server data
@@ -183,28 +140,46 @@ $effect(() => {
         <div>
           <div class="block text-sm font-medium text-muted-foreground mb-2">名前</div>
           {#if isEditingName && canEdit}
-            <div class="flex gap-2">
+            <form
+              method="POST"
+              action="?/updateName"
+              use:enhance={() => {
+                isSavingName = true;
+                return async ({ result, update }) => {
+                  isSavingName = false;
+                  if (result.type === 'success') {
+                    isEditingName = false;
+                    await update();
+                  } else if (result.type === 'failure') {
+                    alert(result.data?.error || "名前の更新に失敗しました");
+                  }
+                };
+              }}
+              class="flex gap-2"
+            >
               <input
                 type="text"
+                name="name"
                 bind:value={editedName}
                 disabled={isSavingName}
                 class="flex-1 px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
               />
               <button
-                onclick={saveName}
+                type="submit"
                 disabled={isSavingName}
                 class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors"
               >
                 {isSavingName ? "保存中..." : "保存"}
               </button>
               <button
+                type="button"
                 onclick={cancelEditName}
                 disabled={isSavingName}
                 class="px-4 py-2 border border-border rounded-md hover:bg-muted disabled:opacity-50 transition-colors"
               >
                 キャンセル
               </button>
-            </div>
+            </form>
           {:else}
             <div class="flex items-center justify-between">
               <p class="text-foreground text-lg">{user.name}</p>
@@ -276,6 +251,25 @@ $effect(() => {
         <!-- Add Tag (only for owner/admin) -->
         {#if canEdit}
           <div>
+            <form 
+              bind:this={tagsForm}
+              method="POST" 
+              action="?/updateTags"
+              use:enhance={() => {
+                isSavingTags = true;
+                return async ({ result, update }) => {
+                  isSavingTags = false;
+                  if (result.type === 'success') {
+                    await update();
+                  } else {
+                    alert("タグの更新に失敗しました");
+                  }
+                };
+              }}
+              class="hidden"
+            >
+               <input type="hidden" name="tagIds" value={JSON.stringify(newTagIds)} />
+            </form>
             <div class="block text-sm font-medium text-muted-foreground mb-2">
               タグを追加
             </div>

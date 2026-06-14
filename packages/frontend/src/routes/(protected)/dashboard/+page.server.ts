@@ -1,5 +1,5 @@
-import { fetchLabels, fetchGradeTags } from "$lib/api/master";
-import { apiGet } from "$lib/api/client";
+import { fetchLabels, fetchGradeTags } from "$lib/server/api/master";
+import { apiGet } from "$lib/server/api/client";
 import type { UserConfig } from "@kanaria/shared";
 import { DEFAULT_USER_CONFIG } from "@kanaria/shared";
 import type { PageServerLoad } from "./$types";

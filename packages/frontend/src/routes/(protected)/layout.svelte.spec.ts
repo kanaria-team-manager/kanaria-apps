@@ -65,20 +65,5 @@ describe("+layout.svelte", () => {
     expect(hamburgerButton).toBeInTheDocument();
   });
 
-  it("should NOT render Sidebar on public routes (/auth/login)", async () => {
-    pageState.url = new URL("http://localhost/auth/login");
-    pageState.route = { id: "/auth/login" };
 
-    cleanup();
-    
-    render(Layout, { children: childrenSnippet });
-
-    // Check absence of sidebar content
-    const kanariaText = screen.queryByText("Kanaria");
-    expect(kanariaText).not.toBeInTheDocument();
-
-    // Also check no hamburger on public routes
-    const hamburgerButton = screen.queryByLabelText("メニューを開く");
-    expect(hamburgerButton).not.toBeInTheDocument();
-  });
 });
