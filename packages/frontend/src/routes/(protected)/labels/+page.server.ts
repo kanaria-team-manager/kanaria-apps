@@ -3,7 +3,7 @@ import { apiGet, apiPost, apiPut, apiDelete } from "$lib/server/api/client";
 import type { Actions, PageServerLoad } from "./$types";
 import type { Label } from "@kanaria/shared";
 
-export const load: PageServerLoad = async ({ parent }) => {
+export const load: PageServerLoad = async ({ parent, fetch }) => {
   const { session } = await parent();
 
   if (!session) {

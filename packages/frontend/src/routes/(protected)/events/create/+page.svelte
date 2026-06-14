@@ -110,6 +110,7 @@ async function fetchFilteredPlayers() {
     
     try {
         const response = await fetch(`/api/players?${params.toString()}`);
+        if (!response.ok) throw new Error("Failed to fetch players");
         const result = await response.json();
         allPlayers = result.data;
         
@@ -210,7 +211,9 @@ async function searchPlayers() {
     isSearching = true;
     try {
         const response = await fetch(`/api/players?q=${encodeURIComponent(searchQuery)}`);
-        const results = await response.json();
+        if (!response.ok) throw new Error("Failed to search players");
+        const json = await response.json();
+        const results = json.data || [];
         // Filter out players already in allPlayers
         const existingIds = new Set(allPlayers.map(p => p.id));
         searchResults = results.filter((p: Player) => !existingIds.has(p.id));

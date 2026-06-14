@@ -1,5 +1,5 @@
 import { json } from "@sveltejs/kit";
-import { apiGet } from "$lib/server/api/client";
+import { fetchWithAuth } from "$lib/server/api/client";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ url, locals, fetch }) => {
@@ -10,7 +10,11 @@ export const GET: RequestHandler = async ({ url, locals, fetch }) => {
     // Forward the search parameters
     const queryString = url.searchParams.toString();
     const endpoint = `/players${queryString ? `?${queryString}` : ""}`;
-    const data = await apiGet(endpoint, session.access_token, { fetch });
+    const response = await fetchWithAuth(endpoint, session.access_token, { fetch });
+    if (!response.ok) {
+        return new Response(await response.text(), { status: response.status });
+    }
+    const data = await response.json();
     return json(data);
   } catch (error) {
     console.error("Failed to fetch players in proxy:", error);

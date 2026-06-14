@@ -94,6 +94,7 @@ async function fetchPlayers() {
     }
 
     const response = await fetch(`/api/players?${params.toString()}`);
+    if (!response.ok) throw new Error("Failed to fetch players");
     const result = await response.json();
 
     players = result.data;

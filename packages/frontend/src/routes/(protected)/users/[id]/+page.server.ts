@@ -49,7 +49,7 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
 export const actions = {
   updateName: async ({ request, locals, fetch, params }) => {
     const { session } = await locals.safeGetSession();
-    if (!session) throw redirect(303, "/auth/login");
+    if (!session || !session.access_token) throw redirect(303, "/auth/login");
 
     const data = await request.formData();
     const name = data.get("name")?.toString();
@@ -74,7 +74,7 @@ export const actions = {
   
   updateTags: async ({ request, locals, fetch, params }) => {
     const { session } = await locals.safeGetSession();
-    if (!session) throw redirect(303, "/auth/login");
+    if (!session || !session.access_token) throw redirect(303, "/auth/login");
 
     const data = await request.formData();
     // Assuming tags are passed as a JSON array string
@@ -86,6 +86,9 @@ export const actions = {
 
     try {
       const tagIds = JSON.parse(tagIdsStr);
+      if (!Array.isArray(tagIds) || !tagIds.every(id => typeof id === "string")) {
+        return { success: false, error: "Invalid tags format" };
+      }
       await apiPut(
         `/users/${params.id}/tags`,
         { tagIds },

@@ -1,16 +1,13 @@
 <script lang="ts">
 import { LABEL_TYPES, LABEL_TYPE_NAMES, type Label, type LabelType } from "@kanaria/shared";
 import { invalidateAll } from "$app/navigation";
+import { deserialize } from "$app/forms";
 
 let { data } = $props();
 
-let labels = $state<Label[]>(data.labels || []);
+const labels = $derived(data.labels || []);
 let searchQuery = $state("");
 let isLoading = $state(false);
-
-$effect(() => {
-  if (data.labels) labels = data.labels;
-});
 
 // Editing state for inline editing
 let editingId = $state<string | null>(null);
@@ -39,7 +36,8 @@ const filteredLabels = $derived(
 async function handleAddLabel() {
   try {
     const res = await fetch("?/addLabel", { method: "POST" });
-    if (res.ok) await invalidateAll();
+    const result = deserialize(await res.text());
+    if (result.type === "success") await invalidateAll();
   } catch (e) {
     console.error("Failed to add label", e);
   }
@@ -73,7 +71,8 @@ async function saveEdit(id: string) {
     formData.append("type", editingType);
 
     const res = await fetch("?/updateLabel", { method: "POST", body: formData });
-    if (res.ok) {
+    const result = deserialize(await res.text());
+    if (result.type === "success") {
       await invalidateAll();
       cancelEdit();
     } else {
@@ -94,7 +93,8 @@ async function handleDeleteLabel(id: string, systemFlag: boolean) {
     const formData = new FormData();
     formData.append("id", id);
     const res = await fetch("?/deleteLabel", { method: "POST", body: formData });
-    if (res.ok) await invalidateAll();
+    const result = deserialize(await res.text());
+    if (result.type === "success") await invalidateAll();
   } catch (e) {
     console.error("Failed to delete label", e);
   }

@@ -3,7 +3,7 @@ import { apiGet, apiPost, apiPut, apiDelete } from "$lib/server/api/client";
 import { fetchLabels } from "$lib/server/api/master";
 import type { Actions, PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ parent }) => {
+export const load: PageServerLoad = async ({ parent, fetch }) => {
   const { session } = await parent();
 
   if (!session) {
@@ -56,7 +56,7 @@ export const actions: Actions = {
 
     if (!id) return fail(400, { error: "ID is required" });
 
-    const updates: any = {};
+    const updates: { name?: string; color?: string } = {};
     if (name) updates.name = name;
     if (color) updates.color = color;
 

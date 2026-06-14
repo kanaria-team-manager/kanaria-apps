@@ -1,6 +1,5 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import { invalidateAll } from '$app/navigation';
   import { enhance } from '$app/forms';
   import PlaceDisplay from '$lib/components/PlaceDisplay.svelte';
   import type { AttendanceStatus, Tag } from '@kanaria/shared';

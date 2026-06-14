@@ -81,6 +81,7 @@ async function fetchEvents() {
 
     try {
         const response = await fetch(`/api/events?${params.toString()}`);
+        if (!response.ok) throw new Error("Failed to fetch events");
         const res = await response.json();
         events = res.map((e: any) => ({
             id: e.id,

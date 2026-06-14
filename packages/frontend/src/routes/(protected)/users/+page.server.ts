@@ -27,16 +27,22 @@ export const load: PageServerLoad = async ({ parent }) => {
 
 export const actions: Actions = {
   updateRole: async ({ request, locals, fetch }) => {
-    const { session } = await locals.safeGetSession();
-    if (!session) {
+    const { session, user } = await locals.safeGetSession();
+    if (!session || !user) {
       throw redirect(303, "/auth/login");
+    }
+
+    const currentRoleId = user.app_metadata?.roleId;
+    if (currentRoleId !== 0 && currentRoleId !== 1) {
+      return fail(403, { message: "権限がありません" });
     }
 
     const data = await request.formData();
     const userId = data.get("userId")?.toString();
     const roleId = Number(data.get("roleId"));
 
-    if (!userId || isNaN(roleId)) {
+    // Allowlist permitted roles (0: owner, 1: admin, 2: member, 3: guest)
+    if (!userId || isNaN(roleId) || ![0, 1, 2, 3].includes(roleId)) {
       return fail(400, { message: "Invalid request data" });
     }
 

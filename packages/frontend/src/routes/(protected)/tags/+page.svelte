@@ -1,21 +1,8 @@
 <script lang="ts">
 import TagRow from "$lib/components/TagRow.svelte";
 import { invalidateAll } from "$app/navigation";
-
-interface Label {
-  id: string;
-  name: string;
-  color: string;
-}
-
-interface Tag {
-  id: string;
-  name: string;
-  color: string;
-  teamId: string | null;
-  systemFlag: boolean;
-  label?: Label | null;
-}
+import { deserialize } from "$app/forms";
+import type { Label, Tag } from "@kanaria/shared";
 
 let { data } = $props();
 
@@ -52,7 +39,8 @@ const filteredTags = $derived(
 async function handleAddTag() {
   try {
     const res = await fetch("?/addTag", { method: "POST" });
-    if (res.ok) await invalidateAll();
+    const result = deserialize(await res.text());
+    if (result.type === "success") await invalidateAll();
   } catch (e) {
     console.error("Failed to add tag", e);
   }
@@ -66,7 +54,8 @@ async function handleUpdateTag(id: string, updates: { name?: string; color?: str
     if (updates.color) formData.append("color", updates.color);
     
     const res = await fetch("?/updateTag", { method: "POST", body: formData });
-    if (res.ok) await invalidateAll();
+    const result = deserialize(await res.text());
+    if (result.type === "success") await invalidateAll();
   } catch (e) {
     console.error("Failed to update tag", e);
   }
@@ -78,7 +67,8 @@ async function handleDeleteTag(id: string) {
     const formData = new FormData();
     formData.append("id", id);
     const res = await fetch("?/deleteTag", { method: "POST", body: formData });
-    if (res.ok) await invalidateAll();
+    const result = deserialize(await res.text());
+    if (result.type === "success") await invalidateAll();
   } catch (e) {
     console.error("Failed to delete tag", e);
   }
@@ -90,7 +80,8 @@ async function handleAddLabel(tagId: string, labelId: string) {
     formData.append("tagId", tagId);
     formData.append("labelId", labelId);
     const res = await fetch("?/addLabel", { method: "POST", body: formData });
-    if (res.ok) await invalidateAll();
+    const result = deserialize(await res.text());
+    if (result.type === "success") await invalidateAll();
   } catch (e) {
     console.error("Failed to add label", e);
   }
@@ -102,7 +93,8 @@ async function handleRemoveLabel(tagId: string, labelId: string) {
     formData.append("tagId", tagId);
     formData.append("labelId", labelId);
     const res = await fetch("?/removeLabel", { method: "POST", body: formData });
-    if (res.ok) await invalidateAll();
+    const result = deserialize(await res.text());
+    if (result.type === "success") await invalidateAll();
   } catch (e) {
     console.error("Failed to remove label", e);
   }

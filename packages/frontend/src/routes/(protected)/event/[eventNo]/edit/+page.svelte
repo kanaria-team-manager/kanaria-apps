@@ -163,6 +163,7 @@
       // but for now we fetch it directly from client if it still works,
       // actually we should use fetch(`/api/players?q=...`) to avoid CORS
       const res = await fetch(`/api/players?q=${encodeURIComponent(searchQuery)}`);
+      if (!res.ok) throw new Error("Failed to search players");
       const responseData = await res.json();
       const results = responseData.data as Player[];
       // Filter out players already in list

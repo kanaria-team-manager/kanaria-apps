@@ -27,8 +27,13 @@ export const load: PageServerLoad = async ({ parent }) => {
 
 export const actions: Actions = {
   updateTeam: async ({ request, locals, fetch }) => {
-    const { session } = await locals.safeGetSession();
-    if (!session) throw redirect(303, "/auth/login");
+    const { session, user } = await locals.safeGetSession();
+    if (!session || !user) throw redirect(303, "/auth/login");
+
+    const roleId = user.app_metadata?.roleId;
+    if (roleId !== 0 && roleId !== 1) {
+      return fail(403, { error: "権限がありません" });
+    }
 
     const data = await request.formData();
     const name = data.get("name")?.toString();

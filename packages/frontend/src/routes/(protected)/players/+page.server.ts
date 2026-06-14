@@ -26,7 +26,7 @@ export const load: PageServerLoad = async ({ parent, url }) => {
     const [config, gradeTags, teamUsers] = await Promise.all([
       apiGet<UserConfig>("/users/me/settings", session?.access_token),
       fetchGradeTags(fetch, session?.access_token),
-      fetchUsers(session?.access_token),
+      fetchUsers(fetch, session?.access_token),
     ]);
 
     const limit = config?.players?.itemsPerPage || 50;

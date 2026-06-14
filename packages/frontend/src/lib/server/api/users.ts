@@ -8,6 +8,6 @@ export interface TeamUser {
   roleId: number;
 }
 
-export async function fetchUsers(accessToken: string): Promise<TeamUser[]> {
-  return apiGet<TeamUser[]>("/users", accessToken);
+export async function fetchUsers(fetchFn: typeof globalThis.fetch, accessToken: string | undefined): Promise<TeamUser[]> {
+  return apiGet<TeamUser[]>("/users", accessToken, { fetch: fetchFn });
 }

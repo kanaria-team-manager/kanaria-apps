@@ -5,7 +5,7 @@ import type { RequestHandler } from "./$types";
 export const GET: RequestHandler = async ({ params, fetch }) => {
   try {
     const { code } = params;
-    const response = await fetch(`${BACKEND_URL}/teams/verify/${code}`);
+    const response = await fetch(`${BACKEND_URL}/teams/verify/${encodeURIComponent(code)}`);
 
     if (!response.ok) {
       const errorText = await response.text();

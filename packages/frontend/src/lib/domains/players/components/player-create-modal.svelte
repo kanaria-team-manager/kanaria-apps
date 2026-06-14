@@ -178,6 +178,8 @@ function handleClose() {
                 </select>
                 <p class="mt-1 text-xs text-muted-foreground">オーナー・管理者は保護者を指定できます</p>
               </div>
+            {:else}
+              <input type="hidden" name="parentUserId" value={selectedParentId} />
             {/if}
 
             {#if error}
