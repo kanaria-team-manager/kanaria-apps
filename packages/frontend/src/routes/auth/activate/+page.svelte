@@ -6,8 +6,7 @@ import { supabase } from "$lib/supabase";
 let error = $state("");
 let isActivating = $state(true);
 
-const BACKEND_URL =
-  import.meta.env.PUBLIC_BACKEND_URL || "http://localhost:8787";
+
 
 onMount(() => {
   const {
@@ -15,7 +14,7 @@ onMount(() => {
   } = supabase.auth.onAuthStateChange(async (event, session) => {
     if (event === "SIGNED_IN" && session) {
       try {
-        const response = await fetch(`${BACKEND_URL}/teams/activate`, {
+        const response = await fetch(`/api/teams/activate`, {
           headers: {
             Authorization: `Bearer ${session.access_token}`,
           },

@@ -43,8 +43,6 @@ const eventTypes = $derived(
     : [],
 );
 
-import { apiGet } from "$lib/api/client";
-
 // State - must be declared before labelStats which references it
 let events = $state<any[]>([]);
 
@@ -70,8 +68,6 @@ const getLabelId = (name: string) =>
   labels?.find((l) => l.name === name)?.id || name;
 
 async function fetchEvents() {
-    if (!data.session?.access_token) return;
-    
     // Fetch events from previous month to next month for calendar display
     // Start: first day of previous month
     const start = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
@@ -84,8 +80,10 @@ async function fetchEvents() {
     });
 
     try {
-        const res = await apiGet<any[]>(`/events?${params.toString()}`, data.session.access_token);
-        events = res.map(e => ({
+        const response = await fetch(`/api/events?${params.toString()}`);
+        if (!response.ok) throw new Error("Failed to fetch events");
+        const res = await response.json();
+        events = res.map((e: any) => ({
             id: e.id,
             eventNo: e.eventNo,
             title: e.title,

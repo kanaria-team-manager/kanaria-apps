@@ -1,7 +1,5 @@
 <script lang="ts">
-import { apiGet, apiPut } from "$lib/api/client";
-import { fetchTags } from "$lib/api/master";
-
+import { enhance } from "$app/forms";
 interface Tag {
   id: string;
   name: string;
@@ -26,10 +24,10 @@ interface User {
 
 let { data } = $props();
 
-let users = $state<User[]>([]);
-let allTags = $state<Tag[]>([]);
-let currentUser = $state<User | null>(null);
-let isLoading = $state(true);
+let users = $state<User[]>(data.users || []);
+let allTags = $state<Tag[]>(data.allTags || []);
+let currentUser = $state<User | null>(data.currentUser || null);
+let isLoading = $state(false);
 
 // Filter state
 let selectedTags = $state<string[]>([]);
@@ -74,24 +72,7 @@ const filteredUsers = $derived(
   })
 );
 
-async function fetchUsers() {
-  if (!data.session?.access_token) return;
-  isLoading = true;
-  try {
-    const [usersData, tagsData, currentUserData] = await Promise.all([
-      apiGet<User[]>("/users", data.session.access_token),
-      fetchTags(fetch, data.session.access_token),
-      apiGet<User>("/users/me", data.session.access_token),
-    ]);
-    users = usersData;
-    allTags = tagsData;
-    currentUser = currentUserData;
-  } catch (e) {
-    console.error("Failed to fetch users", e);
-  } finally {
-    isLoading = false;
-  }
-}
+
 
 function toggleUser(userId: string) {
   if (expandedUsers.has(userId)) {
@@ -102,28 +83,7 @@ function toggleUser(userId: string) {
   expandedUsers = new Set(expandedUsers);
 }
 
-async function updateUserRole(userId: string, newRoleId: number) {
-  if (!data.session?.access_token) return;
-  if (!canEdit) return;
 
-  try {
-    await apiPut(
-      `/users/${userId}/role`,
-      { roleId: newRoleId },
-      data.session.access_token
-    );
-
-    // Update local state
-    users = users.map((u) =>
-      u.id === userId ? { ...u, roleId: newRoleId } : u
-    );
-  } catch (e) {
-    console.error("Failed to update role", e);
-    alert("ロール更新に失敗しました");
-    // Refresh to restore correct state
-    await fetchUsers();
-  }
-}
 
 function toggleFilterTag(tagId: string) {
   if (selectedTags.includes(tagId)) {
@@ -139,8 +99,10 @@ function getPlayerName(player: Player): string {
 }
 
 $effect(() => {
-  if (data.session) {
-    fetchUsers();
+  if (data.users) {
+    users = data.users;
+    allTags = data.allTags || [];
+    currentUser = data.currentUser || null;
   }
 });
 </script>
@@ -252,16 +214,34 @@ $effect(() => {
               <!-- Role Selector (only for owner/admin) -->
               <div class="col-span-2">
                 {#if canEdit && user.roleId !== 0}
-                  <select
-                    value={user.roleId}
-                    onchange={(e) =>
-                      updateUserRole(user.id, Number(e.currentTarget.value))}
-                    class="w-full px-3 py-1.5 border border-border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  <form
+                    method="POST"
+                    action="?/updateRole"
+                    use:enhance={() => {
+                      return async ({ result, update }) => {
+                        if (result.type === 'success') {
+                          // Update local state is handled by invalidateAll automatically,
+                          // but since we are copying data into state, we might need to manually update it:
+                          // However, updating state from props is easier using an effect.
+                          await update();
+                        } else {
+                          alert("ロール更新に失敗しました");
+                        }
+                      };
+                    }}
+                    class="w-full"
                   >
-                    <!-- Owner role not selectable -->
-                    <option value={1}>Admin</option>
-                    <option value={2}>User</option>
-                  </select>
+                    <input type="hidden" name="userId" value={user.id} />
+                    <select
+                      name="roleId"
+                      value={user.roleId}
+                      onchange={(e) => e.currentTarget.form?.requestSubmit()}
+                      class="w-full px-3 py-1.5 border border-border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value={1}>Admin</option>
+                      <option value={2}>User</option>
+                    </select>
+                  </form>
                 {:else}
                   <span
                     class="px-2 py-1 text-xs font-medium rounded {user.roleId ===

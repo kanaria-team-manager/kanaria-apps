@@ -1,6 +1,8 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
-import type { Tag, Label } from "$lib/api/types";
+import type { Tag, Label } from "@kanaria/shared";
+
+import { untrack } from 'svelte';
 
 const { data, form } = $props();
 
@@ -8,28 +10,20 @@ const { data, form } = $props();
 let isSubmitting = $state(false);
 
 // Config values with defaults
-let eventsViewMode = $state(data.config?.events?.viewMode || "calendar");
-let eventsFilterGrades = $state<string[]>(
-  data.config?.events?.filterGrades || [],
-);
-let eventsFilterLabelIds = $state<string[]>(
-  data.config?.events?.filterLabelIds || [],
-);
+let eventsViewMode = $state(untrack(() => data.config?.events?.viewMode || "calendar"));
+let eventsFilterGrades = $state<string[]>(untrack(() => data.config?.events?.filterGrades || []));
+let eventsFilterLabelIds = $state<string[]>(untrack(() => data.config?.events?.filterLabelIds || []));
 
-let playersViewMode = $state(data.config?.players?.viewMode || "card");
-let playersItemsPerPage = $state(data.config?.players?.itemsPerPage || 50);
+let playersViewMode = $state(untrack(() => data.config?.players?.viewMode || "card"));
+let playersItemsPerPage = $state(untrack(() => data.config?.players?.itemsPerPage || 50));
 
-let notifFromHour = $state(
-  data.config?.notifications?.emailTimeRange?.fromHour ?? 7,
-);
-let notifToHour = $state(
-  data.config?.notifications?.emailTimeRange?.toHour ?? 20,
-);
+let notifFromHour = $state(untrack(() => data.config?.notifications?.emailTimeRange?.fromHour ?? 7));
+let notifToHour = $state(untrack(() => data.config?.notifications?.emailTimeRange?.toHour ?? 20));
 
 
 // Data from server
-const allTags: Tag[] = data.allTags || [];
-const labels: Label[] = data.labels || [];
+const allTags: Tag[] = $derived(data.allTags || []);
+const labels: Label[] = $derived(data.labels || []);
 
 // Get grade label ID and filter grade tags
 const gradeLabel = $derived(labels.find((l) => l.name === "学年"));
@@ -117,10 +111,11 @@ const hours = Array.from({ length: 24 }, (_, i) => i);
         <div class="space-y-6">
           <!-- Events View Mode -->
           <div class="space-y-2">
-            <label class="block text-sm font-medium text-muted-foreground">
+            <label for="eventsViewMode" class="block text-sm font-medium text-muted-foreground">
               予定 - 表示形式
             </label>
             <select
+              id="eventsViewMode"
               name="eventsViewMode"
               bind:value={eventsViewMode}
               class="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
@@ -132,9 +127,9 @@ const hours = Array.from({ length: 24 }, (_, i) => i);
 
           <!-- Grade Filter -->
           <div class="space-y-2">
-            <label class="block text-sm font-medium text-muted-foreground">
+            <div class="block text-sm font-medium text-muted-foreground">
               予定 - 学年フィルター
-            </label>
+            </div>
             <p class="text-xs text-muted-foreground mb-3">
               選択した学年の予定のみを表示します
             </p>
@@ -164,9 +159,9 @@ const hours = Array.from({ length: 24 }, (_, i) => i);
 
           <!-- Label Filter -->
           <div class="space-y-2">
-            <label class="block text-sm font-medium text-muted-foreground">
+            <div class="block text-sm font-medium text-muted-foreground">
               予定 - 種類フィルター
-            </label>
+            </div>
             <p class="text-xs text-muted-foreground mb-3">
               選択した種類の予定のみを表示します
             </p>
@@ -217,10 +212,11 @@ const hours = Array.from({ length: 24 }, (_, i) => i);
           <div class="border-t border-border pt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
             <!-- Players View Mode -->
             <div class="space-y-2">
-              <label class="block text-sm font-medium text-muted-foreground">
+              <label for="playersViewMode" class="block text-sm font-medium text-muted-foreground">
                 プレイヤー - 表示形式
               </label>
               <select
+                id="playersViewMode"
                 name="playersViewMode"
                 bind:value={playersViewMode}
                 class="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
@@ -232,10 +228,11 @@ const hours = Array.from({ length: 24 }, (_, i) => i);
 
             <!-- Players Items Per Page -->
             <div class="space-y-2">
-              <label class="block text-sm font-medium text-muted-foreground">
+              <label for="playersItemsPerPage" class="block text-sm font-medium text-muted-foreground">
                 プレイヤー - 表示数
               </label>
               <select
+                id="playersItemsPerPage"
                 name="playersItemsPerPage"
                 bind:value={playersItemsPerPage}
                 class="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
@@ -261,15 +258,16 @@ const hours = Array.from({ length: 24 }, (_, i) => i);
         </h2>
 
         <div class="space-y-4">
-          <label class="block text-sm font-medium text-muted-foreground">
+          <div class="block text-sm font-medium text-muted-foreground">
             メールを受け取る時刻設定
-          </label>
+          </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs text-muted-foreground mb-1.5"
+              <label for="notifFromHour" class="block text-xs text-muted-foreground mb-1.5"
                 >開始時刻</label
               >
               <select
+                id="notifFromHour"
                 name="notifFromHour"
                 bind:value={notifFromHour}
                 class="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"
@@ -280,10 +278,11 @@ const hours = Array.from({ length: 24 }, (_, i) => i);
               </select>
             </div>
             <div>
-              <label class="block text-xs text-muted-foreground mb-1.5"
+              <label for="notifToHour" class="block text-xs text-muted-foreground mb-1.5"
                 >終了時刻</label
               >
               <select
+                id="notifToHour"
                 name="notifToHour"
                 bind:value={notifToHour}
                 class="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary"

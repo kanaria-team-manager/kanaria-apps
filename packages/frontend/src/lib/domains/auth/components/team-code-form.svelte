@@ -1,5 +1,5 @@
 <script lang="ts">
-import { PUBLIC_BACKEND_URL } from "$env/static/public";
+
 
 interface Team {
   id: string;
@@ -25,7 +25,7 @@ async function handleSubmit(e: Event) {
 
   try {
     const response = await fetch(
-      `${PUBLIC_BACKEND_URL}/teams/verify/${teamCode}`,
+      `/api/teams/verify/${teamCode}`,
     );
 
     if (response.ok) {

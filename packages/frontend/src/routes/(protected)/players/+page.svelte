@@ -30,7 +30,7 @@ function handleCreated() {
     </button>
   </div>
 
-  <PlayerList initialPlayers={data.players} session={data.session} userConfig={data.config} initialPagination={data.pagination} />
+  <PlayerList initialPlayers={data.players} session={data.session} userConfig={data.config} initialPagination={data.pagination} gradeTags={data.gradeTags} />
 
   <PlayerCreateModal
     isOpen={isCreateModalOpen}
@@ -38,5 +38,7 @@ function handleCreated() {
     onCreated={handleCreated}
     session={data.session}
     user={data.user}
+    tags={data.gradeTags}
+    users={data.teamUsers}
   />
 </div>

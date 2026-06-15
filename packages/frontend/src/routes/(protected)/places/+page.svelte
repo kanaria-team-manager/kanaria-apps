@@ -5,15 +5,10 @@
   const { data, form } = $props();
 
   // Use data from load function
-  let places = $state<any[]>(data.places || []);
-  const error = data.error as string | undefined;
+  let places = $derived(data.places || []);
+  const error = $derived(data.error as string | undefined);
 
-  // Handle successful deletion
-  $effect(() => {
-    if (form?.deleted) {
-      places = places.filter(p => p.id !== form.deleted);
-    }
-  });
+
 </script>
 
 <div class="container mx-auto max-w-6xl px-4 py-8">
@@ -64,13 +59,10 @@
                 <form 
                   method="POST" 
                   action="?/delete" 
-                  use:enhance={() => {
+                  use:enhance={({ cancel }) => {
                     if (!confirm('本当に削除しますか？')) {
-                      return () => {};
+                      cancel();
                     }
-                    return async ({ update }) => {
-                      await update();
-                    };
                   }}
                   onclick={(e) => e.stopPropagation()}
                 >

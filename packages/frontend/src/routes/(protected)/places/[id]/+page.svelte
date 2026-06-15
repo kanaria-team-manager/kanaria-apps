@@ -6,8 +6,8 @@
   const id = page.params.id;
 
   // Use data from load function
-  const place = data.place;
-  const error = data.error as string | undefined;
+  const place = $derived(data.place);
+  const error = $derived(data.error as string | undefined);
   
   // location for MapPicker {x, y}
   const location = $derived.by(() => {

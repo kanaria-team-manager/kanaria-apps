@@ -1,4 +1,4 @@
-import { PUBLIC_BACKEND_URL } from "$env/static/public";
+
 import { supabase } from "$lib/supabase";
 import type { LoginCredentials } from "./types.js";
 
@@ -10,7 +10,7 @@ export async function login(
   credentials: LoginCredentials,
 ): Promise<LoginResponse> {
   // バックエンド経由でログイン（app_metadata.teamIdがJWTに設定される）
-  const res = await fetch(`${PUBLIC_BACKEND_URL}/auth/login`, {
+  const res = await fetch(`/api/auth/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

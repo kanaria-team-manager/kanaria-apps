@@ -1,6 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import type { Tag } from '$lib/api/types';
+  import type { Tag } from '@kanaria/shared';
 
   interface UserTag {
     id: string;

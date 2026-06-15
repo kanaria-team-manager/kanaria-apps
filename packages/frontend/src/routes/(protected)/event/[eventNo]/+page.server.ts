@@ -1,6 +1,7 @@
-import { apiGet } from "$lib/api/client";
-import { fetchAttendanceStatuses } from "$lib/api/master";
-import type { AttendanceStatus } from "$lib/api/types";
+import { apiGet, apiPut } from "$lib/server/api/client";
+import { redirect, fail } from "@sveltejs/kit";
+import { fetchAttendanceStatuses } from "$lib/server/api/master";
+import type { AttendanceStatus } from "$lib/server/api/types";
 import type { PageServerLoad } from "./$types";
 
 interface CurrentUser {
@@ -26,5 +27,33 @@ export const load: PageServerLoad = async ({ fetch, locals, params }) => {
   } catch (e) {
     console.error("Failed to load event:", e);
     return { event: null, currentUser: null, attendanceStatuses: [], error: "イベントの取得に失敗しました" };
+  }
+};
+
+export const actions = {
+  updateAttendance: async ({ request, locals, fetch }) => {
+    const { session } = await locals.safeGetSession();
+    if (!session) throw redirect(303, "/auth/login");
+
+    const data = await request.formData();
+    const attendanceId = data.get("attendanceId")?.toString();
+    const attendanceStatusId = data.get("attendanceStatusId")?.toString();
+
+    if (!attendanceId || !attendanceStatusId) {
+      return fail(400, { error: "Invalid data" });
+    }
+
+    try {
+      await apiPut(
+        `/attendances/${attendanceId}`,
+        { attendanceStatusId },
+        session.access_token,
+        { fetch }
+      );
+      return { success: true };
+    } catch (e) {
+      console.error("Failed to update status", e);
+      return fail(500, { error: "ステータスの更新に失敗しました" });
+    }
   }
 };

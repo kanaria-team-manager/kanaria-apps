@@ -1,11 +1,8 @@
 <script lang="ts">
 import { goto } from "$app/navigation";
 import { page } from "$app/state";
-import { apiGet, apiPost } from "$lib/api/client";
-import { fetchAttendanceStatuses, fetchGradeTags, fetchLabels } from "$lib/api/master";
-import type { AttendanceStatus, Label, Tag } from "$lib/api/types";
-import type { Session, User } from "@supabase/supabase-js";
-import { onMount } from "svelte";
+import type { AttendanceStatus, Label, Tag } from "@kanaria/shared";
+import type { Session } from "@supabase/supabase-js";
 import PlacePicker from '$lib/components/PlacePicker.svelte';
 
 // Types
@@ -44,11 +41,11 @@ let startTime = $state("09:00");
 let durationMinutes = $state(120);
 
 // State - Data
-let labels = $state<Label[]>([]);
-let tags = $state<Tag[]>([]);
-let attendanceStatuses = $state<AttendanceStatus[]>([]);
+let labels = $state<Label[]>(data.labels || []);
+let tags = $state<Tag[]>(data.tags || []);
+let attendanceStatuses = $state<AttendanceStatus[]>(data.attendanceStatuses || []);
+let places = $state<Place[]>(data.places || []);
 let allPlayers = $state<Player[]>([]);
-let places = $state<Place[]>([]);
 
 let selectedTagIds = $state<string[]>([]);
 // Map of playerId -> statusId. Presence in map implies selection.
@@ -97,27 +94,6 @@ const sortedPlayers = $derived.by(() => {
     });
 });
 
-onMount(async () => {
-    if (!session) return;
-    isLoading = true;
-    try {
-        const [l, t, s, p] = await Promise.all([
-            fetchLabels(window.fetch, session.access_token, 'event'),
-            fetchGradeTags(window.fetch, session.access_token),
-            fetchAttendanceStatuses(window.fetch, session.access_token),
-            apiGet<Place[]>('/places', session.access_token),
-        ]);
-        labels = l;
-        tags = t;
-        attendanceStatuses = s;
-        places = p;
-    } catch (e) {
-        console.error(e);
-        error = "Failed to load data";
-    } finally {
-        isLoading = false;
-    }
-});
 
 async function fetchFilteredPlayers() {
     if (selectedTagIds.length === 0) {
@@ -133,17 +109,16 @@ async function fetchFilteredPlayers() {
     }
     
     try {
-        const response = await apiGet<{
-            data: Player[];
-            pagination: { page: number; limit: number; total: number; totalPages: number };
-        }>(`/players?${params.toString()}`, session?.access_token);
-        allPlayers = response.data;
+        const response = await fetch(`/api/players?${params.toString()}`);
+        if (!response.ok) throw new Error("Failed to fetch players");
+        const result = await response.json();
+        allPlayers = result.data;
         
         // Auto-select newly fetched players with default status
         if (defaultStatusId) {
             const newMap = new Map(selectedAttendances);
             let changed = false;
-            for (const p of response.data) {
+            for (const p of result.data) {
                 if (!newMap.has(p.id)) {
                     newMap.set(p.id, defaultStatusId);
                     changed = true;
@@ -235,10 +210,13 @@ async function searchPlayers() {
     
     isSearching = true;
     try {
-        const results = await apiGet<Player[]>(`/players?q=${encodeURIComponent(searchQuery)}`, session?.access_token);
+        const response = await fetch(`/api/players?q=${encodeURIComponent(searchQuery)}`);
+        if (!response.ok) throw new Error("Failed to search players");
+        const json = await response.json();
+        const results = json.data || [];
         // Filter out players already in allPlayers
         const existingIds = new Set(allPlayers.map(p => p.id));
-        searchResults = results.filter(p => !existingIds.has(p.id));
+        searchResults = results.filter((p: Player) => !existingIds.has(p.id));
     } catch (e) {
         console.error("Failed to search players", e);
     } finally {
@@ -283,7 +261,8 @@ async function handleSubmit(e: Event) {
             attendanceStatusId: statusId
         }));
         
-        await apiPost("/events", {
+        const formData = new FormData();
+        formData.append("payload", JSON.stringify({
             title,
             details: description,
             labelId: selectedLabelId,
@@ -292,9 +271,18 @@ async function handleSubmit(e: Event) {
             endDateTime,
             tagIds: selectedTagIds,
             attendances // New payload structure
-        }, session?.access_token);
+        }));
         
-        goto("/dashboard");
+        const res = await fetch("?/createEvent", {
+            method: "POST",
+            body: formData
+        });
+        
+        if (res.ok) {
+            goto("/dashboard");
+        } else {
+            error = "作成に失敗しました";
+        }
     } catch (e) {
         console.error(e);
         error = "作成に失敗しました";

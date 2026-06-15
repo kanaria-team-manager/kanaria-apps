@@ -1,5 +1,5 @@
 <script lang="ts">
-import { PUBLIC_BACKEND_URL } from "$env/static/public";
+
 import { goto } from "$app/navigation";
 import {
   validateEmail,
@@ -65,7 +65,7 @@ async function handleRegister(e: Event) {
     if (!authData.user) throw new Error("ユーザー作成に失敗しました");
 
     // 2. Backend Team Creation
-    const response = await fetch(`${PUBLIC_BACKEND_URL}/teams/create`, {
+    const response = await fetch(`/api/teams/create`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

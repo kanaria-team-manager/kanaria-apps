@@ -1,17 +1,22 @@
 <script lang="ts">
-import { apiPost } from "$lib/api/client";
-import { fetchGradeTags } from "$lib/api/master";
-import { fetchUsers, type TeamUser } from "$lib/api/users";
 import type { Tag } from "@kanaria/shared";
 import type { Session, User } from "@supabase/supabase-js";
-import { onMount } from "svelte";
+import { enhance } from "$app/forms";
 
-let { isOpen, onClose, onCreated, session, user } = $props<{
+let { isOpen, onClose, onCreated, session, user, tags, users } = $props<{
   isOpen: boolean;
   onClose: () => void;
   onCreated: () => void;
   session: Session;
   user: User | null;
+  tags: Tag[];
+  users: Array<{
+    id: string;
+    supabaseUserId: string;
+    name: string;
+    email: string;
+    roleId: number | string;
+  }>;
 }>();
 
 let lastName = $state("");
@@ -19,9 +24,6 @@ let firstName = $state("");
 let nickName = $state("");
 let selectedTagId = $state("");
 let selectedParentId = $state("");
-let tags = $state<Tag[]>([]);
-let users = $state<TeamUser[]>([]);
-let isLoading = $state(false);
 let isSubmitting = $state(false);
 let error = $state("");
 let currentUserRole = $state<number | null>(null);
@@ -32,82 +34,26 @@ const ROLE_ADMIN = 1;
 // Watch for open state
 $effect(() => {
   if (isOpen) {
-    loadData();
-    // Default form reset
     lastName = "";
     firstName = "";
     nickName = "";
     selectedTagId = "";
     error = "";
-    // selectedParentId will be set after loading users
-  }
-});
 
-async function loadData() {
-  isLoading = true;
-  error = "";
-  try {
-    const [tagsData, usersData] = await Promise.all([
-      fetchGradeTags(window.fetch, session.access_token),
-      fetchUsers(session.access_token),
-    ]);
-    tags = tagsData;
-    users = usersData;
-
-    // Find current user role
     const currentUserId = user?.id;
-
     if (currentUserId) {
       const currentUser = users.find(
-        (u) => u.supabaseUserId === currentUserId,
+        (u: { supabaseUserId: string; roleId: string | number; id: string }) => u.supabaseUserId === currentUserId,
       );
       if (currentUser) {
         currentUserRole = Number(currentUser.roleId);
         selectedParentId = currentUser.id; // Default to self
-      } else {
-        console.warn("[Debug] Current user not found in users list");
       }
     }
-  } catch (e) {
-    console.error(e);
-    error = "データの読み込みに失敗しました";
-  } finally {
-    isLoading = false;
   }
-}
+});
 
 
-async function handleSubmit(e: Event) {
-  e.preventDefault();
-  if (!lastName || !firstName || !selectedTagId) {
-    error = "必須項目を入力してください";
-    return;
-  }
-
-  isSubmitting = true;
-  error = "";
-
-  try {
-    await apiPost(
-      "/players",
-      {
-        lastName,
-        firstName,
-        nickName: nickName || undefined,
-        tagId: selectedTagId,
-        parentUserId: selectedParentId,
-      },
-      session.access_token,
-    );
-    onCreated();
-    onClose();
-  } catch (e) {
-    console.error(e);
-    error = "選手作成に失敗しました";
-  } finally {
-    isSubmitting = false;
-  }
-}
 
 function handleClose() {
   if (!isSubmitting) onClose();
@@ -139,17 +85,30 @@ function handleClose() {
 
       <!-- Body -->
       <div class="p-6 overflow-y-auto">
-        {#if isLoading}
-          <div class="flex justify-center py-8">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        {:else}
-          <form onsubmit={handleSubmit} class="space-y-6">
-            <!-- Last Name -->
-            <div>
+        <form 
+          method="POST" 
+          action="?/createPlayer"
+          use:enhance={() => {
+            isSubmitting = true;
+            return async ({ result, update }) => {
+              isSubmitting = false;
+              if (result.type === 'success') {
+                onCreated();
+                onClose();
+              } else if (result.type === 'failure') {
+                error = result.data?.error as string || "作成に失敗しました";
+              }
+              await update();
+            };
+          }}
+          class="space-y-6"
+        >
+          <!-- Last Name -->
+          <div>
               <label for="lastName" class="block text-sm font-medium text-foreground">姓 <span class="text-red-500">*</span></label>
               <input
                 id="lastName"
+                name="lastName"
                 type="text"
                 bind:value={lastName}
                 class="mt-1 block w-full px-3 py-2 border border-input rounded-md shadow-sm bg-background text-foreground focus:ring-primary focus:border-primary sm:text-sm"
@@ -163,6 +122,7 @@ function handleClose() {
               <label for="firstName" class="block text-sm font-medium text-foreground">名 <span class="text-red-500">*</span></label>
               <input
                 id="firstName"
+                name="firstName"
                 type="text"
                 bind:value={firstName}
                 class="mt-1 block w-full px-3 py-2 border border-input rounded-md shadow-sm bg-background text-foreground focus:ring-primary focus:border-primary sm:text-sm"
@@ -176,6 +136,7 @@ function handleClose() {
               <label for="nickName" class="block text-sm font-medium text-foreground">ニックネーム</label>
               <input
                 id="nickName"
+                name="nickName"
                 type="text"
                 bind:value={nickName}
                 class="mt-1 block w-full px-3 py-2 border border-input rounded-md shadow-sm bg-background text-foreground focus:ring-primary focus:border-primary sm:text-sm"
@@ -189,6 +150,7 @@ function handleClose() {
               <label for="grade" class="block text-sm font-medium text-foreground">学年 <span class="text-red-500">*</span></label>
               <select
                 id="grade"
+                name="tagId"
                 bind:value={selectedTagId}
                 class="mt-1 block w-full px-3 py-2 border border-input rounded-md shadow-sm bg-background text-foreground focus:ring-primary focus:border-primary sm:text-sm"
                 required
@@ -206,6 +168,7 @@ function handleClose() {
                 <label for="parent" class="block text-sm font-medium text-foreground">保護者</label>
                 <select
                   id="parent"
+                  name="parentUserId"
                   bind:value={selectedParentId}
                   class="mt-1 block w-full px-3 py-2 border border-input rounded-md shadow-sm bg-background text-foreground focus:ring-primary focus:border-primary sm:text-sm"
                 >
@@ -215,6 +178,8 @@ function handleClose() {
                 </select>
                 <p class="mt-1 text-xs text-muted-foreground">オーナー・管理者は保護者を指定できます</p>
               </div>
+            {:else}
+              <input type="hidden" name="parentUserId" value={selectedParentId} />
             {/if}
 
             {#if error}
@@ -243,7 +208,6 @@ function handleClose() {
               </button>
             </div>
           </form>
-        {/if}
       </div>
     </div>
   </div>

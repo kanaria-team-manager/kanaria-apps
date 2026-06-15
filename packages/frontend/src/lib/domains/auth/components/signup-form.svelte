@@ -1,5 +1,5 @@
 <script lang="ts">
-import { PUBLIC_BACKEND_URL } from "$env/static/public";
+
 import { goto } from "$app/navigation";
 import {
   validateEmail,
@@ -73,7 +73,7 @@ async function handleRegister(e: Event) {
     if (!authData.user) throw new Error("ユーザー作成に失敗しました");
 
     // 2. Backend User Creation (既存チームに参加)
-    const response = await fetch(`${PUBLIC_BACKEND_URL}/auth/signup`, {
+    const response = await fetch(`/api/auth/signup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

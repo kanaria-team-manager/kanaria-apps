@@ -21,7 +21,7 @@ async function handleSubmit(e: Event) {
   try {
     // Check if team code is available (should return 404)
     const response = await fetch(
-      `http://localhost:8787/teams/verify/${teamCode}`,
+      `/api/teams/verify/${teamCode}`,
     );
 
     if (response.status === 404) {

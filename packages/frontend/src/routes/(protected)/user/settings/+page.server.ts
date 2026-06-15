@@ -2,8 +2,8 @@ import { fail } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
 import type { UserConfig } from "@kanaria/shared";
 import { DEFAULT_USER_CONFIG } from "@kanaria/shared";
-import { apiGet, apiPut } from "$lib/api/client";
-import type { Tag, Label } from "$lib/api/types";
+import { apiGet, apiPut } from "$lib/server/api/client";
+import type { Tag, Label } from "$lib/server/api/types";
 
 export const load: PageServerLoad = async ({ fetch, locals }) => {
   const { session } = await locals.safeGetSession();

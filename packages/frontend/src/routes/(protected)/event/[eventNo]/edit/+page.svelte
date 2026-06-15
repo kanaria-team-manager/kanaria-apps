@@ -1,10 +1,9 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { apiGet, apiPut } from '$lib/api/client';
-  import { fetchAttendanceStatuses, fetchGradeTags } from '$lib/api/master';
   import PlacePicker from '$lib/components/PlacePicker.svelte';
-  import type { AttendanceStatus, Tag } from '$lib/api/types';
+  import type { AttendanceStatus, Tag } from '@kanaria/shared';
+  import { enhance } from '$app/forms';
 
   interface CurrentUser {
     id: string;
@@ -18,7 +17,6 @@
     location?: { x: number; y: number } | null;
   }
 
-  // Same as used in create page player search
   interface Player {
     id: string;
     lastName: string;
@@ -54,39 +52,54 @@
     }[];
   }
 
-  const { data } = $props();
+  let { data, form } = $props();
   const eventNo = page.params.eventNo;
 
-  // State
-  let event = $state<EventData | null>(null);
-  let currentUser = $state<CurrentUser | null>(null);
-  let places = $state<Place[]>([]);
-  let gradeTags = $state<Tag[]>([]);
-  let attendanceStatuses = $state<AttendanceStatus[]>([]);
+  // Initialized from load function
+  const event = data.event as EventData;
+  const currentUser = data.currentUser as CurrentUser;
+  const places = data.places as Place[];
+  const gradeTags = data.gradeTags as Tag[];
+  const attendanceStatuses = data.attendanceStatuses as AttendanceStatus[];
   
-  let isLoading = $state(true);
   let isSaving = $state(false);
-  let error = $state<string | null>(null);
+  let formError = $state(form?.error as string | undefined);
 
-  // Form state
-  let title = $state('');
-  let details = $state('');
-  let selectedPlaceId = $state('');
+  // Form state initialized from `event`
+  let title = $state(event?.title || '');
+  let details = $state(event?.details || '');
+  let selectedPlaceId = $state(event?.placeId || event?.place?.id || '');
+  
   let date = $state('');
   let startTime = $state('');
   let durationMinutes = $state(120);
-  let selectedTagIds = $state<string[]>([]);
+  let selectedTagIds = $state<string[]>(event?.tags?.map(t => t.id) || []);
   
   // Attendance Management State
-  // We keep track of the current list of players and their designated status (for new ones)
-  // For existing ones, status is just for display (or if we enable updating in future)
   let currentAttendees = $state<{
     player: Player;
     statusId: string;
     statusName?: string;
     statusColor?: string;
     isOriginal: boolean;
-  }[]>([]);
+  }[]>(
+    event?.attendances?.map((att: NonNullable<EventData['attendances']>[0]) => ({
+      player: att.player,
+      statusId: att.attendanceStatusIds[0] || '',
+      statusName: att.status?.name,
+      statusColor: att.status?.color,
+      isOriginal: true
+    })) || []
+  );
+
+  // Parse start/end dates
+  if (event) {
+    const startDT = new Date(event.startDateTime);
+    const endDT = new Date(event.endDateTime);
+    date = startDT.toISOString().split('T')[0];
+    startTime = startDT.toTimeString().slice(0, 5);
+    durationMinutes = Math.round((endDT.getTime() - startDT.getTime()) / (60 * 1000));
+  }
 
   // Search Modal State
   let isSearchModalOpen = $state(false);
@@ -112,69 +125,11 @@
   // Default status helper
   const defaultStatusId = $derived.by(() => {
     if (attendanceStatuses.length === 0) return "";
-    const waiting = attendanceStatuses.find(s => s.name === "回答待ち");
+    const waiting = attendanceStatuses.find((s: AttendanceStatus) => s.name === "回答待ち");
     if (waiting) return waiting.id;
-    const system = attendanceStatuses.find(s => s.systemFlag);
+    const system = attendanceStatuses.find((s: AttendanceStatus) => s.systemFlag);
     if (system) return system.id;
     return attendanceStatuses[0].id;
-  });
-
-  $effect(() => {
-    if (!data.session?.access_token) return;
-    (async () => {
-      try {
-        const [eventData, userData, placesData, tagsData, statusesData] = await Promise.all([
-          apiGet<EventData>(`/events/${eventNo}`, data.session.access_token),
-          apiGet<CurrentUser>('/users/me', data.session.access_token),
-          apiGet<Place[]>('/places', data.session.access_token),
-          fetchGradeTags(window.fetch, data.session.access_token),
-          fetchAttendanceStatuses(window.fetch, data.session.access_token),
-        ]);
-        event = eventData;
-        currentUser = userData;
-        places = placesData;
-        gradeTags = tagsData;
-        attendanceStatuses = statusesData;
-
-        // Check permission
-        const isOwner = eventData.ownerId === userData.id;
-        const hasRole = userData.roleId === 0 || userData.roleId === 1;
-        if (!isOwner && !hasRole) {
-          goto(`/event/${eventNo}`);
-          return;
-        }
-
-        // Populate form
-        title = eventData.title;
-        details = eventData.details || '';
-        selectedPlaceId = eventData.placeId || eventData.place?.id || '';
-        
-        const startDT = new Date(eventData.startDateTime);
-        const endDT = new Date(eventData.endDateTime);
-        date = startDT.toISOString().split('T')[0];
-        startTime = startDT.toTimeString().slice(0, 5);
-        durationMinutes = Math.round((endDT.getTime() - startDT.getTime()) / (60 * 1000));
-        
-        selectedTagIds = eventData.tags?.map(t => t.id) || [];
-
-        // Populate attendees
-        if (eventData.attendances) {
-          currentAttendees = eventData.attendances.map(att => ({
-            player: att.player,
-            statusId: att.attendanceStatusIds[0] || '',
-            statusName: att.status?.name,
-            statusColor: att.status?.color,
-            isOriginal: true
-          }));
-        }
-
-      } catch (e) {
-        console.error(e);
-        error = 'イベントの取得に失敗しました';
-      } finally {
-        isLoading = false;
-      }
-    })();
   });
 
   function toggleTag(tagId: string) {
@@ -204,10 +159,16 @@
     
     isSearching = true;
     try {
-      const results = await apiGet<Player[]>(`/players?q=${encodeURIComponent(searchQuery)}`, data.session?.access_token);
+      // NOTE: Using a new API proxy for players search could be necessary,
+      // but for now we fetch it directly from client if it still works,
+      // actually we should use fetch(`/api/players?q=...`) to avoid CORS
+      const res = await fetch(`/api/players?q=${encodeURIComponent(searchQuery)}`);
+      if (!res.ok) throw new Error("Failed to search players");
+      const responseData = await res.json();
+      const results = responseData.data as Player[];
       // Filter out players already in list
       const existingIds = new Set(currentAttendees.map(a => a.player.id));
-      searchResults = results.filter(p => !existingIds.has(p.id));
+      searchResults = results.filter((p: Player) => !existingIds.has(p.id));
     } catch (e) {
       console.error("Failed to search players", e);
     } finally {
@@ -245,24 +206,14 @@
     });
   });
 
-  async function handleSubmit(e: Event) {
-    e.preventDefault();
-
-    if (!title.trim() || !date || !startTime) {
-      error = '必須項目を入力してください';
-      return;
-    }
-
-    isSaving = true;
-    error = null;
-
-    try {
+  // Handled by Form Actions
+  let payloadInput = $derived.by(() => {
       const startDateTime = new Date(`${date}T${startTime}`).toISOString();
       const start = new Date(`${date}T${startTime}`);
       const end = new Date(start.getTime() + durationMinutes * 60 * 1000);
       const endDateTime = end.toISOString();
 
-      await apiPut(`/events/${eventNo}`, {
+      return JSON.stringify({
         title: title.trim(),
         details: details.trim() || undefined,
         placeId: selectedPlaceId || null,
@@ -273,16 +224,8 @@
           playerId: a.player.id,
           attendanceStatusId: a.statusId
         }))
-      }, data.session?.access_token);
-
-      goto(`/event/${eventNo}`);
-    } catch (e) {
-      console.error(e);
-      error = '保存に失敗しました';
-    } finally {
-      isSaving = false;
-    }
-  }
+      });
+  });
 
   function handleCancel() {
     goto(`/event/${eventNo}`);
@@ -299,13 +242,9 @@
     </a>
   </div>
 
-  {#if isLoading}
-    <div class="flex justify-center p-8">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-    </div>
-  {:else if error && !event}
+  {#if !event}
     <div class="bg-destructive/10 text-destructive p-4 rounded-lg mb-6">
-      {error}
+      イベントが見つかりません
     </div>
   {:else if event && canEdit}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -319,15 +258,38 @@
         <h1 class="text-xl font-bold text-gray-900">イベントを編集</h1>
       </div>
 
-      <form onsubmit={handleSubmit} class="p-6 space-y-6">
-        {#if error}
+      <form 
+        method="POST"
+        action="?/updateEvent"
+        use:enhance={() => {
+          if (!title.trim() || !date || !startTime) {
+            formError = '必須項目を入力してください';
+            return () => {};
+          }
+          isSaving = true;
+          formError = undefined;
+          return async ({ result, update }) => {
+            isSaving = false;
+            if (result.type === 'success') {
+              goto(`/event/${eventNo}`);
+            } else if (result.type === 'failure') {
+              formError = result.data?.error as string || "保存に失敗しました";
+            }
+            await update({ reset: false });
+          };
+        }}
+        class="p-6 space-y-6"
+      >
+        <input type="hidden" name="payload" value={payloadInput} />
+        
+        {#if formError}
           <div class="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"/>
               <line x1="12" x2="12" y1="8" y2="12"/>
               <line x1="12" x2="12.01" y1="16" y2="16"/>
             </svg>
-            {error}
+            {formError}
           </div>
         {/if}
 
